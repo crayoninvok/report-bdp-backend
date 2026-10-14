@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SuperAdmin
+  User
+}
+
+enum JobSite {
+  MuaraPahu
+  Senyiur
+  HeadOffice
+}
+
+model Users {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  jobSite   JobSite  @default(MuaraPahu)
+  role      UserRole @default(User)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WeeklyReport {
+  id                  String             @id @default(uuid())
+  jobSite             JobSite
+  periodName          String             // e.g. "01-08 Okt 2026"
+  startDate           DateTime
+  endDate             DateTime
+  year                Int
+  weekNumber          Int
+  budgetProduksi      Float              @default(0) // Ton
+  realisasiProduksi   Float              @default(0) // Ton
+  ytdBudgetProduksi   Float?             // Optional exact YTD Produksi Budget
+  ytdRealisasiProduksi Float?            // Optional exact YTD Produksi Realisasi
+  status              String             @default("Draft")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  items               WeeklyReportItem[]
+
+  @@unique([jobSite, year, weekNumber])
+}
+
+model WeeklyReportItem {
+  id               String       @id @default(uuid())
+  reportId         String
+  report           WeeklyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  accountCode      String?      // e.g. "05110101"
+  accountName      String
+  costBehavior     String?      // "VC" or "FC"
+  accountGroup     String?      // "GKD", "SPP", etc.
+  subCategory      String?      // "GAJI", "Salary", "Allowance", etc.
+  isParent         Boolean      @default(false)
+  parentName       String?      // Name of parent summary account
+  orderIndex       Int          @default(0)
+  budgetCost       Float        @default(0) // Input by Head Office (IDR)
+  realisasiCost    Float        @default(0) // Input by Site (IDR)
+  ytdBudgetCost    Float?       // Optional exact YTD Budget Cost
+  ytdRealisasiCost Float?       // Optional exact YTD Realisasi Cost
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([reportId, accountName])
+}
+
+model PLSummaryOps {
+  id                   String             @id @default(uuid())
+  jobSite              JobSite
+  year                 Int
+  month                Int                // 1..12
+  monthLabel           String             // "Jan", "Feb", etc.
+  periodName           String             // "01-31 Jan 2026"
+  budgetProduksi       Float              @default(0)
+  realisasiProduksi    Float              @default(0)
+  achProduksiPercent   Float              @default(0)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  items                PLSummaryOpsItem[]
+
+  @@unique([jobSite, year, month])
+}
+
+model PLSummaryOpsItem {
+  id                  String       @id @default(uuid())
+  summaryId           String
+  summary             PLSummaryOps @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  accountName         String
+  orderIndex          Int          @default(0)
+  budgetCost          Float        @default(0)
+  budgetPercentNS     Float        @default(0)
+  budgetIdrPerTon     Float        @default(0)
+  realisasiCost       Float        @default(0)
+  realisasiPercentNS  Float        @default(0)
+  realisasiIdrPerTon  Float        @default(0)
+  achPercent          Float        @default(0)
+  costUnderOverPerTon Float?
+  costUnderOver       Float?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@unique([summaryId, accountName])
+}
+
