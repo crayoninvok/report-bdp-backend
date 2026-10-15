@@ -118,3 +118,21 @@ model PLSummaryOpsItem {
   @@unique([summaryId, accountName])
 }
 
+model RiverJournal {
+  id              String   @id @default(uuid())
+  externalId      Int?     // Kolom A: ID Spreadsheet
+  date            String   // Kolom B: Tanggal (YYYY-MM-DD)
+  inputTime       String   // Kolom C: Waktu Input (HH:mm)
+  location        String   // Kolom D: Lokasi Pengukuran
+  site            JobSite  // Senyiur atau MuaraPahu
+  waterDepth      Float    // Kolom E: Kedalaman Air Sungai (m)
+  minThreshold    Float    @default(4.0) // Kolom F: Batas Minimum Kedalaman (m)
+  autoDescription String   // Kolom G: Deskripsi otomatis
+  userInput       String   // Kolom H: User yang input
+  conclusion      String   // Kolom I: Kesimpulan Data
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([site, date])
+}
+

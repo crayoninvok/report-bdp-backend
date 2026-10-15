@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -79,7 +79,8 @@ exports.ModelName = {
     WeeklyReport: 'WeeklyReport',
     WeeklyReportItem: 'WeeklyReportItem',
     PLSummaryOps: 'PLSummaryOps',
-    PLSummaryOpsItem: 'PLSummaryOpsItem'
+    PLSummaryOpsItem: 'PLSummaryOpsItem',
+    RiverJournal: 'RiverJournal'
 };
 /*
  * Enums
@@ -165,6 +166,21 @@ exports.PLSummaryOpsItemScalarFieldEnum = {
     achPercent: 'achPercent',
     costUnderOverPerTon: 'costUnderOverPerTon',
     costUnderOver: 'costUnderOver',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.RiverJournalScalarFieldEnum = {
+    id: 'id',
+    externalId: 'externalId',
+    date: 'date',
+    inputTime: 'inputTime',
+    location: 'location',
+    site: 'site',
+    waterDepth: 'waterDepth',
+    minThreshold: 'minThreshold',
+    autoDescription: 'autoDescription',
+    userInput: 'userInput',
+    conclusion: 'conclusion',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

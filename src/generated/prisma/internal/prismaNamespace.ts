@@ -401,7 +401,8 @@ export const ModelName = {
   WeeklyReport: 'WeeklyReport',
   WeeklyReportItem: 'WeeklyReportItem',
   PLSummaryOps: 'PLSummaryOps',
-  PLSummaryOpsItem: 'PLSummaryOpsItem'
+  PLSummaryOpsItem: 'PLSummaryOpsItem',
+  RiverJournal: 'RiverJournal'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -791,6 +792,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RiverJournal: {
+      payload: Prisma.$RiverJournalPayload<ExtArgs>
+      fields: Prisma.RiverJournalFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RiverJournalFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RiverJournalFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>
+        }
+        findFirst: {
+          args: Prisma.RiverJournalFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RiverJournalFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>
+        }
+        findMany: {
+          args: Prisma.RiverJournalFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>[]
+        }
+        create: {
+          args: Prisma.RiverJournalCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>
+        }
+        createMany: {
+          args: Prisma.RiverJournalCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RiverJournalCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>[]
+        }
+        delete: {
+          args: Prisma.RiverJournalDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>
+        }
+        update: {
+          args: Prisma.RiverJournalUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>
+        }
+        deleteMany: {
+          args: Prisma.RiverJournalDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RiverJournalUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RiverJournalUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>[]
+        }
+        upsert: {
+          args: Prisma.RiverJournalUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RiverJournalPayload>
+        }
+        aggregate: {
+          args: Prisma.RiverJournalAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRiverJournal>
+        }
+        groupBy: {
+          args: Prisma.RiverJournalGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RiverJournalGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RiverJournalCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RiverJournalCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -926,6 +1001,25 @@ export const PLSummaryOpsItemScalarFieldEnum = {
 } as const
 
 export type PLSummaryOpsItemScalarFieldEnum = (typeof PLSummaryOpsItemScalarFieldEnum)[keyof typeof PLSummaryOpsItemScalarFieldEnum]
+
+
+export const RiverJournalScalarFieldEnum = {
+  id: 'id',
+  externalId: 'externalId',
+  date: 'date',
+  inputTime: 'inputTime',
+  location: 'location',
+  site: 'site',
+  waterDepth: 'waterDepth',
+  minThreshold: 'minThreshold',
+  autoDescription: 'autoDescription',
+  userInput: 'userInput',
+  conclusion: 'conclusion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RiverJournalScalarFieldEnum = (typeof RiverJournalScalarFieldEnum)[keyof typeof RiverJournalScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1204,6 +1298,7 @@ export type GlobalOmitConfig = {
   weeklyReportItem?: Prisma.WeeklyReportItemOmit
   pLSummaryOps?: Prisma.PLSummaryOpsOmit
   pLSummaryOpsItem?: Prisma.PLSummaryOpsItemOmit
+  riverJournal?: Prisma.RiverJournalOmit
 }
 
 /* Types for Logging */

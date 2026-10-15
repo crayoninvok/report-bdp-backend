@@ -64,3 +64,8 @@ export type PLSummaryOps = Prisma.PLSummaryOpsModel
  * 
  */
 export type PLSummaryOpsItem = Prisma.PLSummaryOpsItemModel
+/**
+ * Model RiverJournal
+ * 
+ */
+export type RiverJournal = Prisma.RiverJournalModel
