@@ -44,6 +44,8 @@ model WeeklyReport {
   weekNumber          Int
   budgetProduksi      Float              @default(0) // Ton
   realisasiProduksi   Float              @default(0) // Ton
+  mtdBudgetProduksi   Float?             // Cumulative MTD from Excel column
+  mtdRealisasiProduksi Float?            // Cumulative MTD from Excel column
   ytdBudgetProduksi   Float?             // Optional exact YTD Produksi Budget
   ytdRealisasiProduksi Float?            // Optional exact YTD Produksi Realisasi
   status              String             @default("Draft")
@@ -68,6 +70,8 @@ model WeeklyReportItem {
   orderIndex       Int          @default(0)
   budgetCost       Float        @default(0) // Input by Head Office (IDR)
   realisasiCost    Float        @default(0) // Input by Site (IDR)
+  mtdBudgetCost    Float?       // Cumulative MTD from Excel column
+  mtdRealisasiCost Float?       // Cumulative MTD from Excel column
   ytdBudgetCost    Float?       // Optional exact YTD Budget Cost
   ytdRealisasiCost Float?       // Optional exact YTD Realisasi Cost
   createdAt        DateTime     @default(now())

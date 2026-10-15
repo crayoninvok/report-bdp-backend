@@ -31,6 +31,8 @@ export type WeeklyReportAvgAggregateOutputType = {
   weekNumber: number | null
   budgetProduksi: number | null
   realisasiProduksi: number | null
+  mtdBudgetProduksi: number | null
+  mtdRealisasiProduksi: number | null
   ytdBudgetProduksi: number | null
   ytdRealisasiProduksi: number | null
 }
@@ -40,6 +42,8 @@ export type WeeklyReportSumAggregateOutputType = {
   weekNumber: number | null
   budgetProduksi: number | null
   realisasiProduksi: number | null
+  mtdBudgetProduksi: number | null
+  mtdRealisasiProduksi: number | null
   ytdBudgetProduksi: number | null
   ytdRealisasiProduksi: number | null
 }
@@ -54,6 +58,8 @@ export type WeeklyReportMinAggregateOutputType = {
   weekNumber: number | null
   budgetProduksi: number | null
   realisasiProduksi: number | null
+  mtdBudgetProduksi: number | null
+  mtdRealisasiProduksi: number | null
   ytdBudgetProduksi: number | null
   ytdRealisasiProduksi: number | null
   status: string | null
@@ -71,6 +77,8 @@ export type WeeklyReportMaxAggregateOutputType = {
   weekNumber: number | null
   budgetProduksi: number | null
   realisasiProduksi: number | null
+  mtdBudgetProduksi: number | null
+  mtdRealisasiProduksi: number | null
   ytdBudgetProduksi: number | null
   ytdRealisasiProduksi: number | null
   status: string | null
@@ -88,6 +96,8 @@ export type WeeklyReportCountAggregateOutputType = {
   weekNumber: number
   budgetProduksi: number
   realisasiProduksi: number
+  mtdBudgetProduksi: number
+  mtdRealisasiProduksi: number
   ytdBudgetProduksi: number
   ytdRealisasiProduksi: number
   status: number
@@ -102,6 +112,8 @@ export type WeeklyReportAvgAggregateInputType = {
   weekNumber?: true
   budgetProduksi?: true
   realisasiProduksi?: true
+  mtdBudgetProduksi?: true
+  mtdRealisasiProduksi?: true
   ytdBudgetProduksi?: true
   ytdRealisasiProduksi?: true
 }
@@ -111,6 +123,8 @@ export type WeeklyReportSumAggregateInputType = {
   weekNumber?: true
   budgetProduksi?: true
   realisasiProduksi?: true
+  mtdBudgetProduksi?: true
+  mtdRealisasiProduksi?: true
   ytdBudgetProduksi?: true
   ytdRealisasiProduksi?: true
 }
@@ -125,6 +139,8 @@ export type WeeklyReportMinAggregateInputType = {
   weekNumber?: true
   budgetProduksi?: true
   realisasiProduksi?: true
+  mtdBudgetProduksi?: true
+  mtdRealisasiProduksi?: true
   ytdBudgetProduksi?: true
   ytdRealisasiProduksi?: true
   status?: true
@@ -142,6 +158,8 @@ export type WeeklyReportMaxAggregateInputType = {
   weekNumber?: true
   budgetProduksi?: true
   realisasiProduksi?: true
+  mtdBudgetProduksi?: true
+  mtdRealisasiProduksi?: true
   ytdBudgetProduksi?: true
   ytdRealisasiProduksi?: true
   status?: true
@@ -159,6 +177,8 @@ export type WeeklyReportCountAggregateInputType = {
   weekNumber?: true
   budgetProduksi?: true
   realisasiProduksi?: true
+  mtdBudgetProduksi?: true
+  mtdRealisasiProduksi?: true
   ytdBudgetProduksi?: true
   ytdRealisasiProduksi?: true
   status?: true
@@ -263,6 +283,8 @@ export type WeeklyReportGroupByOutputType = {
   weekNumber: number
   budgetProduksi: number
   realisasiProduksi: number
+  mtdBudgetProduksi: number | null
+  mtdRealisasiProduksi: number | null
   ytdBudgetProduksi: number | null
   ytdRealisasiProduksi: number | null
   status: string
@@ -303,6 +325,8 @@ export type WeeklyReportWhereInput = {
   weekNumber?: Prisma.IntFilter<"WeeklyReport"> | number
   budgetProduksi?: Prisma.FloatFilter<"WeeklyReport"> | number
   realisasiProduksi?: Prisma.FloatFilter<"WeeklyReport"> | number
+  mtdBudgetProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
+  mtdRealisasiProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
   ytdBudgetProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
   ytdRealisasiProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
   status?: Prisma.StringFilter<"WeeklyReport"> | string
@@ -321,6 +345,8 @@ export type WeeklyReportOrderByWithRelationInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -343,6 +369,8 @@ export type WeeklyReportWhereUniqueInput = Prisma.AtLeast<{
   weekNumber?: Prisma.IntFilter<"WeeklyReport"> | number
   budgetProduksi?: Prisma.FloatFilter<"WeeklyReport"> | number
   realisasiProduksi?: Prisma.FloatFilter<"WeeklyReport"> | number
+  mtdBudgetProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
+  mtdRealisasiProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
   ytdBudgetProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
   ytdRealisasiProduksi?: Prisma.FloatNullableFilter<"WeeklyReport"> | number | null
   status?: Prisma.StringFilter<"WeeklyReport"> | string
@@ -361,6 +389,8 @@ export type WeeklyReportOrderByWithAggregationInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -386,6 +416,8 @@ export type WeeklyReportScalarWhereWithAggregatesInput = {
   weekNumber?: Prisma.IntWithAggregatesFilter<"WeeklyReport"> | number
   budgetProduksi?: Prisma.FloatWithAggregatesFilter<"WeeklyReport"> | number
   realisasiProduksi?: Prisma.FloatWithAggregatesFilter<"WeeklyReport"> | number
+  mtdBudgetProduksi?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReport"> | number | null
+  mtdRealisasiProduksi?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReport"> | number | null
   ytdBudgetProduksi?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReport"> | number | null
   ytdRealisasiProduksi?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReport"> | number | null
   status?: Prisma.StringWithAggregatesFilter<"WeeklyReport"> | string
@@ -403,6 +435,8 @@ export type WeeklyReportCreateInput = {
   weekNumber: number
   budgetProduksi?: number
   realisasiProduksi?: number
+  mtdBudgetProduksi?: number | null
+  mtdRealisasiProduksi?: number | null
   ytdBudgetProduksi?: number | null
   ytdRealisasiProduksi?: number | null
   status?: string
@@ -421,6 +455,8 @@ export type WeeklyReportUncheckedCreateInput = {
   weekNumber: number
   budgetProduksi?: number
   realisasiProduksi?: number
+  mtdBudgetProduksi?: number | null
+  mtdRealisasiProduksi?: number | null
   ytdBudgetProduksi?: number | null
   ytdRealisasiProduksi?: number | null
   status?: string
@@ -439,6 +475,8 @@ export type WeeklyReportUpdateInput = {
   weekNumber?: Prisma.IntFieldUpdateOperationsInput | number
   budgetProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -457,6 +495,8 @@ export type WeeklyReportUncheckedUpdateInput = {
   weekNumber?: Prisma.IntFieldUpdateOperationsInput | number
   budgetProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -475,6 +515,8 @@ export type WeeklyReportCreateManyInput = {
   weekNumber: number
   budgetProduksi?: number
   realisasiProduksi?: number
+  mtdBudgetProduksi?: number | null
+  mtdRealisasiProduksi?: number | null
   ytdBudgetProduksi?: number | null
   ytdRealisasiProduksi?: number | null
   status?: string
@@ -492,6 +534,8 @@ export type WeeklyReportUpdateManyMutationInput = {
   weekNumber?: Prisma.IntFieldUpdateOperationsInput | number
   budgetProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -509,6 +553,8 @@ export type WeeklyReportUncheckedUpdateManyInput = {
   weekNumber?: Prisma.IntFieldUpdateOperationsInput | number
   budgetProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -532,6 +578,8 @@ export type WeeklyReportCountOrderByAggregateInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -544,6 +592,8 @@ export type WeeklyReportAvgOrderByAggregateInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrder
 }
@@ -558,6 +608,8 @@ export type WeeklyReportMaxOrderByAggregateInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -575,6 +627,8 @@ export type WeeklyReportMinOrderByAggregateInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -587,6 +641,8 @@ export type WeeklyReportSumOrderByAggregateInput = {
   weekNumber?: Prisma.SortOrder
   budgetProduksi?: Prisma.SortOrder
   realisasiProduksi?: Prisma.SortOrder
+  mtdBudgetProduksi?: Prisma.SortOrder
+  mtdRealisasiProduksi?: Prisma.SortOrder
   ytdBudgetProduksi?: Prisma.SortOrder
   ytdRealisasiProduksi?: Prisma.SortOrder
 }
@@ -644,6 +700,8 @@ export type WeeklyReportCreateWithoutItemsInput = {
   weekNumber: number
   budgetProduksi?: number
   realisasiProduksi?: number
+  mtdBudgetProduksi?: number | null
+  mtdRealisasiProduksi?: number | null
   ytdBudgetProduksi?: number | null
   ytdRealisasiProduksi?: number | null
   status?: string
@@ -661,6 +719,8 @@ export type WeeklyReportUncheckedCreateWithoutItemsInput = {
   weekNumber: number
   budgetProduksi?: number
   realisasiProduksi?: number
+  mtdBudgetProduksi?: number | null
+  mtdRealisasiProduksi?: number | null
   ytdBudgetProduksi?: number | null
   ytdRealisasiProduksi?: number | null
   status?: string
@@ -694,6 +754,8 @@ export type WeeklyReportUpdateWithoutItemsInput = {
   weekNumber?: Prisma.IntFieldUpdateOperationsInput | number
   budgetProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -711,6 +773,8 @@ export type WeeklyReportUncheckedUpdateWithoutItemsInput = {
   weekNumber?: Prisma.IntFieldUpdateOperationsInput | number
   budgetProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiProduksi?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiProduksi?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -759,6 +823,8 @@ export type WeeklyReportSelect<ExtArgs extends runtime.Types.Extensions.Internal
   weekNumber?: boolean
   budgetProduksi?: boolean
   realisasiProduksi?: boolean
+  mtdBudgetProduksi?: boolean
+  mtdRealisasiProduksi?: boolean
   ytdBudgetProduksi?: boolean
   ytdRealisasiProduksi?: boolean
   status?: boolean
@@ -778,6 +844,8 @@ export type WeeklyReportSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   weekNumber?: boolean
   budgetProduksi?: boolean
   realisasiProduksi?: boolean
+  mtdBudgetProduksi?: boolean
+  mtdRealisasiProduksi?: boolean
   ytdBudgetProduksi?: boolean
   ytdRealisasiProduksi?: boolean
   status?: boolean
@@ -795,6 +863,8 @@ export type WeeklyReportSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   weekNumber?: boolean
   budgetProduksi?: boolean
   realisasiProduksi?: boolean
+  mtdBudgetProduksi?: boolean
+  mtdRealisasiProduksi?: boolean
   ytdBudgetProduksi?: boolean
   ytdRealisasiProduksi?: boolean
   status?: boolean
@@ -812,6 +882,8 @@ export type WeeklyReportSelectScalar = {
   weekNumber?: boolean
   budgetProduksi?: boolean
   realisasiProduksi?: boolean
+  mtdBudgetProduksi?: boolean
+  mtdRealisasiProduksi?: boolean
   ytdBudgetProduksi?: boolean
   ytdRealisasiProduksi?: boolean
   status?: boolean
@@ -819,7 +891,7 @@ export type WeeklyReportSelectScalar = {
   updatedAt?: boolean
 }
 
-export type WeeklyReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "jobSite" | "periodName" | "startDate" | "endDate" | "year" | "weekNumber" | "budgetProduksi" | "realisasiProduksi" | "ytdBudgetProduksi" | "ytdRealisasiProduksi" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["weeklyReport"]>
+export type WeeklyReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "jobSite" | "periodName" | "startDate" | "endDate" | "year" | "weekNumber" | "budgetProduksi" | "realisasiProduksi" | "mtdBudgetProduksi" | "mtdRealisasiProduksi" | "ytdBudgetProduksi" | "ytdRealisasiProduksi" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["weeklyReport"]>
 export type WeeklyReportInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | Prisma.WeeklyReport$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.WeeklyReportCountOutputTypeDefaultArgs<ExtArgs>
@@ -842,6 +914,8 @@ export type $WeeklyReportPayload<ExtArgs extends runtime.Types.Extensions.Intern
     weekNumber: number
     budgetProduksi: number
     realisasiProduksi: number
+    mtdBudgetProduksi: number | null
+    mtdRealisasiProduksi: number | null
     ytdBudgetProduksi: number | null
     ytdRealisasiProduksi: number | null
     status: string
@@ -1280,6 +1354,8 @@ export interface WeeklyReportFieldRefs {
   readonly weekNumber: Prisma.FieldRef<"WeeklyReport", 'Int'>
   readonly budgetProduksi: Prisma.FieldRef<"WeeklyReport", 'Float'>
   readonly realisasiProduksi: Prisma.FieldRef<"WeeklyReport", 'Float'>
+  readonly mtdBudgetProduksi: Prisma.FieldRef<"WeeklyReport", 'Float'>
+  readonly mtdRealisasiProduksi: Prisma.FieldRef<"WeeklyReport", 'Float'>
   readonly ytdBudgetProduksi: Prisma.FieldRef<"WeeklyReport", 'Float'>
   readonly ytdRealisasiProduksi: Prisma.FieldRef<"WeeklyReport", 'Float'>
   readonly status: Prisma.FieldRef<"WeeklyReport", 'String'>

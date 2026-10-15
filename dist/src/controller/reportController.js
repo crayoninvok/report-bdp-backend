@@ -1,0 +1,761 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.commitExcelUpload = exports.previewExcelUpload = exports.deleteReport = exports.getSummaryOps = exports.updateRealisasi = exports.updateBudget = exports.createReport = exports.getReportDetails = exports.getReports = void 0;
+const prisma_1 = require("../lib/prisma");
+const accounts_1 = require("../constants/accounts");
+const excelParser_1 = require("../lib/excelParser");
+const getReports = async (req, res) => {
+    try {
+        const user = req.user;
+        const { jobSite, year } = req.query;
+        const where = {};
+        // Site security rule: Non-HeadOffice users can ONLY access their own site!
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            if (jobSite && typeof jobSite === "string" && jobSite !== user.jobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda tidak memiliki akses ke data Site ${jobSite}. Hak akses Anda hanya untuk Site ${user.jobSite}!`,
+                });
+            }
+            where.jobSite = user.jobSite;
+        }
+        else {
+            if (jobSite && typeof jobSite === "string") {
+                where.jobSite = jobSite;
+            }
+        }
+        if (year) {
+            where.year = parseInt(year, 10);
+        }
+        const reports = await prisma_1.prisma.weeklyReport.findMany({
+            where,
+            orderBy: [{ year: "desc" }, { weekNumber: "desc" }],
+            select: {
+                id: true,
+                jobSite: true,
+                periodName: true,
+                startDate: true,
+                endDate: true,
+                year: true,
+                weekNumber: true,
+                status: true,
+                budgetProduksi: true,
+                realisasiProduksi: true,
+                updatedAt: true,
+            },
+        });
+        res.json({ success: true, data: reports });
+    }
+    catch (error) {
+        console.error("Error fetching reports:", error);
+        res.status(500).json({ success: false, message: "Gagal mengambil daftar laporan" });
+    }
+};
+exports.getReports = getReports;
+const getReportDetails = async (req, res) => {
+    try {
+        const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+        const user = req.user;
+        const report = await prisma_1.prisma.weeklyReport.findUnique({
+            where: { id },
+        });
+        if (!report) {
+            return res.status(404).json({ success: false, message: "Laporan tidak ditemukan" });
+        }
+        // Site security rule: Non-HeadOffice users cannot view reports of other sites
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            if (report.jobSite !== user.jobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda tidak memiliki akses ke data laporan Site ${report.jobSite}. Hak akses Anda hanya untuk Site ${user.jobSite}!`,
+                });
+            }
+        }
+        // Fetch existing items for this report
+        let items = await prisma_1.prisma.weeklyReportItem.findMany({
+            where: { reportId: id },
+            orderBy: { orderIndex: "asc" },
+        });
+        // Ensure all standard accounts exist in current report
+        const defMap = new Map(accounts_1.ACCOUNT_DEFINITIONS.map((d) => [d.name, d]));
+        const existingAccountNames = new Set(items.map((i) => i.accountName));
+        const missingAccounts = accounts_1.STANDARD_ACCOUNTS.filter((acc) => !existingAccountNames.has(acc));
+        if (missingAccounts.length > 0) {
+            const itemsToInsert = missingAccounts.map((acc) => {
+                const def = defMap.get(acc);
+                return {
+                    reportId: report.id,
+                    accountCode: def?.accountCode || null,
+                    accountName: acc,
+                    costBehavior: def?.costBehavior || null,
+                    accountGroup: def?.accountGroup || null,
+                    subCategory: def?.subCategory || null,
+                    isParent: def ? def.isParent : true,
+                    parentName: def?.parentName || null,
+                    orderIndex: accounts_1.STANDARD_ACCOUNTS.indexOf(acc) + 1,
+                    budgetCost: 0,
+                    realisasiCost: 0,
+                };
+            });
+            await prisma_1.prisma.weeklyReportItem.createMany({
+                data: itemsToInsert,
+            });
+            // Re-fetch items after insertions
+            items = await prisma_1.prisma.weeklyReportItem.findMany({
+                where: { reportId: id },
+                orderBy: { orderIndex: "asc" },
+            });
+        }
+        // Fetch all historical weeks for the same site and year up to current weekNumber for accurate YTD
+        const allWeeksYTD = await prisma_1.prisma.weeklyReport.findMany({
+            where: {
+                jobSite: report.jobSite,
+                year: report.year,
+                weekNumber: { lte: report.weekNumber },
+            },
+            orderBy: { weekNumber: "asc" },
+        });
+        const weekIds = allWeeksYTD.map((w) => w.id);
+        const allItemsYTD = await prisma_1.prisma.weeklyReportItem.findMany({
+            where: { reportId: { in: weekIds } },
+        });
+        // 1. Calculate Weekly Totals (only Parent accounts contribute to Total Biaya Produksi to avoid double counting)
+        const weeklyBudgetProduksi = report.budgetProduksi || 0;
+        const weeklyRealisasiProduksi = report.realisasiProduksi || 0;
+        let weeklyTotalBiayaBudget = 0;
+        let weeklyTotalBiayaRealisasi = 0;
+        for (const item of items) {
+            if (accounts_1.PARENT_ACCOUNT_NAMES.has(item.accountName)) {
+                weeklyTotalBiayaBudget += item.budgetCost;
+                weeklyTotalBiayaRealisasi += item.realisasiCost;
+            }
+        }
+        // 2. Calculate YTD Totals
+        let ytdBudgetProduksi = report.ytdBudgetProduksi ?? 0;
+        let ytdRealisasiProduksi = report.ytdRealisasiProduksi ?? 0;
+        if (ytdBudgetProduksi === 0 && ytdRealisasiProduksi === 0) {
+            for (const w of allWeeksYTD) {
+                ytdBudgetProduksi += w.budgetProduksi || 0;
+                ytdRealisasiProduksi += w.realisasiProduksi || 0;
+            }
+        }
+        const ytdAccountBudgetMap = new Map();
+        const ytdAccountRealisasiMap = new Map();
+        const hasExplicitItemYTD = items.some((it) => it.ytdBudgetCost !== null && it.ytdBudgetCost !== undefined);
+        if (hasExplicitItemYTD) {
+            for (const it of items) {
+                ytdAccountBudgetMap.set(it.accountName, it.ytdBudgetCost ?? 0);
+                ytdAccountRealisasiMap.set(it.accountName, it.ytdRealisasiCost ?? 0);
+            }
+        }
+        else {
+            for (const it of allItemsYTD) {
+                ytdAccountBudgetMap.set(it.accountName, (ytdAccountBudgetMap.get(it.accountName) || 0) + it.budgetCost);
+                ytdAccountRealisasiMap.set(it.accountName, (ytdAccountRealisasiMap.get(it.accountName) || 0) + it.realisasiCost);
+            }
+        }
+        let ytdTotalBiayaBudget = 0;
+        let ytdTotalBiayaRealisasi = 0;
+        for (const [accName, val] of ytdAccountBudgetMap) {
+            if (accounts_1.PARENT_ACCOUNT_NAMES.has(accName)) {
+                ytdTotalBiayaBudget += val;
+            }
+        }
+        for (const [accName, val] of ytdAccountRealisasiMap) {
+            if (accounts_1.PARENT_ACCOUNT_NAMES.has(accName)) {
+                ytdTotalBiayaRealisasi += val;
+            }
+        }
+        // 3. Build enriched items with formulas
+        const enrichedItems = items.map((it) => {
+            const def = defMap.get(it.accountName);
+            const isParent = it.isParent ?? def?.isParent ?? true;
+            const parentName = it.parentName || def?.parentName || null;
+            const accountCode = it.accountCode || def?.accountCode || null;
+            const costBehavior = it.costBehavior || def?.costBehavior || null;
+            const accountGroup = it.accountGroup || def?.accountGroup || null;
+            const subCategory = it.subCategory || def?.subCategory || null;
+            // Weekly calculations
+            const weeklyBudget = it.budgetCost;
+            const weeklyPercentTCBudget = weeklyTotalBiayaBudget > 0 ? (weeklyBudget / weeklyTotalBiayaBudget) * 100 : 0;
+            const weeklyIdrPerTonBudget = weeklyBudgetProduksi > 0 ? weeklyBudget / weeklyBudgetProduksi : 0;
+            const weeklyRealisasi = it.realisasiCost;
+            const weeklyPercentTCRealisasi = weeklyTotalBiayaRealisasi > 0
+                ? (weeklyRealisasi / weeklyTotalBiayaRealisasi) * 100
+                : 0;
+            const weeklyIdrPerTonRealisasi = weeklyRealisasiProduksi > 0 ? weeklyRealisasi / weeklyRealisasiProduksi : 0;
+            const weeklyCostUnderOverPerTon = weeklyIdrPerTonBudget - weeklyIdrPerTonRealisasi;
+            const weeklyCostUnderOver = weeklyBudget - weeklyRealisasi;
+            // YTD calculations
+            const ytdBudget = ytdAccountBudgetMap.get(it.accountName) || 0;
+            const ytdPercentTCBudget = ytdTotalBiayaBudget > 0 ? (ytdBudget / ytdTotalBiayaBudget) * 100 : 0;
+            const ytdIdrPerTonBudget = ytdBudgetProduksi > 0 ? ytdBudget / ytdBudgetProduksi : 0;
+            const ytdRealisasi = ytdAccountRealisasiMap.get(it.accountName) || 0;
+            const ytdPercentTCRealisasi = ytdTotalBiayaRealisasi > 0
+                ? (ytdRealisasi / ytdTotalBiayaRealisasi) * 100
+                : 0;
+            const ytdIdrPerTonRealisasi = ytdRealisasiProduksi > 0 ? ytdRealisasi / ytdRealisasiProduksi : 0;
+            const ytdCostUnderOverPerTon = ytdIdrPerTonBudget - ytdIdrPerTonRealisasi;
+            const ytdCostUnderOver = ytdBudget - ytdRealisasi;
+            return {
+                id: it.id,
+                accountCode,
+                accountName: it.accountName,
+                costBehavior,
+                accountGroup,
+                subCategory,
+                orderIndex: it.orderIndex,
+                isParent,
+                parentName,
+                // Weekly
+                weeklyBudget,
+                weeklyPercentTCBudget,
+                weeklyIdrPerTonBudget,
+                weeklyRealisasi,
+                weeklyPercentTCRealisasi,
+                weeklyIdrPerTonRealisasi,
+                weeklyCostUnderOverPerTon,
+                weeklyCostUnderOver,
+                // MTD (Kumulatif Bulan)
+                mtdBudget: it.mtdBudgetCost,
+                mtdRealisasi: it.mtdRealisasiCost,
+                // YTD
+                ytdBudget,
+                ytdPercentTCBudget,
+                ytdIdrPerTonBudget,
+                ytdRealisasi,
+                ytdPercentTCRealisasi,
+                ytdIdrPerTonRealisasi,
+                ytdCostUnderOverPerTon,
+                ytdCostUnderOver,
+            };
+        });
+        // 4. Build Totals for BIAYA PRODUKSI
+        const biayaProduksi = {
+            // Weekly
+            weeklyBudget: weeklyTotalBiayaBudget,
+            weeklyPercentTCBudget: weeklyTotalBiayaBudget > 0 ? 100 : 0,
+            weeklyIdrPerTonBudget: weeklyBudgetProduksi > 0 ? weeklyTotalBiayaBudget / weeklyBudgetProduksi : 0,
+            weeklyRealisasi: weeklyTotalBiayaRealisasi,
+            weeklyPercentTCRealisasi: weeklyTotalBiayaRealisasi > 0 ? 100 : 0,
+            weeklyIdrPerTonRealisasi: weeklyRealisasiProduksi > 0
+                ? weeklyTotalBiayaRealisasi / weeklyRealisasiProduksi
+                : 0,
+            weeklyCostUnderOverPerTon: (weeklyBudgetProduksi > 0 ? weeklyTotalBiayaBudget / weeklyBudgetProduksi : 0) -
+                (weeklyRealisasiProduksi > 0
+                    ? weeklyTotalBiayaRealisasi / weeklyRealisasiProduksi
+                    : 0),
+            weeklyCostUnderOver: weeklyTotalBiayaBudget - weeklyTotalBiayaRealisasi,
+            // MTD
+            mtdBudget: items.filter(it => accounts_1.PARENT_ACCOUNT_NAMES.has(it.accountName)).reduce((sum, it) => sum + (it.mtdBudgetCost ?? 0), 0) || null,
+            mtdRealisasi: items.filter(it => accounts_1.PARENT_ACCOUNT_NAMES.has(it.accountName)).reduce((sum, it) => sum + (it.mtdRealisasiCost ?? 0), 0) || null,
+            // YTD
+            ytdBudget: ytdTotalBiayaBudget,
+            ytdPercentTCBudget: ytdTotalBiayaBudget > 0 ? 100 : 0,
+            ytdIdrPerTonBudget: ytdBudgetProduksi > 0 ? ytdTotalBiayaBudget / ytdBudgetProduksi : 0,
+            ytdRealisasi: ytdTotalBiayaRealisasi,
+            ytdPercentTCRealisasi: ytdTotalBiayaRealisasi > 0 ? 100 : 0,
+            ytdIdrPerTonRealisasi: ytdRealisasiProduksi > 0 ? ytdTotalBiayaRealisasi / ytdRealisasiProduksi : 0,
+            ytdCostUnderOverPerTon: (ytdBudgetProduksi > 0 ? ytdTotalBiayaBudget / ytdBudgetProduksi : 0) -
+                (ytdRealisasiProduksi > 0 ? ytdTotalBiayaRealisasi / ytdRealisasiProduksi : 0),
+            ytdCostUnderOver: ytdTotalBiayaBudget - ytdTotalBiayaRealisasi,
+        };
+        // 5. Build PRODUKSI row
+        const produksi = {
+            weeklyBudget: weeklyBudgetProduksi,
+            weeklyRealisasi: weeklyRealisasiProduksi,
+            weeklyVariance: weeklyBudgetProduksi - weeklyRealisasiProduksi,
+            weeklyPercent: weeklyBudgetProduksi > 0
+                ? (weeklyRealisasiProduksi / weeklyBudgetProduksi) * 100
+                : 0,
+            mtdBudget: report.mtdBudgetProduksi,
+            mtdRealisasi: report.mtdRealisasiProduksi,
+            ytdBudget: ytdBudgetProduksi,
+            ytdRealisasi: ytdRealisasiProduksi,
+            ytdVariance: ytdBudgetProduksi - ytdRealisasiProduksi,
+            ytdPercent: ytdBudgetProduksi > 0 ? (ytdRealisasiProduksi / ytdBudgetProduksi) * 100 : 0,
+        };
+        res.json({
+            success: true,
+            data: {
+                report: {
+                    id: report.id,
+                    jobSite: report.jobSite,
+                    periodName: report.periodName,
+                    startDate: report.startDate,
+                    endDate: report.endDate,
+                    year: report.year,
+                    weekNumber: report.weekNumber,
+                    mtdBudgetProduksi: report.mtdBudgetProduksi,
+                    mtdRealisasiProduksi: report.mtdRealisasiProduksi,
+                    status: report.status,
+                    updatedAt: report.updatedAt,
+                },
+                produksi,
+                biayaProduksi,
+                items: enrichedItems,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error fetching report details:", error);
+        res.status(500).json({ success: false, message: "Gagal memproses detail laporan" });
+    }
+};
+exports.getReportDetails = getReportDetails;
+const createReport = async (req, res) => {
+    try {
+        const user = req.user;
+        const { jobSite, periodName, startDate, endDate, year, weekNumber } = req.body;
+        if (!jobSite || !periodName || !startDate || !endDate || !year || !weekNumber) {
+            return res.status(400).json({ success: false, message: "Semua kolom wajib diisi" });
+        }
+        // Site security rule: Site users can only create reports for their own site
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            if (jobSite !== user.jobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda hanya diizinkan membuat laporan untuk Site ${user.jobSite}!`,
+                });
+            }
+        }
+        const existing = await prisma_1.prisma.weeklyReport.findUnique({
+            where: {
+                jobSite_year_weekNumber: {
+                    jobSite: jobSite,
+                    year: parseInt(year, 10),
+                    weekNumber: parseInt(weekNumber, 10),
+                },
+            },
+        });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: `Laporan untuk ${jobSite} Minggu ${weekNumber} Tahun ${year} sudah ada!`,
+            });
+        }
+        const report = await prisma_1.prisma.weeklyReport.create({
+            data: {
+                jobSite: jobSite,
+                periodName,
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
+                year: parseInt(year, 10),
+                weekNumber: parseInt(weekNumber, 10),
+                budgetProduksi: 0,
+                realisasiProduksi: 0,
+                status: "Active",
+            },
+        });
+        // Create all 86 standard account items automatically
+        const itemsToCreate = accounts_1.ACCOUNT_DEFINITIONS.map((def, idx) => ({
+            reportId: report.id,
+            accountCode: def.accountCode,
+            accountName: def.name,
+            costBehavior: def.costBehavior,
+            accountGroup: def.accountGroup,
+            subCategory: def.subCategory,
+            isParent: def.isParent,
+            parentName: def.parentName,
+            orderIndex: idx + 1,
+            budgetCost: 0,
+            realisasiCost: 0,
+        }));
+        await prisma_1.prisma.weeklyReportItem.createMany({
+            data: itemsToCreate,
+        });
+        res.status(201).json({
+            success: true,
+            message: "Periode laporan baru berhasil dibuat dengan 86 akun standar",
+            data: report,
+        });
+    }
+    catch (error) {
+        console.error("Error creating report:", error);
+        res.status(500).json({ success: false, message: "Gagal membuat periode laporan baru" });
+    }
+};
+exports.createReport = createReport;
+const updateBudget = async (req, res) => {
+    try {
+        const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+        const user = req.user;
+        const { userRole, userJobSite, budgetProduksi, items } = req.body;
+        const effectiveRole = user?.role || userRole;
+        const effectiveJobSite = user?.jobSite || userJobSite;
+        const report = await prisma_1.prisma.weeklyReport.findUnique({ where: { id } });
+        if (!report) {
+            return res.status(404).json({ success: false, message: "Laporan tidak ditemukan" });
+        }
+        // RULE: Site user can update budget for their own site. Head Office / SuperAdmin can update both sites.
+        if (effectiveRole !== "SuperAdmin" && effectiveJobSite !== "HeadOffice") {
+            if (report.jobSite !== effectiveJobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda hanya dapat menginput Budget untuk site ${effectiveJobSite}!`,
+                });
+            }
+        }
+        // Update weekly production budget
+        await prisma_1.prisma.weeklyReport.update({
+            where: { id },
+            data: {
+                budgetProduksi: typeof budgetProduksi === "number" ? budgetProduksi : 0,
+            },
+        });
+        // Update account budget items
+        if (Array.isArray(items)) {
+            const defMap = new Map(accounts_1.ACCOUNT_DEFINITIONS.map((d) => [d.name, d]));
+            for (const item of items) {
+                if (item.accountName) {
+                    const def = defMap.get(item.accountName);
+                    await prisma_1.prisma.weeklyReportItem.upsert({
+                        where: {
+                            reportId_accountName: {
+                                reportId: id,
+                                accountName: item.accountName,
+                            },
+                        },
+                        update: {
+                            budgetCost: typeof item.budgetCost === "number" ? item.budgetCost : 0,
+                        },
+                        create: {
+                            reportId: id,
+                            accountCode: def?.accountCode || null,
+                            accountName: item.accountName,
+                            costBehavior: def?.costBehavior || null,
+                            accountGroup: def?.accountGroup || null,
+                            subCategory: def?.subCategory || null,
+                            isParent: def ? def.isParent : true,
+                            parentName: def?.parentName || null,
+                            budgetCost: typeof item.budgetCost === "number" ? item.budgetCost : 0,
+                            realisasiCost: 0,
+                            orderIndex: accounts_1.STANDARD_ACCOUNTS.indexOf(item.accountName) + 1 || 99,
+                        },
+                    });
+                }
+            }
+        }
+        res.json({ success: true, message: "Data Budget berhasil diperbarui" });
+    }
+    catch (error) {
+        console.error("Error updating budget:", error);
+        res.status(500).json({ success: false, message: "Gagal memperbarui data Budget" });
+    }
+};
+exports.updateBudget = updateBudget;
+const updateRealisasi = async (req, res) => {
+    try {
+        const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+        const user = req.user;
+        const { userRole, userJobSite, realisasiProduksi, items } = req.body;
+        const effectiveRole = user?.role || userRole;
+        const effectiveJobSite = user?.jobSite || userJobSite;
+        const report = await prisma_1.prisma.weeklyReport.findUnique({ where: { id } });
+        if (!report) {
+            return res.status(404).json({ success: false, message: "Laporan tidak ditemukan" });
+        }
+        // RULE: Site user can only update their own site realisasi (HeadOffice/SuperAdmin can also update if needed)
+        if (effectiveRole !== "SuperAdmin" && effectiveJobSite !== "HeadOffice") {
+            if (report.jobSite !== effectiveJobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda hanya dapat menginput Realisasi untuk site ${effectiveJobSite}!`,
+                });
+            }
+        }
+        // Update weekly production realisasi
+        await prisma_1.prisma.weeklyReport.update({
+            where: { id },
+            data: {
+                realisasiProduksi: typeof realisasiProduksi === "number" ? realisasiProduksi : 0,
+            },
+        });
+        // Update account realisasi items
+        if (Array.isArray(items)) {
+            const defMap = new Map(accounts_1.ACCOUNT_DEFINITIONS.map((d) => [d.name, d]));
+            for (const item of items) {
+                if (item.accountName) {
+                    const def = defMap.get(item.accountName);
+                    await prisma_1.prisma.weeklyReportItem.upsert({
+                        where: {
+                            reportId_accountName: {
+                                reportId: id,
+                                accountName: item.accountName,
+                            },
+                        },
+                        update: {
+                            realisasiCost: typeof item.realisasiCost === "number" ? item.realisasiCost : 0,
+                        },
+                        create: {
+                            reportId: id,
+                            accountCode: def?.accountCode || null,
+                            accountName: item.accountName,
+                            costBehavior: def?.costBehavior || null,
+                            accountGroup: def?.accountGroup || null,
+                            subCategory: def?.subCategory || null,
+                            isParent: def ? def.isParent : true,
+                            parentName: def?.parentName || null,
+                            realisasiCost: typeof item.realisasiCost === "number" ? item.realisasiCost : 0,
+                            budgetCost: 0,
+                            orderIndex: accounts_1.STANDARD_ACCOUNTS.indexOf(item.accountName) + 1 || 99,
+                        },
+                    });
+                }
+            }
+        }
+        res.json({
+            success: true,
+            message: `Data Realisasi berhasil diperbarui untuk Site ${report.jobSite}`,
+        });
+    }
+    catch (error) {
+        console.error("Error updating realisasi:", error);
+        res.status(500).json({ success: false, message: "Gagal memperbarui data Realisasi" });
+    }
+};
+exports.updateRealisasi = updateRealisasi;
+const getSummaryOps = async (req, res) => {
+    try {
+        const user = req.user;
+        const { jobSite, year } = req.query;
+        const where = {};
+        // Site security rule: Non-HeadOffice users can ONLY access summary data of their own site!
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            if (jobSite && typeof jobSite === "string" && jobSite !== user.jobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda tidak memiliki akses ke summary data Site ${jobSite}. Hak akses Anda hanya untuk Site ${user.jobSite}!`,
+                });
+            }
+            where.jobSite = user.jobSite;
+        }
+        else {
+            if (jobSite && typeof jobSite === "string") {
+                where.jobSite = jobSite;
+            }
+        }
+        if (year) {
+            where.year = parseInt(year, 10);
+        }
+        const summaries = await prisma_1.prisma.pLSummaryOps.findMany({
+            where,
+            orderBy: [{ year: "asc" }, { month: "asc" }],
+            include: {
+                items: {
+                    orderBy: { orderIndex: "asc" },
+                },
+            },
+        });
+        res.json({ success: true, data: summaries });
+    }
+    catch (error) {
+        console.error("Error fetching summary ops:", error);
+        res.status(500).json({ success: false, message: "Gagal mengambil data summary ops" });
+    }
+};
+exports.getSummaryOps = getSummaryOps;
+const deleteReport = async (req, res) => {
+    try {
+        const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+        const user = req.user;
+        // RULE: Only SuperAdmin can delete reports!
+        if (user?.role !== "SuperAdmin") {
+            return res.status(403).json({
+                success: false,
+                message: "Akses Ditolak: Hanya Super Admin yang memiliki wewenang untuk menghapus laporan!",
+            });
+        }
+        const report = await prisma_1.prisma.weeklyReport.findUnique({ where: { id } });
+        if (!report) {
+            return res.status(404).json({ success: false, message: "Laporan tidak ditemukan" });
+        }
+        await prisma_1.prisma.weeklyReport.delete({ where: { id } });
+        res.json({
+            success: true,
+            message: `Laporan periode ${report.periodName} (${report.jobSite}) berhasil dihapus.`,
+        });
+    }
+    catch (error) {
+        console.error("Error deleting report:", error);
+        res.status(500).json({ success: false, message: "Gagal menghapus laporan" });
+    }
+};
+exports.deleteReport = deleteReport;
+const previewExcelUpload = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "File Excel (.xlsx) wajib diunggah",
+            });
+        }
+        let targetJobSite = undefined;
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            targetJobSite = user.jobSite;
+        }
+        else if (req.body.targetJobSite) {
+            targetJobSite = req.body.targetJobSite;
+        }
+        const result = await (0, excelParser_1.parseExcelReport)(req.file.buffer, req.file.originalname, targetJobSite);
+        res.json({
+            success: true,
+            data: result,
+        });
+    }
+    catch (error) {
+        console.error("Error previewing excel upload:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Gagal memproses dan menganalisis file Excel",
+        });
+    }
+};
+exports.previewExcelUpload = previewExcelUpload;
+const commitExcelUpload = async (req, res) => {
+    try {
+        const user = req.user;
+        let reportsToCommit = [];
+        if (req.file) {
+            let targetJobSite = undefined;
+            if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+                targetJobSite = user.jobSite;
+            }
+            else if (req.body.targetJobSite) {
+                targetJobSite = req.body.targetJobSite;
+            }
+            const parseResult = await (0, excelParser_1.parseExcelReport)(req.file.buffer, req.file.originalname, targetJobSite);
+            let periodsFilter = null;
+            if (req.body.periodsToImport) {
+                try {
+                    periodsFilter = JSON.parse(req.body.periodsToImport);
+                }
+                catch {
+                    periodsFilter = Array.isArray(req.body.periodsToImport)
+                        ? req.body.periodsToImport
+                        : [req.body.periodsToImport];
+                }
+            }
+            if (periodsFilter && periodsFilter.length > 0) {
+                const filterSet = new Set(periodsFilter.map((p) => p.trim().toLowerCase()));
+                reportsToCommit = parseResult.reports.filter((r) => filterSet.has(r.periodName.trim().toLowerCase()));
+            }
+            else {
+                reportsToCommit = parseResult.reports;
+            }
+        }
+        else if (req.body.reports && Array.isArray(req.body.reports)) {
+            reportsToCommit = req.body.reports;
+        }
+        else {
+            return res.status(400).json({
+                success: false,
+                message: "Tidak ada data laporan yang valid untuk disimpan",
+            });
+        }
+        if (reportsToCommit.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Tidak ada periode yang dipilih untuk diimpor",
+            });
+        }
+        // Site security validation
+        for (const rep of reportsToCommit) {
+            if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+                if (rep.jobSite !== user.jobSite) {
+                    return res.status(403).json({
+                        success: false,
+                        message: `Akses Ditolak: Anda hanya memiliki akses untuk mengimpor Site ${user.jobSite}!`,
+                    });
+                }
+            }
+        }
+        const savedReports = [];
+        for (const rep of reportsToCommit) {
+            const saved = await prisma_1.prisma.weeklyReport.upsert({
+                where: {
+                    jobSite_year_weekNumber: {
+                        jobSite: rep.jobSite,
+                        year: rep.year,
+                        weekNumber: rep.weekNumber,
+                    },
+                },
+                update: {
+                    periodName: rep.periodName,
+                    startDate: new Date(rep.startDate),
+                    endDate: new Date(rep.endDate),
+                    budgetProduksi: rep.produksi.weeklyBudget,
+                    realisasiProduksi: rep.produksi.weeklyRealisasi,
+                    mtdBudgetProduksi: rep.produksi.rawBudget,
+                    mtdRealisasiProduksi: rep.produksi.rawRealisasi,
+                    ytdBudgetProduksi: rep.produksi.ytdBudget,
+                    ytdRealisasiProduksi: rep.produksi.ytdRealisasi,
+                    status: "Final",
+                },
+                create: {
+                    jobSite: rep.jobSite,
+                    periodName: rep.periodName,
+                    startDate: new Date(rep.startDate),
+                    endDate: new Date(rep.endDate),
+                    year: rep.year,
+                    weekNumber: rep.weekNumber,
+                    budgetProduksi: rep.produksi.weeklyBudget,
+                    realisasiProduksi: rep.produksi.weeklyRealisasi,
+                    mtdBudgetProduksi: rep.produksi.rawBudget,
+                    mtdRealisasiProduksi: rep.produksi.rawRealisasi,
+                    ytdBudgetProduksi: rep.produksi.ytdBudget,
+                    ytdRealisasiProduksi: rep.produksi.ytdRealisasi,
+                    status: "Final",
+                },
+            });
+            // Batch recreate items for ultra-fast saving (2 queries instead of 86 serial roundtrips)
+            await prisma_1.prisma.weeklyReportItem.deleteMany({
+                where: { reportId: saved.id },
+            });
+            const itemsToCreate = rep.items.map((it) => ({
+                reportId: saved.id,
+                accountName: it.accountName,
+                accountCode: it.accountCode,
+                costBehavior: it.costBehavior,
+                accountGroup: it.accountGroup,
+                subCategory: it.subCategory,
+                isParent: it.isParent,
+                parentName: it.parentName,
+                orderIndex: it.orderIndex,
+                budgetCost: it.weeklyBudgetCost,
+                realisasiCost: it.weeklyRealisasiCost,
+                mtdBudgetCost: it.rawBudgetCost,
+                mtdRealisasiCost: it.rawRealisasiCost,
+                ytdBudgetCost: it.ytdBudgetCost,
+                ytdRealisasiCost: it.ytdRealisasiCost,
+            }));
+            await prisma_1.prisma.weeklyReportItem.createMany({
+                data: itemsToCreate,
+            });
+            savedReports.push({
+                id: saved.id,
+                jobSite: saved.jobSite,
+                periodName: saved.periodName,
+                weekNumber: saved.weekNumber,
+                weeklyProduksi: {
+                    budget: saved.budgetProduksi,
+                    realisasi: saved.realisasiProduksi,
+                },
+            });
+        }
+        res.json({
+            success: true,
+            message: `Berhasil mengimpor dan memperbarui ${savedReports.length} periode laporan mingguan ke database.`,
+            importedReports: savedReports,
+        });
+    }
+    catch (error) {
+        console.error("Error committing excel upload:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Gagal menyimpan data laporan ke database",
+        });
+    }
+};
+exports.commitExcelUpload = commitExcelUpload;

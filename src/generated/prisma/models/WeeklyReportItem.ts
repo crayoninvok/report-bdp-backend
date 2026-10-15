@@ -30,6 +30,8 @@ export type WeeklyReportItemAvgAggregateOutputType = {
   orderIndex: number | null
   budgetCost: number | null
   realisasiCost: number | null
+  mtdBudgetCost: number | null
+  mtdRealisasiCost: number | null
   ytdBudgetCost: number | null
   ytdRealisasiCost: number | null
 }
@@ -38,6 +40,8 @@ export type WeeklyReportItemSumAggregateOutputType = {
   orderIndex: number | null
   budgetCost: number | null
   realisasiCost: number | null
+  mtdBudgetCost: number | null
+  mtdRealisasiCost: number | null
   ytdBudgetCost: number | null
   ytdRealisasiCost: number | null
 }
@@ -55,6 +59,8 @@ export type WeeklyReportItemMinAggregateOutputType = {
   orderIndex: number | null
   budgetCost: number | null
   realisasiCost: number | null
+  mtdBudgetCost: number | null
+  mtdRealisasiCost: number | null
   ytdBudgetCost: number | null
   ytdRealisasiCost: number | null
   createdAt: Date | null
@@ -74,6 +80,8 @@ export type WeeklyReportItemMaxAggregateOutputType = {
   orderIndex: number | null
   budgetCost: number | null
   realisasiCost: number | null
+  mtdBudgetCost: number | null
+  mtdRealisasiCost: number | null
   ytdBudgetCost: number | null
   ytdRealisasiCost: number | null
   createdAt: Date | null
@@ -93,6 +101,8 @@ export type WeeklyReportItemCountAggregateOutputType = {
   orderIndex: number
   budgetCost: number
   realisasiCost: number
+  mtdBudgetCost: number
+  mtdRealisasiCost: number
   ytdBudgetCost: number
   ytdRealisasiCost: number
   createdAt: number
@@ -105,6 +115,8 @@ export type WeeklyReportItemAvgAggregateInputType = {
   orderIndex?: true
   budgetCost?: true
   realisasiCost?: true
+  mtdBudgetCost?: true
+  mtdRealisasiCost?: true
   ytdBudgetCost?: true
   ytdRealisasiCost?: true
 }
@@ -113,6 +125,8 @@ export type WeeklyReportItemSumAggregateInputType = {
   orderIndex?: true
   budgetCost?: true
   realisasiCost?: true
+  mtdBudgetCost?: true
+  mtdRealisasiCost?: true
   ytdBudgetCost?: true
   ytdRealisasiCost?: true
 }
@@ -130,6 +144,8 @@ export type WeeklyReportItemMinAggregateInputType = {
   orderIndex?: true
   budgetCost?: true
   realisasiCost?: true
+  mtdBudgetCost?: true
+  mtdRealisasiCost?: true
   ytdBudgetCost?: true
   ytdRealisasiCost?: true
   createdAt?: true
@@ -149,6 +165,8 @@ export type WeeklyReportItemMaxAggregateInputType = {
   orderIndex?: true
   budgetCost?: true
   realisasiCost?: true
+  mtdBudgetCost?: true
+  mtdRealisasiCost?: true
   ytdBudgetCost?: true
   ytdRealisasiCost?: true
   createdAt?: true
@@ -168,6 +186,8 @@ export type WeeklyReportItemCountAggregateInputType = {
   orderIndex?: true
   budgetCost?: true
   realisasiCost?: true
+  mtdBudgetCost?: true
+  mtdRealisasiCost?: true
   ytdBudgetCost?: true
   ytdRealisasiCost?: true
   createdAt?: true
@@ -274,6 +294,8 @@ export type WeeklyReportItemGroupByOutputType = {
   orderIndex: number
   budgetCost: number
   realisasiCost: number
+  mtdBudgetCost: number | null
+  mtdRealisasiCost: number | null
   ytdBudgetCost: number | null
   ytdRealisasiCost: number | null
   createdAt: Date
@@ -316,6 +338,8 @@ export type WeeklyReportItemWhereInput = {
   orderIndex?: Prisma.IntFilter<"WeeklyReportItem"> | number
   budgetCost?: Prisma.FloatFilter<"WeeklyReportItem"> | number
   realisasiCost?: Prisma.FloatFilter<"WeeklyReportItem"> | number
+  mtdBudgetCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
+  mtdRealisasiCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   ytdBudgetCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   ytdRealisasiCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   createdAt?: Prisma.DateTimeFilter<"WeeklyReportItem"> | Date | string
@@ -336,6 +360,8 @@ export type WeeklyReportItemOrderByWithRelationInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -360,6 +386,8 @@ export type WeeklyReportItemWhereUniqueInput = Prisma.AtLeast<{
   orderIndex?: Prisma.IntFilter<"WeeklyReportItem"> | number
   budgetCost?: Prisma.FloatFilter<"WeeklyReportItem"> | number
   realisasiCost?: Prisma.FloatFilter<"WeeklyReportItem"> | number
+  mtdBudgetCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
+  mtdRealisasiCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   ytdBudgetCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   ytdRealisasiCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   createdAt?: Prisma.DateTimeFilter<"WeeklyReportItem"> | Date | string
@@ -380,6 +408,8 @@ export type WeeklyReportItemOrderByWithAggregationInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrderInput | Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -407,6 +437,8 @@ export type WeeklyReportItemScalarWhereWithAggregatesInput = {
   orderIndex?: Prisma.IntWithAggregatesFilter<"WeeklyReportItem"> | number
   budgetCost?: Prisma.FloatWithAggregatesFilter<"WeeklyReportItem"> | number
   realisasiCost?: Prisma.FloatWithAggregatesFilter<"WeeklyReportItem"> | number
+  mtdBudgetCost?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReportItem"> | number | null
+  mtdRealisasiCost?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReportItem"> | number | null
   ytdBudgetCost?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReportItem"> | number | null
   ytdRealisasiCost?: Prisma.FloatNullableWithAggregatesFilter<"WeeklyReportItem"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"WeeklyReportItem"> | Date | string
@@ -425,6 +457,8 @@ export type WeeklyReportItemCreateInput = {
   orderIndex?: number
   budgetCost?: number
   realisasiCost?: number
+  mtdBudgetCost?: number | null
+  mtdRealisasiCost?: number | null
   ytdBudgetCost?: number | null
   ytdRealisasiCost?: number | null
   createdAt?: Date | string
@@ -445,6 +479,8 @@ export type WeeklyReportItemUncheckedCreateInput = {
   orderIndex?: number
   budgetCost?: number
   realisasiCost?: number
+  mtdBudgetCost?: number | null
+  mtdRealisasiCost?: number | null
   ytdBudgetCost?: number | null
   ytdRealisasiCost?: number | null
   createdAt?: Date | string
@@ -463,6 +499,8 @@ export type WeeklyReportItemUpdateInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -483,6 +521,8 @@ export type WeeklyReportItemUncheckedUpdateInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -502,6 +542,8 @@ export type WeeklyReportItemCreateManyInput = {
   orderIndex?: number
   budgetCost?: number
   realisasiCost?: number
+  mtdBudgetCost?: number | null
+  mtdRealisasiCost?: number | null
   ytdBudgetCost?: number | null
   ytdRealisasiCost?: number | null
   createdAt?: Date | string
@@ -520,6 +562,8 @@ export type WeeklyReportItemUpdateManyMutationInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -539,6 +583,8 @@ export type WeeklyReportItemUncheckedUpdateManyInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -573,6 +619,8 @@ export type WeeklyReportItemCountOrderByAggregateInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -583,6 +631,8 @@ export type WeeklyReportItemAvgOrderByAggregateInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrder
 }
@@ -600,6 +650,8 @@ export type WeeklyReportItemMaxOrderByAggregateInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -619,6 +671,8 @@ export type WeeklyReportItemMinOrderByAggregateInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -629,6 +683,8 @@ export type WeeklyReportItemSumOrderByAggregateInput = {
   orderIndex?: Prisma.SortOrder
   budgetCost?: Prisma.SortOrder
   realisasiCost?: Prisma.SortOrder
+  mtdBudgetCost?: Prisma.SortOrder
+  mtdRealisasiCost?: Prisma.SortOrder
   ytdBudgetCost?: Prisma.SortOrder
   ytdRealisasiCost?: Prisma.SortOrder
 }
@@ -695,6 +751,8 @@ export type WeeklyReportItemCreateWithoutReportInput = {
   orderIndex?: number
   budgetCost?: number
   realisasiCost?: number
+  mtdBudgetCost?: number | null
+  mtdRealisasiCost?: number | null
   ytdBudgetCost?: number | null
   ytdRealisasiCost?: number | null
   createdAt?: Date | string
@@ -713,6 +771,8 @@ export type WeeklyReportItemUncheckedCreateWithoutReportInput = {
   orderIndex?: number
   budgetCost?: number
   realisasiCost?: number
+  mtdBudgetCost?: number | null
+  mtdRealisasiCost?: number | null
   ytdBudgetCost?: number | null
   ytdRealisasiCost?: number | null
   createdAt?: Date | string
@@ -761,6 +821,8 @@ export type WeeklyReportItemScalarWhereInput = {
   orderIndex?: Prisma.IntFilter<"WeeklyReportItem"> | number
   budgetCost?: Prisma.FloatFilter<"WeeklyReportItem"> | number
   realisasiCost?: Prisma.FloatFilter<"WeeklyReportItem"> | number
+  mtdBudgetCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
+  mtdRealisasiCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   ytdBudgetCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   ytdRealisasiCost?: Prisma.FloatNullableFilter<"WeeklyReportItem"> | number | null
   createdAt?: Prisma.DateTimeFilter<"WeeklyReportItem"> | Date | string
@@ -779,6 +841,8 @@ export type WeeklyReportItemCreateManyReportInput = {
   orderIndex?: number
   budgetCost?: number
   realisasiCost?: number
+  mtdBudgetCost?: number | null
+  mtdRealisasiCost?: number | null
   ytdBudgetCost?: number | null
   ytdRealisasiCost?: number | null
   createdAt?: Date | string
@@ -797,6 +861,8 @@ export type WeeklyReportItemUpdateWithoutReportInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -815,6 +881,8 @@ export type WeeklyReportItemUncheckedUpdateWithoutReportInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -833,6 +901,8 @@ export type WeeklyReportItemUncheckedUpdateManyWithoutReportInput = {
   orderIndex?: Prisma.IntFieldUpdateOperationsInput | number
   budgetCost?: Prisma.FloatFieldUpdateOperationsInput | number
   realisasiCost?: Prisma.FloatFieldUpdateOperationsInput | number
+  mtdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mtdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdBudgetCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   ytdRealisasiCost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -854,6 +924,8 @@ export type WeeklyReportItemSelect<ExtArgs extends runtime.Types.Extensions.Inte
   orderIndex?: boolean
   budgetCost?: boolean
   realisasiCost?: boolean
+  mtdBudgetCost?: boolean
+  mtdRealisasiCost?: boolean
   ytdBudgetCost?: boolean
   ytdRealisasiCost?: boolean
   createdAt?: boolean
@@ -874,6 +946,8 @@ export type WeeklyReportItemSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   orderIndex?: boolean
   budgetCost?: boolean
   realisasiCost?: boolean
+  mtdBudgetCost?: boolean
+  mtdRealisasiCost?: boolean
   ytdBudgetCost?: boolean
   ytdRealisasiCost?: boolean
   createdAt?: boolean
@@ -894,6 +968,8 @@ export type WeeklyReportItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   orderIndex?: boolean
   budgetCost?: boolean
   realisasiCost?: boolean
+  mtdBudgetCost?: boolean
+  mtdRealisasiCost?: boolean
   ytdBudgetCost?: boolean
   ytdRealisasiCost?: boolean
   createdAt?: boolean
@@ -914,13 +990,15 @@ export type WeeklyReportItemSelectScalar = {
   orderIndex?: boolean
   budgetCost?: boolean
   realisasiCost?: boolean
+  mtdBudgetCost?: boolean
+  mtdRealisasiCost?: boolean
   ytdBudgetCost?: boolean
   ytdRealisasiCost?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type WeeklyReportItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reportId" | "accountCode" | "accountName" | "costBehavior" | "accountGroup" | "subCategory" | "isParent" | "parentName" | "orderIndex" | "budgetCost" | "realisasiCost" | "ytdBudgetCost" | "ytdRealisasiCost" | "createdAt" | "updatedAt", ExtArgs["result"]["weeklyReportItem"]>
+export type WeeklyReportItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reportId" | "accountCode" | "accountName" | "costBehavior" | "accountGroup" | "subCategory" | "isParent" | "parentName" | "orderIndex" | "budgetCost" | "realisasiCost" | "mtdBudgetCost" | "mtdRealisasiCost" | "ytdBudgetCost" | "ytdRealisasiCost" | "createdAt" | "updatedAt", ExtArgs["result"]["weeklyReportItem"]>
 export type WeeklyReportItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   report?: boolean | Prisma.WeeklyReportDefaultArgs<ExtArgs>
 }
@@ -949,6 +1027,8 @@ export type $WeeklyReportItemPayload<ExtArgs extends runtime.Types.Extensions.In
     orderIndex: number
     budgetCost: number
     realisasiCost: number
+    mtdBudgetCost: number | null
+    mtdRealisasiCost: number | null
     ytdBudgetCost: number | null
     ytdRealisasiCost: number | null
     createdAt: Date
@@ -1389,6 +1469,8 @@ export interface WeeklyReportItemFieldRefs {
   readonly orderIndex: Prisma.FieldRef<"WeeklyReportItem", 'Int'>
   readonly budgetCost: Prisma.FieldRef<"WeeklyReportItem", 'Float'>
   readonly realisasiCost: Prisma.FieldRef<"WeeklyReportItem", 'Float'>
+  readonly mtdBudgetCost: Prisma.FieldRef<"WeeklyReportItem", 'Float'>
+  readonly mtdRealisasiCost: Prisma.FieldRef<"WeeklyReportItem", 'Float'>
   readonly ytdBudgetCost: Prisma.FieldRef<"WeeklyReportItem", 'Float'>
   readonly ytdRealisasiCost: Prisma.FieldRef<"WeeklyReportItem", 'Float'>
   readonly createdAt: Prisma.FieldRef<"WeeklyReportItem", 'DateTime'>

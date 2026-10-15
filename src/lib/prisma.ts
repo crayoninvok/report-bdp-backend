@@ -4,11 +4,27 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL or DIRECT_URL must be defined");
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+function getPrismaClient(): PrismaClient {
+  const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.DIRECT_URL ||
+    "";
+
+  if (!connectionString) {
+    console.warn("WARNING: DATABASE_URL and DIRECT_URL are not set. Ensure they are configured in Vercel environment variables.");
+  }
+
+  const adapter = new PrismaPg({ connectionString });
+  return new PrismaClient({ adapter });
 }
 
-const adapter = new PrismaPg({ connectionString });
+export const prisma = globalForPrisma.prisma ?? getPrismaClient();
 
-export const prisma = new PrismaClient({ adapter });
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+

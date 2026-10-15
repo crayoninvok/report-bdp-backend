@@ -7,6 +7,7 @@ import {
 } from "../constants/accounts";
 import { JobSite } from "../generated/prisma/client";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
+import { parseExcelReport, ParsedPeriodReport } from "../lib/excelParser";
 
 export const getReports = async (req: Request, res: Response) => {
   try {
@@ -265,6 +266,9 @@ export const getReportDetails = async (req: Request, res: Response) => {
         weeklyIdrPerTonRealisasi,
         weeklyCostUnderOverPerTon,
         weeklyCostUnderOver,
+        // MTD (Kumulatif Bulan)
+        mtdBudget: it.mtdBudgetCost,
+        mtdRealisasi: it.mtdRealisasiCost,
         // YTD
         ytdBudget,
         ytdPercentTCBudget,
@@ -296,6 +300,9 @@ export const getReportDetails = async (req: Request, res: Response) => {
           ? weeklyTotalBiayaRealisasi / weeklyRealisasiProduksi
           : 0),
       weeklyCostUnderOver: weeklyTotalBiayaBudget - weeklyTotalBiayaRealisasi,
+      // MTD
+      mtdBudget: items.filter(it => PARENT_ACCOUNT_NAMES.has(it.accountName)).reduce((sum, it) => sum + (it.mtdBudgetCost ?? 0), 0) || null,
+      mtdRealisasi: items.filter(it => PARENT_ACCOUNT_NAMES.has(it.accountName)).reduce((sum, it) => sum + (it.mtdRealisasiCost ?? 0), 0) || null,
       // YTD
       ytdBudget: ytdTotalBiayaBudget,
       ytdPercentTCBudget: ytdTotalBiayaBudget > 0 ? 100 : 0,
@@ -320,6 +327,8 @@ export const getReportDetails = async (req: Request, res: Response) => {
         weeklyBudgetProduksi > 0
           ? (weeklyRealisasiProduksi / weeklyBudgetProduksi) * 100
           : 0,
+      mtdBudget: report.mtdBudgetProduksi,
+      mtdRealisasi: report.mtdRealisasiProduksi,
       ytdBudget: ytdBudgetProduksi,
       ytdRealisasi: ytdRealisasiProduksi,
       ytdVariance: ytdBudgetProduksi - ytdRealisasiProduksi,
@@ -338,6 +347,8 @@ export const getReportDetails = async (req: Request, res: Response) => {
           endDate: report.endDate,
           year: report.year,
           weekNumber: report.weekNumber,
+          mtdBudgetProduksi: report.mtdBudgetProduksi,
+          mtdRealisasiProduksi: report.mtdRealisasiProduksi,
           status: report.status,
           updatedAt: report.updatedAt,
         },
@@ -654,3 +665,199 @@ export const deleteReport = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Gagal menghapus laporan" });
   }
 };
+
+export const previewExcelUpload = async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "File Excel (.xlsx) wajib diunggah",
+      });
+    }
+
+    let targetJobSite: JobSite | undefined = undefined;
+    if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+      targetJobSite = user.jobSite as JobSite;
+    } else if (req.body.targetJobSite) {
+      targetJobSite = req.body.targetJobSite as JobSite;
+    }
+
+    const result = await parseExcelReport(
+      req.file.buffer,
+      req.file.originalname,
+      targetJobSite
+    );
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("Error previewing excel upload:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Gagal memproses dan menganalisis file Excel",
+    });
+  }
+};
+
+export const commitExcelUpload = async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    let reportsToCommit: ParsedPeriodReport[] = [];
+
+    if (req.file) {
+      let targetJobSite: JobSite | undefined = undefined;
+      if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+        targetJobSite = user.jobSite as JobSite;
+      } else if (req.body.targetJobSite) {
+        targetJobSite = req.body.targetJobSite as JobSite;
+      }
+
+      const parseResult = await parseExcelReport(
+        req.file.buffer,
+        req.file.originalname,
+        targetJobSite
+      );
+
+      let periodsFilter: string[] | null = null;
+      if (req.body.periodsToImport) {
+        try {
+          periodsFilter = JSON.parse(req.body.periodsToImport);
+        } catch {
+          periodsFilter = Array.isArray(req.body.periodsToImport)
+            ? req.body.periodsToImport
+            : [req.body.periodsToImport];
+        }
+      }
+
+      if (periodsFilter && periodsFilter.length > 0) {
+        const filterSet = new Set(periodsFilter.map((p) => p.trim().toLowerCase()));
+        reportsToCommit = parseResult.reports.filter((r) =>
+          filterSet.has(r.periodName.trim().toLowerCase())
+        );
+      } else {
+        reportsToCommit = parseResult.reports;
+      }
+    } else if (req.body.reports && Array.isArray(req.body.reports)) {
+      reportsToCommit = req.body.reports;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Tidak ada data laporan yang valid untuk disimpan",
+      });
+    }
+
+    if (reportsToCommit.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Tidak ada periode yang dipilih untuk diimpor",
+      });
+    }
+
+    // Site security validation
+    for (const rep of reportsToCommit) {
+      if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+        if (rep.jobSite !== user.jobSite) {
+          return res.status(403).json({
+            success: false,
+            message: `Akses Ditolak: Anda hanya memiliki akses untuk mengimpor Site ${user.jobSite}!`,
+          });
+        }
+      }
+    }
+
+    const savedReports: any[] = [];
+
+    for (const rep of reportsToCommit) {
+      const saved = await prisma.weeklyReport.upsert({
+        where: {
+          jobSite_year_weekNumber: {
+            jobSite: rep.jobSite as JobSite,
+            year: rep.year,
+            weekNumber: rep.weekNumber,
+          },
+        },
+        update: {
+          periodName: rep.periodName,
+          startDate: new Date(rep.startDate),
+          endDate: new Date(rep.endDate),
+          budgetProduksi: rep.produksi.weeklyBudget,
+          realisasiProduksi: rep.produksi.weeklyRealisasi,
+          mtdBudgetProduksi: rep.produksi.rawBudget,
+          mtdRealisasiProduksi: rep.produksi.rawRealisasi,
+          ytdBudgetProduksi: rep.produksi.ytdBudget,
+          ytdRealisasiProduksi: rep.produksi.ytdRealisasi,
+          status: "Final",
+        },
+        create: {
+          jobSite: rep.jobSite as JobSite,
+          periodName: rep.periodName,
+          startDate: new Date(rep.startDate),
+          endDate: new Date(rep.endDate),
+          year: rep.year,
+          weekNumber: rep.weekNumber,
+          budgetProduksi: rep.produksi.weeklyBudget,
+          realisasiProduksi: rep.produksi.weeklyRealisasi,
+          mtdBudgetProduksi: rep.produksi.rawBudget,
+          mtdRealisasiProduksi: rep.produksi.rawRealisasi,
+          ytdBudgetProduksi: rep.produksi.ytdBudget,
+          ytdRealisasiProduksi: rep.produksi.ytdRealisasi,
+          status: "Final",
+        },
+      });
+
+      // Batch recreate items for ultra-fast saving (2 queries instead of 86 serial roundtrips)
+      await prisma.weeklyReportItem.deleteMany({
+        where: { reportId: saved.id },
+      });
+
+      const itemsToCreate = rep.items.map((it) => ({
+        reportId: saved.id,
+        accountName: it.accountName,
+        accountCode: it.accountCode,
+        costBehavior: it.costBehavior,
+        accountGroup: it.accountGroup,
+        subCategory: it.subCategory,
+        isParent: it.isParent,
+        parentName: it.parentName,
+        orderIndex: it.orderIndex,
+        budgetCost: it.weeklyBudgetCost,
+        realisasiCost: it.weeklyRealisasiCost,
+        mtdBudgetCost: it.rawBudgetCost,
+        mtdRealisasiCost: it.rawRealisasiCost,
+        ytdBudgetCost: it.ytdBudgetCost,
+        ytdRealisasiCost: it.ytdRealisasiCost,
+      }));
+
+      await prisma.weeklyReportItem.createMany({
+        data: itemsToCreate,
+      });
+
+      savedReports.push({
+        id: saved.id,
+        jobSite: saved.jobSite,
+        periodName: saved.periodName,
+        weekNumber: saved.weekNumber,
+        weeklyProduksi: {
+          budget: saved.budgetProduksi,
+          realisasi: saved.realisasiProduksi,
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Berhasil mengimpor dan memperbarui ${savedReports.length} periode laporan mingguan ke database.`,
+      importedReports: savedReports,
+    });
+  } catch (error: any) {
+    console.error("Error committing excel upload:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Gagal menyimpan data laporan ke database",
+    });
+  }
+};
+
