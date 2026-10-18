@@ -824,8 +824,10 @@ export const getCostTrends = async (req: Request, res: Response) => {
       const siteReports = reports.filter((r) => r.jobSite === site);
       return siteReports.map((r) => {
         const parentItems = r.items.filter((it) => PARENT_ACCOUNT_NAMES.has(it.accountName));
-        const totalB = toMillions(parentItems.reduce((sum, it) => sum + Math.max(0, it.budgetCost), 0));
-        const totalR = toMillions(parentItems.reduce((sum, it) => sum + Math.max(0, it.realisasiCost), 0));
+        const totalBInRp = parentItems.reduce((sum, it) => sum + Math.max(0, it.budgetCost), 0);
+        const totalRInRp = parentItems.reduce((sum, it) => sum + Math.max(0, it.realisasiCost), 0);
+        const totalB = toMillions(totalBInRp);
+        const totalR = toMillions(totalRInRp);
 
         const getCat = (accName: string) => {
           const it = r.items.find((i) => i.accountName === accName);
@@ -833,6 +835,9 @@ export const getCostTrends = async (req: Request, res: Response) => {
           const rVal = toMillions(it ? Math.max(0, it.realisasiCost) : 0);
           return { budget: b, realisasi: rVal, deviasi: b - rVal };
         };
+
+        const idrTonBudget = r.budgetProduksi > 0 ? Math.round(totalBInRp / r.budgetProduksi) : 0;
+        const idrTonReal = r.realisasiProduksi > 0 ? Math.round(totalRInRp / r.realisasiProduksi) : 0;
 
         return {
           label: `W${r.weekNumber}`,
@@ -842,6 +847,15 @@ export const getCostTrends = async (req: Request, res: Response) => {
           tyre: getCat("BEBAN TYRE"),
           rep: getCat("BEBAN REPAIRS & MAINTENANCE"),
           ovh: getCat("BEBAN OVERHEAD COST - SITE"),
+          produksi: {
+            budget: Math.round(r.budgetProduksi || 0),
+            realisasi: Math.round(r.realisasiProduksi || 0),
+          },
+          idrPerTon: {
+            budget: idrTonBudget,
+            realisasi: idrTonReal,
+            deviasi: idrTonBudget - idrTonReal,
+          },
         };
       });
     };
@@ -865,8 +879,10 @@ export const getCostTrends = async (req: Request, res: Response) => {
         const bp = s.items.find(
           (it) => it.accountName.trim().toUpperCase() === "BIAYA PRODUKSI"
         );
-        const totalB = toMillions(bp ? Math.max(0, bp.budgetCost) : 0);
-        const totalR = toMillions(bp ? Math.max(0, bp.realisasiCost) : 0);
+        const bpCostB = bp ? bp.budgetCost : 0;
+        const bpCostR = bp ? bp.realisasiCost : 0;
+        const totalB = toMillions(bpCostB);
+        const totalR = toMillions(bpCostR);
 
         const getCat = (accName: string) => {
           const it = s.items.find(
@@ -876,6 +892,13 @@ export const getCostTrends = async (req: Request, res: Response) => {
           const rVal = toMillions(it ? Math.max(0, it.realisasiCost) : 0);
           return { budget: b, realisasi: rVal, deviasi: b - rVal };
         };
+
+        const idrTonBudget = s.budgetProduksi > 0
+          ? Math.round(bpCostB / s.budgetProduksi)
+          : (bp?.budgetIdrPerTon ? Math.round(bp.budgetIdrPerTon) : 0);
+        const idrTonReal = s.realisasiProduksi > 0
+          ? Math.round(bpCostR / s.realisasiProduksi)
+          : (bp?.realisasiIdrPerTon ? Math.round(bp.realisasiIdrPerTon) : 0);
 
         const label = s.monthLabel || MONTH_LABELS[s.month - 1] || `M${s.month}`;
 
@@ -887,6 +910,15 @@ export const getCostTrends = async (req: Request, res: Response) => {
           tyre: getCat("BEBAN TYRE"),
           rep: getCat("BEBAN REPAIRS & MAINTENANCE"),
           ovh: getCat("BEBAN OVERHEAD COST - SITE"),
+          produksi: {
+            budget: Math.round(s.budgetProduksi || 0),
+            realisasi: Math.round(s.realisasiProduksi || 0),
+          },
+          idrPerTon: {
+            budget: idrTonBudget,
+            realisasi: idrTonReal,
+            deviasi: idrTonBudget - idrTonReal,
+          },
         };
       });
     };
