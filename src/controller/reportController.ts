@@ -846,14 +846,61 @@ export const getCostTrends = async (req: Request, res: Response) => {
       });
     };
 
+    const summaries = await prisma.pLSummaryOps.findMany({
+      where: {
+        year: targetYear,
+        ...(where.jobSite ? { jobSite: where.jobSite } : {}),
+      },
+      include: { items: true },
+      orderBy: [{ year: "asc" }, { month: "asc" }],
+    });
+
+    const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const buildMonthlyRecordsForSite = (site: JobSite) => {
+      const siteSummaries = summaries.filter((s) => s.jobSite === site);
+      if (siteSummaries.length === 0) return [];
+
+      return siteSummaries.map((s) => {
+        const bp = s.items.find(
+          (it) => it.accountName.trim().toUpperCase() === "BIAYA PRODUKSI"
+        );
+        const totalB = toMillions(bp ? Math.max(0, bp.budgetCost) : 0);
+        const totalR = toMillions(bp ? Math.max(0, bp.realisasiCost) : 0);
+
+        const getCat = (accName: string) => {
+          const it = s.items.find(
+            (i) => i.accountName.trim().toUpperCase() === accName.toUpperCase()
+          );
+          const b = toMillions(it ? Math.max(0, it.budgetCost) : 0);
+          const rVal = toMillions(it ? Math.max(0, it.realisasiCost) : 0);
+          return { budget: b, realisasi: rVal, deviasi: b - rVal };
+        };
+
+        const label = s.monthLabel || MONTH_LABELS[s.month - 1] || `M${s.month}`;
+
+        return {
+          label,
+          total: { budget: totalB, realisasi: totalR, deviasi: totalB - totalR },
+          comp: getCat("BEBAN COMPENSATION AND BENEFIT - SITE"),
+          fuel: getCat("BEBAN FUEL - PRODUCTION"),
+          tyre: getCat("BEBAN TYRE"),
+          rep: getCat("BEBAN REPAIRS & MAINTENANCE"),
+          ovh: getCat("BEBAN OVERHEAD COST - SITE"),
+        };
+      });
+    };
+
     res.json({
       success: true,
       data: {
         Senyiur: {
           weekly: buildRecordsForSite(JobSite.Senyiur),
+          monthly: buildMonthlyRecordsForSite(JobSite.Senyiur),
         },
         MuaraPahu: {
           weekly: buildRecordsForSite(JobSite.MuaraPahu),
+          monthly: buildMonthlyRecordsForSite(JobSite.MuaraPahu),
         },
       },
     });
