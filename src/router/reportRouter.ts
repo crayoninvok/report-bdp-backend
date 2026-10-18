@@ -7,6 +7,7 @@ import {
   updateBudget,
   updateRealisasi,
   getSummaryOps,
+  getCostTrends,
   deleteReport,
   previewExcelUpload,
   commitExcelUpload,
@@ -24,6 +25,7 @@ router.use(extractUser);
 
 router.get("/", getReports);
 router.get("/summary/ops", getSummaryOps);
+router.get("/trend", getCostTrends);
 router.post("/upload/preview", upload.single("file"), previewExcelUpload);
 router.post("/upload/commit", upload.single("file"), commitExcelUpload);
 router.get("/:id", getReportDetails);

@@ -666,6 +666,72 @@ export const deleteReport = async (req: Request, res: Response) => {
   }
 };
 
+export const getCostTrends = async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const { year, jobSite } = req.query;
+    const targetYear = year ? parseInt(year as string, 10) : 2026;
+
+    const where: any = { year: targetYear, weekNumber: { gte: 29 } };
+
+    // Site security rule: Non-HeadOffice users can only fetch their own site
+    if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+      where.jobSite = user.jobSite;
+    } else if (jobSite && typeof jobSite === "string") {
+      where.jobSite = jobSite as JobSite;
+    }
+
+    const reports = await prisma.weeklyReport.findMany({
+      where,
+      include: { items: true },
+      orderBy: [{ year: "asc" }, { weekNumber: "asc" }],
+    });
+
+    const toMillions = (val: number) => Math.max(0, Math.round(val / 1e6));
+
+    const buildRecordsForSite = (site: JobSite) => {
+      const siteReports = reports.filter((r) => r.jobSite === site);
+      return siteReports.map((r) => {
+        const parentItems = r.items.filter((it) => PARENT_ACCOUNT_NAMES.has(it.accountName));
+        const totalB = toMillions(parentItems.reduce((sum, it) => sum + Math.max(0, it.budgetCost), 0));
+        const totalR = toMillions(parentItems.reduce((sum, it) => sum + Math.max(0, it.realisasiCost), 0));
+
+        const getCat = (accName: string) => {
+          const it = r.items.find((i) => i.accountName === accName);
+          const b = toMillions(it ? Math.max(0, it.budgetCost) : 0);
+          const rVal = toMillions(it ? Math.max(0, it.realisasiCost) : 0);
+          return { budget: b, realisasi: rVal, deviasi: b - rVal };
+        };
+
+        return {
+          label: `W${r.weekNumber}`,
+          total: { budget: totalB, realisasi: totalR, deviasi: totalB - totalR },
+          comp: getCat("BEBAN COMPENSATION AND BENEFIT - SITE"),
+          fuel: getCat("BEBAN FUEL - PRODUCTION"),
+          tyre: getCat("BEBAN TYRE"),
+          rep: getCat("BEBAN REPAIRS & MAINTENANCE"),
+          ovh: getCat("BEBAN OVERHEAD COST - SITE"),
+        };
+      });
+    };
+
+    res.json({
+      success: true,
+      data: {
+        Senyiur: {
+          weekly: buildRecordsForSite(JobSite.Senyiur),
+        },
+        MuaraPahu: {
+          weekly: buildRecordsForSite(JobSite.MuaraPahu),
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error("Error fetching cost trends:", error);
+    res.status(500).json({ success: false, message: "Gagal mengambil data tren biaya" });
+  }
+};
+
 export const previewExcelUpload = async (req: Request, res: Response) => {
   try {
     const user = (req as AuthenticatedRequest).user;

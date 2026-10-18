@@ -430,7 +430,8 @@ export async function parseExcelReport(
         pengurangProdReal = pengurangSnapshot.produksiRealisasi;
       }
 
-      const weeklyProdBudget = rawProdBudget - pengurangProdBudget;
+      // Guard: If raw budget was not provided (0/empty), weekly delta should not become negative
+      const weeklyProdBudget = rawProdBudget === 0 ? 0 : Math.max(0, rawProdBudget - pengurangProdBudget);
       const weeklyProdReal = rawProdReal - pengurangProdReal;
 
       // Build items with deltas
@@ -452,7 +453,7 @@ export async function parseExcelReport(
         const pengurangB = pengurangSnapshot?.accountBudgetMap.get(def.name) || 0;
         const pengurangR = pengurangSnapshot?.accountRealisasiMap.get(def.name) || 0;
 
-        const weeklyB = rawB - pengurangB;
+        const weeklyB = rawB === 0 ? 0 : Math.max(0, rawB - pengurangB);
         const weeklyR = rawR - pengurangR;
 
         const ytdB = p.ytdBudgetCol ? (ytdAccountBudgetMap.get(def.name) ?? null) : null;
