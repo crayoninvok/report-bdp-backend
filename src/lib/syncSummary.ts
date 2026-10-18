@@ -42,10 +42,7 @@ export async function syncSummaryForMonth(site: JobSite, year: number = 2026, mo
 
     if (reps.length === 0) return;
 
-    let totalBudProd = reps.reduce((sum, r) => sum + r.budgetProduksi, 0);
-    if (site === "MuaraPahu") {
-      totalBudProd = Math.max(...reps.map((r) => r.budgetProduksi), 0);
-    }
+    const totalBudProd = reps.reduce((sum, r) => sum + r.budgetProduksi, 0);
     const totalRealProd = reps.reduce((sum, r) => sum + r.realisasiProduksi, 0);
     const achProd = totalBudProd > 0 ? (totalRealProd / totalBudProd) * 100 : 0;
 
@@ -63,11 +60,7 @@ export async function syncSummaryForMonth(site: JobSite, year: number = 2026, mo
     for (const r of reps) {
       for (const it of r.items) {
         const cur = acctMap.get(it.accountName) || { budget: 0, realisasi: 0 };
-        if (site === "MuaraPahu") {
-          cur.budget = Math.max(cur.budget, it.budgetCost);
-        } else {
-          cur.budget += it.budgetCost;
-        }
+        cur.budget += it.budgetCost;
         cur.realisasi += it.realisasiCost;
         acctMap.set(it.accountName, cur);
       }
