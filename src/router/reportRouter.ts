@@ -4,6 +4,7 @@ import {
   getReports,
   getReportDetails,
   createReport,
+  updatePeriod,
   updateBudget,
   updateRealisasi,
   getSummaryOps,
@@ -30,6 +31,7 @@ router.post("/upload/preview", upload.single("file"), previewExcelUpload);
 router.post("/upload/commit", upload.single("file"), commitExcelUpload);
 router.get("/:id", getReportDetails);
 router.post("/", createReport);
+router.put("/:id/period", updatePeriod);
 router.put("/:id/budget", updateBudget);
 router.put("/:id/realisasi", updateRealisasi);
 router.delete("/:id", deleteReport);

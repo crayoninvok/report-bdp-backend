@@ -443,6 +443,73 @@ export const createReport = async (req: Request, res: Response) => {
   }
 };
 
+export const updatePeriod = async (req: Request, res: Response) => {
+  try {
+    const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+    const user = (req as AuthenticatedRequest).user;
+    const { periodName, weekNumber, year, startDate, endDate, budgetProduksi, realisasiProduksi } = req.body;
+
+    const report = await prisma.weeklyReport.findUnique({ where: { id } });
+    if (!report) {
+      return res.status(404).json({ success: false, message: "Laporan tidak ditemukan" });
+    }
+
+    // Site security rule: Site users can only edit their own site's report
+    if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+      if (report.jobSite !== user.jobSite) {
+        return res.status(403).json({
+          success: false,
+          message: `Akses Ditolak: Anda hanya diizinkan mengedit periode untuk Site ${user.jobSite}!`,
+        });
+      }
+    }
+
+    const newWeekNumber = weekNumber !== undefined ? parseInt(weekNumber, 10) : report.weekNumber;
+    const newYear = year !== undefined ? parseInt(year, 10) : report.year;
+
+    // Check unique constraint [jobSite, year, weekNumber] if weekNumber or year changed
+    if (newWeekNumber !== report.weekNumber || newYear !== report.year) {
+      const existing = await prisma.weeklyReport.findUnique({
+        where: {
+          jobSite_year_weekNumber: {
+            jobSite: report.jobSite,
+            year: newYear,
+            weekNumber: newWeekNumber,
+          },
+        },
+      });
+      if (existing && existing.id !== id) {
+        return res.status(400).json({
+          success: false,
+          message: `Laporan untuk Site ${report.jobSite} Minggu ${newWeekNumber} Tahun ${newYear} sudah ada!`,
+        });
+      }
+    }
+
+    const updated = await prisma.weeklyReport.update({
+      where: { id },
+      data: {
+        periodName: periodName ? String(periodName).trim() : report.periodName,
+        weekNumber: newWeekNumber,
+        year: newYear,
+        startDate: startDate ? new Date(startDate) : report.startDate,
+        endDate: endDate ? new Date(endDate) : report.endDate,
+        budgetProduksi: budgetProduksi !== undefined ? parseFloat(budgetProduksi) : report.budgetProduksi,
+        realisasiProduksi: realisasiProduksi !== undefined ? parseFloat(realisasiProduksi) : report.realisasiProduksi,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `Informasi periode "${updated.periodName}" (W${updated.weekNumber}) berhasil diperbarui`,
+      data: updated,
+    });
+  } catch (error: any) {
+    console.error("Error updating period:", error);
+    res.status(500).json({ success: false, message: "Gagal memperbarui informasi periode" });
+  }
+};
+
 export const updateBudget = async (req: Request, res: Response) => {
   try {
     const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
