@@ -8,6 +8,7 @@ import {
 import { JobSite } from "../generated/prisma/client";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { parseExcelReport, ParsedPeriodReport } from "../lib/excelParser";
+import { syncSummaryForMonth } from "../lib/syncSummary";
 
 export const getReports = async (req: Request, res: Response) => {
   try {
@@ -499,6 +500,9 @@ export const updatePeriod = async (req: Request, res: Response) => {
       },
     });
 
+    // Automatically synchronize Month 10 in PLSummaryOps so summary table remains in sync
+    await syncSummaryForMonth(report.jobSite, newYear, 10);
+
     res.json({
       success: true,
       message: `Informasi periode "${updated.periodName}" (W${updated.weekNumber}) berhasil diperbarui`,
@@ -576,6 +580,9 @@ export const updateBudget = async (req: Request, res: Response) => {
       }
     }
 
+    // Automatically synchronize Month 10 in PLSummaryOps
+    await syncSummaryForMonth(report.jobSite, report.year, 10);
+
     res.json({ success: true, message: "Data Budget berhasil diperbarui" });
   } catch (error: any) {
     console.error("Error updating budget:", error);
@@ -650,6 +657,9 @@ export const updateRealisasi = async (req: Request, res: Response) => {
         }
       }
     }
+
+    // Automatically synchronize Month 10 in PLSummaryOps
+    await syncSummaryForMonth(report.jobSite, report.year, 10);
 
     res.json({
       success: true,
@@ -978,6 +988,13 @@ export const commitExcelUpload = async (req: Request, res: Response) => {
           realisasi: saved.realisasiProduksi,
         },
       });
+    }
+
+    // Automatically synchronize Month 10 in PLSummaryOps for all imported sites
+    const siteYears = new Set(reportsToCommit.map((r: any) => `${r.jobSite}_${r.year}`));
+    for (const sy of Array.from(siteYears)) {
+      const [site, yr] = sy.split("_");
+      await syncSummaryForMonth(site as JobSite, parseInt(yr, 10), 10);
     }
 
     res.json({
