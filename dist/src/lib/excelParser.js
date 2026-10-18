@@ -214,7 +214,7 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
             let rawProdBudget = cleanFloat(sheet[`${bLetter}8`]?.v);
             let rawProdReal = cleanFloat(sheet[`${rLetter}8`]?.v);
             // Smart fallback: If PL Week row 8 is 0, check corresponding PL Summary sheet
-            if (rawProdBudget === 0 && rawProdReal === 0) {
+            if (rawProdBudget === 0 || (site === "MuaraPahu" && rawProdBudget === 0)) {
                 const sumSheetKey = site === "Senyiur" ? "PL Summary 1 OPS (SNY) " : "PL Summary 1 OPS (MPH)";
                 const sumSheet = wb.Sheets[sumSheetKey] || wb.Sheets[sumSheetKey.trim()];
                 if (sumSheet) {
@@ -235,12 +235,16 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                     if (cols) {
                         const baseC = site === "Senyiur" ? cols.sny : cols.mph;
                         const sumBLetter = XLSX.utils.encode_col(baseC - 1);
-                        const sumRLetter = XLSX.utils.encode_col(baseC + 2); // baseC + 3 in 1-based is baseC + 2 in 0-based
                         const sumB = cleanFloat(sumSheet[`${sumBLetter}8`]?.v);
-                        const sumR = cleanFloat(sumSheet[`${sumRLetter}8`]?.v);
-                        if (sumB > 0 || sumR > 0) {
+                        if (sumB > 0) {
                             rawProdBudget = sumB;
-                            rawProdReal = sumR;
+                        }
+                        if (rawProdReal === 0) {
+                            const sumRLetter = XLSX.utils.encode_col(baseC + 2);
+                            const sumR = cleanFloat(sumSheet[`${sumRLetter}8`]?.v);
+                            if (sumR > 0) {
+                                rawProdReal = sumR;
+                            }
                         }
                     }
                 }
@@ -272,6 +276,71 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                 if (p.ytdRealCol) {
                     const yrLetter = XLSX.utils.encode_col(p.ytdRealCol - 1);
                     ytdAccountRealMap.set(def.name, cleanFloat(sheet[`${yrLetter}${row}`]?.v));
+                }
+            }
+            // Check total raw budget from PL Week
+            let totalRawBudgetInPL = 0;
+            for (const val of rawAccountBudgetMap.values()) {
+                totalRawBudgetInPL += val;
+            }
+            // KHUSUS MUARA PAHU: Jika budget tidak ada pada Laporan PL langsung tarik dari Laporan Summary dan taruh gelondongan di Laporan Cost
+            if (site === "MuaraPahu" && totalRawBudgetInPL === 0) {
+                let pulledFromSummary = false;
+                const mphSumSheetKey = "PL Summary 1 OPS (MPH)";
+                const mphSumSheet = wb.Sheets[mphSumSheetKey] || wb.Sheets[mphSumSheetKey.trim()];
+                const sumColMapMph = {
+                    1: 2, 2: 9, 3: 16, 4: 23, 5: 37, 6: 55, 7: 74, 8: 91, 9: 108, 10: 126,
+                };
+                const baseCol = sumColMapMph[p.month];
+                if (mphSumSheet && baseCol) {
+                    const sumBLetter = XLSX.utils.encode_col(baseCol - 1);
+                    if (rawProdBudget === 0) {
+                        rawProdBudget = cleanFloat(mphSumSheet[`${sumBLetter}8`]?.v);
+                    }
+                    const summaryRowAccountMap = [
+                        { row: 11, name: "BEBAN COMPENSATION AND BENEFIT - SITE" },
+                        { row: 12, name: "BEBAN CONSUMABLES" },
+                        { row: 13, name: "BEBAN FUEL - PRODUCTION" },
+                        { row: 14, name: "BEBAN TYRE" },
+                        { row: 15, name: "BEBAN SUB KONTRAKTOR" },
+                        { row: 16, name: "BEBAN RENTAL ALAT PRODUKSI" },
+                        { row: 17, name: "BEBAN REPAIRS & MAINTENANCE" },
+                        { row: 18, name: "BEBAN SPAREPART" },
+                        { row: 19, name: "BEBAN TOOLS" },
+                        { row: 20, name: "BEBAN OVERHEAD COST - SITE" },
+                        { row: 21, name: "BEBAN RENTAL ALAT NON PRODUKSI" },
+                        { row: 22, name: "BEBAN MOBILISASI" },
+                        { row: 23, name: "BEBAN PENYUSUTAN DAN AMORTISASI - SITE" },
+                    ];
+                    for (const sRow of summaryRowAccountMap) {
+                        const bVal = cleanFloat(mphSumSheet[`${sumBLetter}${sRow.row}`]?.v);
+                        if (bVal > 0) {
+                            rawAccountBudgetMap.set(sRow.name, bVal);
+                            pulledFromSummary = true;
+                        }
+                    }
+                }
+                // Fallback: If not found in uploaded workbook sheet, check database PLSummaryOps
+                if (!pulledFromSummary) {
+                    const dbSummary = await prisma_1.prisma.pLSummaryOps.findFirst({
+                        where: {
+                            jobSite: "MuaraPahu",
+                            year: p.year,
+                            month: p.month,
+                        },
+                        include: { items: true },
+                    });
+                    if (dbSummary) {
+                        if (rawProdBudget === 0 && dbSummary.budgetProduksi > 0) {
+                            rawProdBudget = dbSummary.budgetProduksi;
+                        }
+                        for (const sItem of dbSummary.items) {
+                            if (sItem.budgetCost > 0 && sItem.accountName.trim().toUpperCase() !== "BIAYA PRODUKSI") {
+                                rawAccountBudgetMap.set(sItem.accountName.trim(), sItem.budgetCost);
+                                pulledFromSummary = true;
+                            }
+                        }
+                    }
                 }
             }
             // Determine Subtrahend (Pengurang)
@@ -321,7 +390,11 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                 pengurangProdBudget = pengurangSnapshot.produksiBudget;
                 pengurangProdReal = pengurangSnapshot.produksiRealisasi;
             }
-            const weeklyProdBudget = rawProdBudget - pengurangProdBudget;
+            // Guard: If raw budget was not provided (0/empty), weekly delta should not become negative
+            let weeklyProdBudget = rawProdBudget === 0 ? 0 : Math.max(0, rawProdBudget - pengurangProdBudget);
+            if (site === "MuaraPahu" && weeklyProdBudget === 0 && rawProdBudget > 0) {
+                weeklyProdBudget = rawProdBudget;
+            }
             const weeklyProdReal = rawProdReal - pengurangProdReal;
             // Build items with deltas
             const reportItems = [];
@@ -339,7 +412,10 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                 const rawR = rawAccountRealMap.get(def.name) || 0;
                 const pengurangB = pengurangSnapshot?.accountBudgetMap.get(def.name) || 0;
                 const pengurangR = pengurangSnapshot?.accountRealisasiMap.get(def.name) || 0;
-                const weeklyB = rawB - pengurangB;
+                let weeklyB = rawB === 0 ? 0 : Math.max(0, rawB - pengurangB);
+                if (site === "MuaraPahu" && weeklyB === 0 && rawB > 0) {
+                    weeklyB = rawB;
+                }
                 const weeklyR = rawR - pengurangR;
                 const ytdB = p.ytdBudgetCol ? (ytdAccountBudgetMap.get(def.name) ?? null) : null;
                 const ytdR = p.ytdRealCol ? (ytdAccountRealMap.get(def.name) ?? null) : null;

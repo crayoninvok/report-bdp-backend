@@ -7,7 +7,7 @@ import {
 } from "../constants/accounts";
 import { JobSite } from "../generated/prisma/client";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
-import { parseExcelReport, ParsedPeriodReport } from "../lib/excelParser";
+import { parseExcelReport, ParsedPeriodReport, MONTH_MAP } from "../lib/excelParser";
 import { syncSummaryForMonth } from "../lib/syncSummary";
 
 export const getReports = async (req: Request, res: Response) => {
@@ -122,6 +122,60 @@ export const getReportDetails = async (req: Request, res: Response) => {
         where: { reportId: id },
         orderBy: { orderIndex: "asc" },
       });
+    }
+
+    // Khusus Muara Pahu: jika budget tidak ada pada Laporan PL, langsung tarik dari Laporan Summary dan taruh gelondongan di Laporan Cost
+    if (report.jobSite === "MuaraPahu") {
+      const hasBudget = items.some((it) => it.budgetCost > 0);
+      if (!hasBudget) {
+        let repMonth = new Date(report.endDate).getUTCMonth() + 1;
+        if (report.periodName) {
+          const match = report.periodName.match(/[A-Za-z]+/);
+          if (match && MONTH_MAP[match[0].toLowerCase()]) {
+            repMonth = MONTH_MAP[match[0].toLowerCase()];
+          }
+        }
+
+        const summary = await prisma.pLSummaryOps.findFirst({
+          where: {
+            jobSite: "MuaraPahu",
+            year: report.year,
+            month: repMonth,
+          },
+          include: { items: true },
+        });
+
+        if (summary) {
+          if ((report.budgetProduksi === 0 || !report.budgetProduksi) && summary.budgetProduksi > 0) {
+            report.budgetProduksi = summary.budgetProduksi;
+            await prisma.weeklyReport.update({
+              where: { id: report.id },
+              data: { budgetProduksi: summary.budgetProduksi },
+            });
+          }
+
+          const nonZeroSummaryItems = summary.items.filter(
+            (it) => it.budgetCost > 0 && it.accountName.trim().toUpperCase() !== "BIAYA PRODUKSI"
+          );
+
+          if (nonZeroSummaryItems.length > 0) {
+            for (const sItem of nonZeroSummaryItems) {
+              const cleanSummaryName = sItem.accountName.trim().toLowerCase();
+              const targetItem = items.find(
+                (it) => it.accountName.trim().toLowerCase() === cleanSummaryName
+              );
+
+              if (targetItem) {
+                targetItem.budgetCost = sItem.budgetCost;
+                await prisma.weeklyReportItem.update({
+                  where: { id: targetItem.id },
+                  data: { budgetCost: sItem.budgetCost },
+                });
+              }
+            }
+          }
+        }
+      }
     }
 
     // Fetch all historical weeks for the same site and year up to current weekNumber for accurate YTD

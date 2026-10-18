@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.commitExcelUpload = exports.previewExcelUpload = exports.deleteReport = exports.getSummaryOps = exports.updateRealisasi = exports.updateBudget = exports.createReport = exports.getReportDetails = exports.getReports = void 0;
+exports.commitExcelUpload = exports.previewExcelUpload = exports.getCostTrends = exports.deleteReport = exports.getSummaryOps = exports.updateRealisasi = exports.updateBudget = exports.updatePeriod = exports.createReport = exports.getReportDetails = exports.getReports = void 0;
 const prisma_1 = require("../lib/prisma");
 const accounts_1 = require("../constants/accounts");
+const client_1 = require("../generated/prisma/client");
 const excelParser_1 = require("../lib/excelParser");
+const syncSummary_1 = require("../lib/syncSummary");
 const getReports = async (req, res) => {
     try {
         const user = req.user;
@@ -105,6 +107,50 @@ const getReportDetails = async (req, res) => {
                 where: { reportId: id },
                 orderBy: { orderIndex: "asc" },
             });
+        }
+        // Khusus Muara Pahu: jika budget tidak ada pada Laporan PL, langsung tarik dari Laporan Summary dan taruh gelondongan di Laporan Cost
+        if (report.jobSite === "MuaraPahu") {
+            const hasBudget = items.some((it) => it.budgetCost > 0);
+            if (!hasBudget) {
+                let repMonth = new Date(report.endDate).getUTCMonth() + 1;
+                if (report.periodName) {
+                    const match = report.periodName.match(/[A-Za-z]+/);
+                    if (match && excelParser_1.MONTH_MAP[match[0].toLowerCase()]) {
+                        repMonth = excelParser_1.MONTH_MAP[match[0].toLowerCase()];
+                    }
+                }
+                const summary = await prisma_1.prisma.pLSummaryOps.findFirst({
+                    where: {
+                        jobSite: "MuaraPahu",
+                        year: report.year,
+                        month: repMonth,
+                    },
+                    include: { items: true },
+                });
+                if (summary) {
+                    if ((report.budgetProduksi === 0 || !report.budgetProduksi) && summary.budgetProduksi > 0) {
+                        report.budgetProduksi = summary.budgetProduksi;
+                        await prisma_1.prisma.weeklyReport.update({
+                            where: { id: report.id },
+                            data: { budgetProduksi: summary.budgetProduksi },
+                        });
+                    }
+                    const nonZeroSummaryItems = summary.items.filter((it) => it.budgetCost > 0 && it.accountName.trim().toUpperCase() !== "BIAYA PRODUKSI");
+                    if (nonZeroSummaryItems.length > 0) {
+                        for (const sItem of nonZeroSummaryItems) {
+                            const cleanSummaryName = sItem.accountName.trim().toLowerCase();
+                            const targetItem = items.find((it) => it.accountName.trim().toLowerCase() === cleanSummaryName);
+                            if (targetItem) {
+                                targetItem.budgetCost = sItem.budgetCost;
+                                await prisma_1.prisma.weeklyReportItem.update({
+                                    where: { id: targetItem.id },
+                                    data: { budgetCost: sItem.budgetCost },
+                                });
+                            }
+                        }
+                    }
+                }
+            }
         }
         // Fetch all historical weeks for the same site and year up to current weekNumber for accurate YTD
         const allWeeksYTD = await prisma_1.prisma.weeklyReport.findMany({
@@ -376,6 +422,70 @@ const createReport = async (req, res) => {
     }
 };
 exports.createReport = createReport;
+const updatePeriod = async (req, res) => {
+    try {
+        const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+        const user = req.user;
+        const { periodName, weekNumber, year, startDate, endDate, budgetProduksi, realisasiProduksi } = req.body;
+        const report = await prisma_1.prisma.weeklyReport.findUnique({ where: { id } });
+        if (!report) {
+            return res.status(404).json({ success: false, message: "Laporan tidak ditemukan" });
+        }
+        // Site security rule: Site users can only edit their own site's report
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            if (report.jobSite !== user.jobSite) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Akses Ditolak: Anda hanya diizinkan mengedit periode untuk Site ${user.jobSite}!`,
+                });
+            }
+        }
+        const newWeekNumber = weekNumber !== undefined ? parseInt(weekNumber, 10) : report.weekNumber;
+        const newYear = year !== undefined ? parseInt(year, 10) : report.year;
+        // Check unique constraint [jobSite, year, weekNumber] if weekNumber or year changed
+        if (newWeekNumber !== report.weekNumber || newYear !== report.year) {
+            const existing = await prisma_1.prisma.weeklyReport.findUnique({
+                where: {
+                    jobSite_year_weekNumber: {
+                        jobSite: report.jobSite,
+                        year: newYear,
+                        weekNumber: newWeekNumber,
+                    },
+                },
+            });
+            if (existing && existing.id !== id) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Laporan untuk Site ${report.jobSite} Minggu ${newWeekNumber} Tahun ${newYear} sudah ada!`,
+                });
+            }
+        }
+        const updated = await prisma_1.prisma.weeklyReport.update({
+            where: { id },
+            data: {
+                periodName: periodName ? String(periodName).trim() : report.periodName,
+                weekNumber: newWeekNumber,
+                year: newYear,
+                startDate: startDate ? new Date(startDate) : report.startDate,
+                endDate: endDate ? new Date(endDate) : report.endDate,
+                budgetProduksi: budgetProduksi !== undefined ? parseFloat(budgetProduksi) : report.budgetProduksi,
+                realisasiProduksi: realisasiProduksi !== undefined ? parseFloat(realisasiProduksi) : report.realisasiProduksi,
+            },
+        });
+        // Automatically synchronize Month 10 in PLSummaryOps so summary table remains in sync
+        await (0, syncSummary_1.syncSummaryForMonth)(report.jobSite, newYear, 10);
+        res.json({
+            success: true,
+            message: `Informasi periode "${updated.periodName}" (W${updated.weekNumber}) berhasil diperbarui`,
+            data: updated,
+        });
+    }
+    catch (error) {
+        console.error("Error updating period:", error);
+        res.status(500).json({ success: false, message: "Gagal memperbarui informasi periode" });
+    }
+};
+exports.updatePeriod = updatePeriod;
 const updateBudget = async (req, res) => {
     try {
         const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
@@ -436,6 +546,8 @@ const updateBudget = async (req, res) => {
                 }
             }
         }
+        // Automatically synchronize Month 10 in PLSummaryOps
+        await (0, syncSummary_1.syncSummaryForMonth)(report.jobSite, report.year, 10);
         res.json({ success: true, message: "Data Budget berhasil diperbarui" });
     }
     catch (error) {
@@ -504,6 +616,8 @@ const updateRealisasi = async (req, res) => {
                 }
             }
         }
+        // Automatically synchronize Month 10 in PLSummaryOps
+        await (0, syncSummary_1.syncSummaryForMonth)(report.jobSite, report.year, 10);
         res.json({
             success: true,
             message: `Data Realisasi berhasil diperbarui untuk Site ${report.jobSite}`,
@@ -582,6 +696,66 @@ const deleteReport = async (req, res) => {
     }
 };
 exports.deleteReport = deleteReport;
+const getCostTrends = async (req, res) => {
+    try {
+        const user = req.user;
+        const { year, jobSite } = req.query;
+        const targetYear = year ? parseInt(year, 10) : 2026;
+        const where = { year: targetYear, weekNumber: { gte: 29 } };
+        // Site security rule: Non-HeadOffice users can only fetch their own site
+        if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+            where.jobSite = user.jobSite;
+        }
+        else if (jobSite && typeof jobSite === "string") {
+            where.jobSite = jobSite;
+        }
+        const reports = await prisma_1.prisma.weeklyReport.findMany({
+            where,
+            include: { items: true },
+            orderBy: [{ year: "asc" }, { weekNumber: "asc" }],
+        });
+        const toMillions = (val) => Math.max(0, Math.round(val / 1e6));
+        const buildRecordsForSite = (site) => {
+            const siteReports = reports.filter((r) => r.jobSite === site);
+            return siteReports.map((r) => {
+                const parentItems = r.items.filter((it) => accounts_1.PARENT_ACCOUNT_NAMES.has(it.accountName));
+                const totalB = toMillions(parentItems.reduce((sum, it) => sum + Math.max(0, it.budgetCost), 0));
+                const totalR = toMillions(parentItems.reduce((sum, it) => sum + Math.max(0, it.realisasiCost), 0));
+                const getCat = (accName) => {
+                    const it = r.items.find((i) => i.accountName === accName);
+                    const b = toMillions(it ? Math.max(0, it.budgetCost) : 0);
+                    const rVal = toMillions(it ? Math.max(0, it.realisasiCost) : 0);
+                    return { budget: b, realisasi: rVal, deviasi: b - rVal };
+                };
+                return {
+                    label: `W${r.weekNumber}`,
+                    total: { budget: totalB, realisasi: totalR, deviasi: totalB - totalR },
+                    comp: getCat("BEBAN COMPENSATION AND BENEFIT - SITE"),
+                    fuel: getCat("BEBAN FUEL - PRODUCTION"),
+                    tyre: getCat("BEBAN TYRE"),
+                    rep: getCat("BEBAN REPAIRS & MAINTENANCE"),
+                    ovh: getCat("BEBAN OVERHEAD COST - SITE"),
+                };
+            });
+        };
+        res.json({
+            success: true,
+            data: {
+                Senyiur: {
+                    weekly: buildRecordsForSite(client_1.JobSite.Senyiur),
+                },
+                MuaraPahu: {
+                    weekly: buildRecordsForSite(client_1.JobSite.MuaraPahu),
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error fetching cost trends:", error);
+        res.status(500).json({ success: false, message: "Gagal mengambil data tren biaya" });
+    }
+};
+exports.getCostTrends = getCostTrends;
 const previewExcelUpload = async (req, res) => {
     try {
         const user = req.user;
@@ -743,6 +917,12 @@ const commitExcelUpload = async (req, res) => {
                     realisasi: saved.realisasiProduksi,
                 },
             });
+        }
+        // Automatically synchronize Month 10 in PLSummaryOps for all imported sites
+        const siteYears = new Set(reportsToCommit.map((r) => `${r.jobSite}_${r.year}`));
+        for (const sy of Array.from(siteYears)) {
+            const [site, yr] = sy.split("_");
+            await (0, syncSummary_1.syncSummaryForMonth)(site, parseInt(yr, 10), 10);
         }
         res.json({
             success: true,
