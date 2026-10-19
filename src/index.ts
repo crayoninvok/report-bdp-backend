@@ -5,6 +5,7 @@ import authRouter from "./router/authRouter";
 import reportRouter from "./router/reportRouter";
 import userRouter from "./router/userRouter";
 import riverJournalRouter from "./router/riverJournalRouter";
+import productionRouter from "./router/productionRouter";
 
 dotenv.config();
 
@@ -50,6 +51,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/reports", reportRouter);
 app.use("/api/users", userRouter);
 app.use("/api/river-journal", riverJournalRouter);
+app.use("/api/production", productionRouter);
+
 
 // Start server locally (on Vercel, serverless function invokes exported app)
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {

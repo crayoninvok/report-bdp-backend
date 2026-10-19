@@ -47,3 +47,8 @@ export type PLSummaryOpsItem = Prisma.PLSummaryOpsItemModel
  * 
  */
 export type RiverJournal = Prisma.RiverJournalModel
+/**
+ * Model DailyProduction
+ * 
+ */
+export type DailyProduction = Prisma.DailyProductionModel

@@ -56,7 +56,8 @@ export const ModelName = {
   WeeklyReportItem: 'WeeklyReportItem',
   PLSummaryOps: 'PLSummaryOps',
   PLSummaryOpsItem: 'PLSummaryOpsItem',
-  RiverJournal: 'RiverJournal'
+  RiverJournal: 'RiverJournal',
+  DailyProduction: 'DailyProduction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -190,6 +191,27 @@ export const RiverJournalScalarFieldEnum = {
 } as const
 
 export type RiverJournalScalarFieldEnum = (typeof RiverJournalScalarFieldEnum)[keyof typeof RiverJournalScalarFieldEnum]
+
+
+export const DailyProductionScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  weekNumber: 'weekNumber',
+  pa: 'pa',
+  ua: 'ua',
+  payload: 'payload',
+  cycleTime: 'cycleTime',
+  fuelRatio: 'fuelRatio',
+  unitRunning: 'unitRunning',
+  tdp: 'tdp',
+  production: 'production',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyProductionScalarFieldEnum = (typeof DailyProductionScalarFieldEnum)[keyof typeof DailyProductionScalarFieldEnum]
 
 
 export const SortOrder = {

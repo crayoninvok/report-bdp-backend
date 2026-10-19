@@ -402,7 +402,8 @@ export const ModelName = {
   WeeklyReportItem: 'WeeklyReportItem',
   PLSummaryOps: 'PLSummaryOps',
   PLSummaryOpsItem: 'PLSummaryOpsItem',
-  RiverJournal: 'RiverJournal'
+  RiverJournal: 'RiverJournal',
+  DailyProduction: 'DailyProduction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -866,6 +867,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DailyProduction: {
+      payload: Prisma.$DailyProductionPayload<ExtArgs>
+      fields: Prisma.DailyProductionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyProductionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyProductionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyProductionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyProductionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>
+        }
+        findMany: {
+          args: Prisma.DailyProductionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>[]
+        }
+        create: {
+          args: Prisma.DailyProductionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>
+        }
+        createMany: {
+          args: Prisma.DailyProductionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyProductionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyProductionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>
+        }
+        update: {
+          args: Prisma.DailyProductionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyProductionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyProductionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyProductionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyProductionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyProductionPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyProductionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyProduction>
+        }
+        groupBy: {
+          args: Prisma.DailyProductionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyProductionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyProductionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyProductionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1020,6 +1095,27 @@ export const RiverJournalScalarFieldEnum = {
 } as const
 
 export type RiverJournalScalarFieldEnum = (typeof RiverJournalScalarFieldEnum)[keyof typeof RiverJournalScalarFieldEnum]
+
+
+export const DailyProductionScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  weekNumber: 'weekNumber',
+  pa: 'pa',
+  ua: 'ua',
+  payload: 'payload',
+  cycleTime: 'cycleTime',
+  fuelRatio: 'fuelRatio',
+  unitRunning: 'unitRunning',
+  tdp: 'tdp',
+  production: 'production',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyProductionScalarFieldEnum = (typeof DailyProductionScalarFieldEnum)[keyof typeof DailyProductionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1299,6 +1395,7 @@ export type GlobalOmitConfig = {
   pLSummaryOps?: Prisma.PLSummaryOpsOmit
   pLSummaryOpsItem?: Prisma.PLSummaryOpsItemOmit
   riverJournal?: Prisma.RiverJournalOmit
+  dailyProduction?: Prisma.DailyProductionOmit
 }
 
 /* Types for Logging */

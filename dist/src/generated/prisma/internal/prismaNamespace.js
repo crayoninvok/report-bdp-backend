@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -108,7 +108,8 @@ exports.ModelName = {
     WeeklyReportItem: 'WeeklyReportItem',
     PLSummaryOps: 'PLSummaryOps',
     PLSummaryOpsItem: 'PLSummaryOpsItem',
-    RiverJournal: 'RiverJournal'
+    RiverJournal: 'RiverJournal',
+    DailyProduction: 'DailyProduction'
 };
 /**
  * Enums
@@ -209,6 +210,23 @@ exports.RiverJournalScalarFieldEnum = {
     autoDescription: 'autoDescription',
     userInput: 'userInput',
     conclusion: 'conclusion',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.DailyProductionScalarFieldEnum = {
+    id: 'id',
+    jobSite: 'jobSite',
+    date: 'date',
+    weekNumber: 'weekNumber',
+    pa: 'pa',
+    ua: 'ua',
+    payload: 'payload',
+    cycleTime: 'cycleTime',
+    fuelRatio: 'fuelRatio',
+    unitRunning: 'unitRunning',
+    tdp: 'tdp',
+    production: 'production',
+    notes: 'notes',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

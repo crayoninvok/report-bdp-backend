@@ -136,3 +136,26 @@ model RiverJournal {
   @@index([site, date])
 }
 
+model DailyProduction {
+  id           String    @id @default(uuid())
+  jobSite      JobSite   @default(MuaraPahu)
+  date         String    // Tanggal operasional (YYYY-MM-DD)
+  weekNumber   String    // Kelompok Minggu: W01 - W53
+  pa           Float     // Physical Availability decimal (0.9577)
+  ua           Float     // Use of Availability decimal (0.4789)
+  payload      Float     // Muatan rata-rata per ritase (Ton)
+  cycleTime    Float     // Waktu edar rata-rata (Jam)
+  fuelRatio    Float     // Konsumsi bahan bakar (L/Ton)
+  unitRunning  Int       // Jumlah unit armada aktif
+  tdp          Float     // Trip Per Day per unit armada
+  production   Float     // Total produksi harian (Ton)
+  notes        String?   // Catatan operasional harian
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([jobSite, date])
+  @@index([jobSite, date])
+  @@index([weekNumber])
+}
+
+
