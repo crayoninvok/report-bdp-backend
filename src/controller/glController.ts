@@ -260,9 +260,11 @@ export const getGLTransactions = async (req: Request, res: Response) => {
     let periodId = req.query.periodId as string;
     const site = req.query.site ? String(req.query.site).trim().toUpperCase() : "";
     const accountCode = req.query.accountCode ? String(req.query.accountCode).trim() : "";
+    const startDate = req.query.startDate ? String(req.query.startDate).trim() : "";
+    const endDate = req.query.endDate ? String(req.query.endDate).trim() : "";
     const search = req.query.q ? String(req.query.q).trim() : "";
     const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
-    const limit = Math.min(200, Math.max(10, parseInt(req.query.limit as string, 10) || 50));
+    const limit = Math.min(10000, Math.max(10, parseInt(req.query.limit as string, 10) || 50));
     const skip = (page - 1) * limit;
 
     if (!periodId) {
@@ -290,6 +292,14 @@ export const getGLTransactions = async (req: Request, res: Response) => {
 
     if (accountCode) {
       where.accountCode = accountCode;
+    }
+
+    if (startDate && endDate) {
+      where.date = { gte: startDate, lte: endDate };
+    } else if (startDate) {
+      where.date = { gte: startDate };
+    } else if (endDate) {
+      where.date = { lte: endDate };
     }
 
     if (search) {
