@@ -235,7 +235,7 @@ export const getGLExpenseSummaries = async (req: Request, res: Response) => {
       totalHof += s.hofAmount;
       totalMph += s.mphAmount;
       totalSny += s.snyAmount;
-      grandTotal += s.grandTotal;
+      grandTotal += (s.mphAmount + s.snyAmount);
     });
 
     res.json({
@@ -282,8 +282,10 @@ export const getGLTransactions = async (req: Request, res: Response) => {
 
     const where: any = { periodId };
 
-    if (site && ["MPH", "SNY", "HOF"].includes(site)) {
+    if (site && ["MPH", "SNY"].includes(site)) {
       where.projectArea = site;
+    } else {
+      where.projectArea = { in: ["MPH", "SNY"] };
     }
 
     if (accountCode) {
