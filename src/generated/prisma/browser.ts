@@ -52,3 +52,18 @@ export type RiverJournal = Prisma.RiverJournalModel
  * 
  */
 export type DailyProduction = Prisma.DailyProductionModel
+/**
+ * Model GLPeriod
+ * 
+ */
+export type GLPeriod = Prisma.GLPeriodModel
+/**
+ * Model GLExpenseSummary
+ * 
+ */
+export type GLExpenseSummary = Prisma.GLExpenseSummaryModel
+/**
+ * Model GLTransaction
+ * 
+ */
+export type GLTransaction = Prisma.GLTransactionModel

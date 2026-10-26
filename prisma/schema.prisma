@@ -158,4 +158,67 @@ model DailyProduction {
   @@index([weekNumber])
 }
 
+model GLPeriod {
+  id                String             @id @default(uuid())
+  fileName          String
+  periodName        String             // e.g. "01/10/26 To 23/10/26"
+  year              Int
+  month             Int                // 1..12
+  startDate         DateTime?
+  endDate           DateTime?
+  totalDebet        Float              @default(0)
+  totalTransactions Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  summaries         GLExpenseSummary[]
+  transactions      GLTransaction[]
 
+  @@unique([year, month, periodName])
+  @@index([year, month])
+}
+
+model GLExpenseSummary {
+  id          String   @id @default(uuid())
+  periodId    String
+  period      GLPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  accountCode String   // e.g. "05110101"
+  accountName String   // e.g. "BEBAN GAJI KARYAWAN"
+  hofAmount   Float    @default(0) // Head Office
+  mphAmount   Float    @default(0) // Muara Pahu
+  snyAmount   Float    @default(0) // Senyiur
+  grandTotal  Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([periodId, accountCode])
+  @@index([periodId])
+}
+
+model GLTransaction {
+  id            String   @id @default(uuid())
+  periodId      String
+  period        GLPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  date          String   // YYYY-MM-DD
+  regNo         String?  // Voucher / Reg No, e.g. "EP0126001206"
+  controlNo     String?
+  accountCode   String?  // e.g. "05110101"
+  accountName   String   // e.g. "BEBAN GAJI KARYAWAN"
+  accountGroup  String?  // e.g. "BEBAN KARYAWAN"
+  currency      String   @default("IDR")
+  costCenter    String?  // e.g. "HRD004"
+  debet         Float    @default(0)
+  credit        Float    @default(0)
+  saldo         Float?
+  projectArea   String?  // "MPH", "SNY", "HOF"
+  materialCode  String?
+  specification String?
+  qty           Float?
+  supplierName  String?
+  remark        String?
+  createdAt     DateTime @default(now())
+
+  @@index([periodId])
+  @@index([periodId, projectArea])
+  @@index([periodId, accountCode])
+  @@index([date])
+}

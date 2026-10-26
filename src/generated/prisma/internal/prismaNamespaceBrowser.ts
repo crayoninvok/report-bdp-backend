@@ -57,7 +57,10 @@ export const ModelName = {
   PLSummaryOps: 'PLSummaryOps',
   PLSummaryOpsItem: 'PLSummaryOpsItem',
   RiverJournal: 'RiverJournal',
-  DailyProduction: 'DailyProduction'
+  DailyProduction: 'DailyProduction',
+  GLPeriod: 'GLPeriod',
+  GLExpenseSummary: 'GLExpenseSummary',
+  GLTransaction: 'GLTransaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -212,6 +215,65 @@ export const DailyProductionScalarFieldEnum = {
 } as const
 
 export type DailyProductionScalarFieldEnum = (typeof DailyProductionScalarFieldEnum)[keyof typeof DailyProductionScalarFieldEnum]
+
+
+export const GLPeriodScalarFieldEnum = {
+  id: 'id',
+  fileName: 'fileName',
+  periodName: 'periodName',
+  year: 'year',
+  month: 'month',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  totalDebet: 'totalDebet',
+  totalTransactions: 'totalTransactions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GLPeriodScalarFieldEnum = (typeof GLPeriodScalarFieldEnum)[keyof typeof GLPeriodScalarFieldEnum]
+
+
+export const GLExpenseSummaryScalarFieldEnum = {
+  id: 'id',
+  periodId: 'periodId',
+  accountCode: 'accountCode',
+  accountName: 'accountName',
+  hofAmount: 'hofAmount',
+  mphAmount: 'mphAmount',
+  snyAmount: 'snyAmount',
+  grandTotal: 'grandTotal',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GLExpenseSummaryScalarFieldEnum = (typeof GLExpenseSummaryScalarFieldEnum)[keyof typeof GLExpenseSummaryScalarFieldEnum]
+
+
+export const GLTransactionScalarFieldEnum = {
+  id: 'id',
+  periodId: 'periodId',
+  date: 'date',
+  regNo: 'regNo',
+  controlNo: 'controlNo',
+  accountCode: 'accountCode',
+  accountName: 'accountName',
+  accountGroup: 'accountGroup',
+  currency: 'currency',
+  costCenter: 'costCenter',
+  debet: 'debet',
+  credit: 'credit',
+  saldo: 'saldo',
+  projectArea: 'projectArea',
+  materialCode: 'materialCode',
+  specification: 'specification',
+  qty: 'qty',
+  supplierName: 'supplierName',
+  remark: 'remark',
+  createdAt: 'createdAt'
+} as const
+
+export type GLTransactionScalarFieldEnum = (typeof GLTransactionScalarFieldEnum)[keyof typeof GLTransactionScalarFieldEnum]
 
 
 export const SortOrder = {

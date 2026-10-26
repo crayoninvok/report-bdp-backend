@@ -403,7 +403,10 @@ export const ModelName = {
   PLSummaryOps: 'PLSummaryOps',
   PLSummaryOpsItem: 'PLSummaryOpsItem',
   RiverJournal: 'RiverJournal',
-  DailyProduction: 'DailyProduction'
+  DailyProduction: 'DailyProduction',
+  GLPeriod: 'GLPeriod',
+  GLExpenseSummary: 'GLExpenseSummary',
+  GLTransaction: 'GLTransaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -941,6 +944,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    GLPeriod: {
+      payload: Prisma.$GLPeriodPayload<ExtArgs>
+      fields: Prisma.GLPeriodFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GLPeriodFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GLPeriodFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>
+        }
+        findFirst: {
+          args: Prisma.GLPeriodFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GLPeriodFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>
+        }
+        findMany: {
+          args: Prisma.GLPeriodFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>[]
+        }
+        create: {
+          args: Prisma.GLPeriodCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>
+        }
+        createMany: {
+          args: Prisma.GLPeriodCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GLPeriodCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>[]
+        }
+        delete: {
+          args: Prisma.GLPeriodDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>
+        }
+        update: {
+          args: Prisma.GLPeriodUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>
+        }
+        deleteMany: {
+          args: Prisma.GLPeriodDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GLPeriodUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GLPeriodUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>[]
+        }
+        upsert: {
+          args: Prisma.GLPeriodUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLPeriodPayload>
+        }
+        aggregate: {
+          args: Prisma.GLPeriodAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGLPeriod>
+        }
+        groupBy: {
+          args: Prisma.GLPeriodGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GLPeriodGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GLPeriodCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GLPeriodCountAggregateOutputType> | number
+        }
+      }
+    }
+    GLExpenseSummary: {
+      payload: Prisma.$GLExpenseSummaryPayload<ExtArgs>
+      fields: Prisma.GLExpenseSummaryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GLExpenseSummaryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GLExpenseSummaryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>
+        }
+        findFirst: {
+          args: Prisma.GLExpenseSummaryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GLExpenseSummaryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>
+        }
+        findMany: {
+          args: Prisma.GLExpenseSummaryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>[]
+        }
+        create: {
+          args: Prisma.GLExpenseSummaryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>
+        }
+        createMany: {
+          args: Prisma.GLExpenseSummaryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GLExpenseSummaryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>[]
+        }
+        delete: {
+          args: Prisma.GLExpenseSummaryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>
+        }
+        update: {
+          args: Prisma.GLExpenseSummaryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>
+        }
+        deleteMany: {
+          args: Prisma.GLExpenseSummaryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GLExpenseSummaryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GLExpenseSummaryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>[]
+        }
+        upsert: {
+          args: Prisma.GLExpenseSummaryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLExpenseSummaryPayload>
+        }
+        aggregate: {
+          args: Prisma.GLExpenseSummaryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGLExpenseSummary>
+        }
+        groupBy: {
+          args: Prisma.GLExpenseSummaryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GLExpenseSummaryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GLExpenseSummaryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GLExpenseSummaryCountAggregateOutputType> | number
+        }
+      }
+    }
+    GLTransaction: {
+      payload: Prisma.$GLTransactionPayload<ExtArgs>
+      fields: Prisma.GLTransactionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GLTransactionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GLTransactionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>
+        }
+        findFirst: {
+          args: Prisma.GLTransactionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GLTransactionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>
+        }
+        findMany: {
+          args: Prisma.GLTransactionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>[]
+        }
+        create: {
+          args: Prisma.GLTransactionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>
+        }
+        createMany: {
+          args: Prisma.GLTransactionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GLTransactionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>[]
+        }
+        delete: {
+          args: Prisma.GLTransactionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>
+        }
+        update: {
+          args: Prisma.GLTransactionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>
+        }
+        deleteMany: {
+          args: Prisma.GLTransactionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GLTransactionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GLTransactionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>[]
+        }
+        upsert: {
+          args: Prisma.GLTransactionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GLTransactionPayload>
+        }
+        aggregate: {
+          args: Prisma.GLTransactionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGLTransaction>
+        }
+        groupBy: {
+          args: Prisma.GLTransactionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GLTransactionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GLTransactionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GLTransactionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1116,6 +1341,65 @@ export const DailyProductionScalarFieldEnum = {
 } as const
 
 export type DailyProductionScalarFieldEnum = (typeof DailyProductionScalarFieldEnum)[keyof typeof DailyProductionScalarFieldEnum]
+
+
+export const GLPeriodScalarFieldEnum = {
+  id: 'id',
+  fileName: 'fileName',
+  periodName: 'periodName',
+  year: 'year',
+  month: 'month',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  totalDebet: 'totalDebet',
+  totalTransactions: 'totalTransactions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GLPeriodScalarFieldEnum = (typeof GLPeriodScalarFieldEnum)[keyof typeof GLPeriodScalarFieldEnum]
+
+
+export const GLExpenseSummaryScalarFieldEnum = {
+  id: 'id',
+  periodId: 'periodId',
+  accountCode: 'accountCode',
+  accountName: 'accountName',
+  hofAmount: 'hofAmount',
+  mphAmount: 'mphAmount',
+  snyAmount: 'snyAmount',
+  grandTotal: 'grandTotal',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GLExpenseSummaryScalarFieldEnum = (typeof GLExpenseSummaryScalarFieldEnum)[keyof typeof GLExpenseSummaryScalarFieldEnum]
+
+
+export const GLTransactionScalarFieldEnum = {
+  id: 'id',
+  periodId: 'periodId',
+  date: 'date',
+  regNo: 'regNo',
+  controlNo: 'controlNo',
+  accountCode: 'accountCode',
+  accountName: 'accountName',
+  accountGroup: 'accountGroup',
+  currency: 'currency',
+  costCenter: 'costCenter',
+  debet: 'debet',
+  credit: 'credit',
+  saldo: 'saldo',
+  projectArea: 'projectArea',
+  materialCode: 'materialCode',
+  specification: 'specification',
+  qty: 'qty',
+  supplierName: 'supplierName',
+  remark: 'remark',
+  createdAt: 'createdAt'
+} as const
+
+export type GLTransactionScalarFieldEnum = (typeof GLTransactionScalarFieldEnum)[keyof typeof GLTransactionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1396,6 +1680,9 @@ export type GlobalOmitConfig = {
   pLSummaryOpsItem?: Prisma.PLSummaryOpsItemOmit
   riverJournal?: Prisma.RiverJournalOmit
   dailyProduction?: Prisma.DailyProductionOmit
+  gLPeriod?: Prisma.GLPeriodOmit
+  gLExpenseSummary?: Prisma.GLExpenseSummaryOmit
+  gLTransaction?: Prisma.GLTransactionOmit
 }
 
 /* Types for Logging */
