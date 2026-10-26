@@ -12,6 +12,7 @@ import {
   deleteReport,
   previewExcelUpload,
   commitExcelUpload,
+  getLatestDataUpdates,
 } from "../controller/reportController";
 
 import { extractUser } from "../middleware/authMiddleware";
@@ -25,6 +26,7 @@ const upload = multer({
 router.use(extractUser);
 
 router.get("/", getReports);
+router.get("/latest-updates", getLatestDataUpdates);
 router.get("/summary/ops", getSummaryOps);
 router.get("/trend", getCostTrends);
 router.post("/upload/preview", upload.single("file"), previewExcelUpload);

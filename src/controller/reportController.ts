@@ -1144,3 +1144,154 @@ export const commitExcelUpload = async (req: Request, res: Response) => {
   }
 };
 
+export const getLatestDataUpdates = async (req: Request, res: Response) => {
+  try {
+    const [latestGL, latestWeekly, latestSummary, latestProduction, latestRiver] = await Promise.all([
+      // 1. GL Raw Data
+      prisma.gLPeriod.findFirst({
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          periodName: true,
+          fileName: true,
+          totalTransactions: true,
+          totalDebet: true,
+          createdAt: true,
+        },
+      }),
+      // 2. Weekly Cost Report
+      prisma.weeklyReport.findFirst({
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          periodName: true,
+          jobSite: true,
+          weekNumber: true,
+          year: true,
+          updatedAt: true,
+          createdAt: true,
+        },
+      }),
+      // 3. PL Summary Ops
+      prisma.pLSummaryOps.findFirst({
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          periodName: true,
+          jobSite: true,
+          monthLabel: true,
+          year: true,
+          updatedAt: true,
+          createdAt: true,
+        },
+      }),
+      // 4. Coal Production
+      prisma.dailyProduction.findFirst({
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          date: true,
+          weekNumber: true,
+          jobSite: true,
+          production: true,
+          updatedAt: true,
+          createdAt: true,
+        },
+      }),
+      // 5. River Journal
+      prisma.riverJournal.findFirst({
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          date: true,
+          location: true,
+          site: true,
+          waterDepth: true,
+          updatedAt: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    const updates = [];
+
+    if (latestGL) {
+      updates.push({
+        id: `gl-${latestGL.id}`,
+        module: "GL Raw Data",
+        category: "gl-data",
+        title: `Upload GL: ${latestGL.periodName}`,
+        description: `File "${latestGL.fileName}" (${latestGL.totalTransactions.toLocaleString()} transaksi)`,
+        timestamp: latestGL.createdAt,
+        type: "upload",
+      });
+    }
+
+    if (latestWeekly) {
+      updates.push({
+        id: `cost-${latestWeekly.id}`,
+        module: "Laporan Cost",
+        category: "reports",
+        title: `Laporan Cost: ${latestWeekly.periodName} (${latestWeekly.jobSite})`,
+        description: `Minggu ${latestWeekly.weekNumber} Tahun ${latestWeekly.year}`,
+        timestamp: latestWeekly.updatedAt || latestWeekly.createdAt,
+        type: "report",
+      });
+    }
+
+    if (latestSummary) {
+      updates.push({
+        id: `summary-${latestSummary.id}`,
+        module: "Laporan Summary",
+        category: "summary",
+        title: `Summary Ops: ${latestSummary.periodName} (${latestSummary.jobSite})`,
+        description: `PL Summary Bulan ${latestSummary.monthLabel} ${latestSummary.year}`,
+        timestamp: latestSummary.updatedAt || latestSummary.createdAt,
+        type: "summary",
+      });
+    }
+
+    if (latestProduction) {
+      updates.push({
+        id: `prod-${latestProduction.id}`,
+        module: "Coal Hauling Produksi",
+        category: "coal-dashboard",
+        title: `Produksi Coal Hauling: ${latestProduction.date} (${latestProduction.jobSite})`,
+        description: `Produksi ${latestProduction.production.toLocaleString()} Ton (${latestProduction.weekNumber})`,
+        timestamp: latestProduction.updatedAt || latestProduction.createdAt,
+        type: "production",
+      });
+    }
+
+    if (latestRiver) {
+      updates.push({
+        id: `river-${latestRiver.id}`,
+        module: "River Journal",
+        category: "river-journal",
+        title: `Kedalaman Air: ${latestRiver.date} (${latestRiver.site})`,
+        description: `Lokasi ${latestRiver.location} (${latestRiver.waterDepth} m)`,
+        timestamp: latestRiver.updatedAt || latestRiver.createdAt,
+        type: "river",
+      });
+    }
+
+    // Sort descending by timestamp
+    updates.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const latestTimestamp = updates.length > 0 ? updates[0].timestamp : null;
+
+    res.json({
+      success: true,
+      latestTimestamp,
+      updates,
+    });
+  } catch (error: any) {
+    console.error("Error getting latest data updates:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data update terbaru",
+    });
+  }
+};
+
+
