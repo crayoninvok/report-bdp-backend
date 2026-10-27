@@ -612,12 +612,24 @@ export async function parseExcelReport(
 
       let weekNum = existingDb ? existingDb.weekNumber : 1;
       if (!existingDb) {
-        if (priorWeekNumber !== null && priorWeekNumber > 0) {
-          weekNum = priorWeekNumber + 1;
+        let proposedWeek = priorWeekNumber !== null && priorWeekNumber > 0 ? priorWeekNumber + 1 : 1;
+        // Check if proposedWeek is already taken by an existing report in DB
+        const weekConflict = existingDbReports.find((r) => r.weekNumber === proposedWeek);
+        if (weekConflict) {
+          const conflictMonth = new Date(weekConflict.startDate).getUTCMonth() + 1;
+          // If conflict belongs to a later month (e.g. proposed is W35 in August, but W35 in DB is already in September):
+          // This August month-end column (e.g. 01-31 Agst) is just the final August closing for Week 34!
+          if (conflictMonth > p.month && priorWeekNumber !== null) {
+            weekNum = priorWeekNumber;
+          } else {
+            const usedWeeks = new Set(existingDbReports.map((r) => r.weekNumber));
+            while (usedWeeks.has(proposedWeek)) {
+              proposedWeek++;
+            }
+            weekNum = proposedWeek;
+          }
         } else {
-          // Estimate weekNumber based on latest in DB or chronological order
-          const maxDbWeek = existingDbReports.reduce((max, r) => Math.max(max, r.weekNumber), 0);
-          weekNum = maxDbWeek > 0 ? maxDbWeek + 1 : 1;
+          weekNum = proposedWeek;
         }
       }
 
