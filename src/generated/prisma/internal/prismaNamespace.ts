@@ -406,7 +406,11 @@ export const ModelName = {
   DailyProduction: 'DailyProduction',
   GLPeriod: 'GLPeriod',
   GLExpenseSummary: 'GLExpenseSummary',
-  GLTransaction: 'GLTransaction'
+  GLTransaction: 'GLTransaction',
+  MasterUnit: 'MasterUnit',
+  PeriodicInspectionPlan: 'PeriodicInspectionPlan',
+  PeriodicInspectionItem: 'PeriodicInspectionItem',
+  PlantSetting: 'PlantSetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -422,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "plantSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1166,6 +1170,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MasterUnit: {
+      payload: Prisma.$MasterUnitPayload<ExtArgs>
+      fields: Prisma.MasterUnitFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MasterUnitFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MasterUnitFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>
+        }
+        findFirst: {
+          args: Prisma.MasterUnitFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MasterUnitFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>
+        }
+        findMany: {
+          args: Prisma.MasterUnitFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>[]
+        }
+        create: {
+          args: Prisma.MasterUnitCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>
+        }
+        createMany: {
+          args: Prisma.MasterUnitCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MasterUnitCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>[]
+        }
+        delete: {
+          args: Prisma.MasterUnitDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>
+        }
+        update: {
+          args: Prisma.MasterUnitUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>
+        }
+        deleteMany: {
+          args: Prisma.MasterUnitDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MasterUnitUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MasterUnitUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>[]
+        }
+        upsert: {
+          args: Prisma.MasterUnitUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterUnitPayload>
+        }
+        aggregate: {
+          args: Prisma.MasterUnitAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMasterUnit>
+        }
+        groupBy: {
+          args: Prisma.MasterUnitGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MasterUnitGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MasterUnitCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MasterUnitCountAggregateOutputType> | number
+        }
+      }
+    }
+    PeriodicInspectionPlan: {
+      payload: Prisma.$PeriodicInspectionPlanPayload<ExtArgs>
+      fields: Prisma.PeriodicInspectionPlanFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PeriodicInspectionPlanFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PeriodicInspectionPlanFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>
+        }
+        findFirst: {
+          args: Prisma.PeriodicInspectionPlanFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PeriodicInspectionPlanFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>
+        }
+        findMany: {
+          args: Prisma.PeriodicInspectionPlanFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>[]
+        }
+        create: {
+          args: Prisma.PeriodicInspectionPlanCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>
+        }
+        createMany: {
+          args: Prisma.PeriodicInspectionPlanCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PeriodicInspectionPlanCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>[]
+        }
+        delete: {
+          args: Prisma.PeriodicInspectionPlanDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>
+        }
+        update: {
+          args: Prisma.PeriodicInspectionPlanUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>
+        }
+        deleteMany: {
+          args: Prisma.PeriodicInspectionPlanDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PeriodicInspectionPlanUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PeriodicInspectionPlanUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>[]
+        }
+        upsert: {
+          args: Prisma.PeriodicInspectionPlanUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionPlanPayload>
+        }
+        aggregate: {
+          args: Prisma.PeriodicInspectionPlanAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePeriodicInspectionPlan>
+        }
+        groupBy: {
+          args: Prisma.PeriodicInspectionPlanGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PeriodicInspectionPlanGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PeriodicInspectionPlanCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PeriodicInspectionPlanCountAggregateOutputType> | number
+        }
+      }
+    }
+    PeriodicInspectionItem: {
+      payload: Prisma.$PeriodicInspectionItemPayload<ExtArgs>
+      fields: Prisma.PeriodicInspectionItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PeriodicInspectionItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PeriodicInspectionItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>
+        }
+        findFirst: {
+          args: Prisma.PeriodicInspectionItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PeriodicInspectionItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>
+        }
+        findMany: {
+          args: Prisma.PeriodicInspectionItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>[]
+        }
+        create: {
+          args: Prisma.PeriodicInspectionItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>
+        }
+        createMany: {
+          args: Prisma.PeriodicInspectionItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PeriodicInspectionItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>[]
+        }
+        delete: {
+          args: Prisma.PeriodicInspectionItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>
+        }
+        update: {
+          args: Prisma.PeriodicInspectionItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.PeriodicInspectionItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PeriodicInspectionItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PeriodicInspectionItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.PeriodicInspectionItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PeriodicInspectionItemPayload>
+        }
+        aggregate: {
+          args: Prisma.PeriodicInspectionItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePeriodicInspectionItem>
+        }
+        groupBy: {
+          args: Prisma.PeriodicInspectionItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PeriodicInspectionItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PeriodicInspectionItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PeriodicInspectionItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    PlantSetting: {
+      payload: Prisma.$PlantSettingPayload<ExtArgs>
+      fields: Prisma.PlantSettingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlantSettingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlantSettingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>
+        }
+        findFirst: {
+          args: Prisma.PlantSettingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlantSettingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>
+        }
+        findMany: {
+          args: Prisma.PlantSettingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>[]
+        }
+        create: {
+          args: Prisma.PlantSettingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>
+        }
+        createMany: {
+          args: Prisma.PlantSettingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlantSettingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>[]
+        }
+        delete: {
+          args: Prisma.PlantSettingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>
+        }
+        update: {
+          args: Prisma.PlantSettingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlantSettingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlantSettingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlantSettingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlantSettingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlantSettingPayload>
+        }
+        aggregate: {
+          args: Prisma.PlantSettingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlantSetting>
+        }
+        groupBy: {
+          args: Prisma.PlantSettingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlantSettingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlantSettingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlantSettingCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1400,6 +1700,68 @@ export const GLTransactionScalarFieldEnum = {
 } as const
 
 export type GLTransactionScalarFieldEnum = (typeof GLTransactionScalarFieldEnum)[keyof typeof GLTransactionScalarFieldEnum]
+
+
+export const MasterUnitScalarFieldEnum = {
+  id: 'id',
+  unitCode: 'unitCode',
+  unitNumber: 'unitNumber',
+  category: 'category',
+  brand: 'brand',
+  model: 'model',
+  headUnitCode: 'headUnitCode',
+  pairIndex: 'pairIndex',
+  jobSite: 'jobSite',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MasterUnitScalarFieldEnum = (typeof MasterUnitScalarFieldEnum)[keyof typeof MasterUnitScalarFieldEnum]
+
+
+export const PeriodicInspectionPlanScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  targetUnits: 'targetUnits',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PeriodicInspectionPlanScalarFieldEnum = (typeof PeriodicInspectionPlanScalarFieldEnum)[keyof typeof PeriodicInspectionPlanScalarFieldEnum]
+
+
+export const PeriodicInspectionItemScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  date: 'date',
+  unitCode: 'unitCode',
+  serviceType: 'serviceType',
+  shift: 'shift',
+  status: 'status',
+  inspectorName: 'inspectorName',
+  notes: 'notes',
+  buntutSummary: 'buntutSummary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PeriodicInspectionItemScalarFieldEnum = (typeof PeriodicInspectionItemScalarFieldEnum)[keyof typeof PeriodicInspectionItemScalarFieldEnum]
+
+
+export const PlantSettingScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  key: 'key',
+  value: 'value',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlantSettingScalarFieldEnum = (typeof PlantSettingScalarFieldEnum)[keyof typeof PlantSettingScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1683,6 +2045,10 @@ export type GlobalOmitConfig = {
   gLPeriod?: Prisma.GLPeriodOmit
   gLExpenseSummary?: Prisma.GLExpenseSummaryOmit
   gLTransaction?: Prisma.GLTransactionOmit
+  masterUnit?: Prisma.MasterUnitOmit
+  periodicInspectionPlan?: Prisma.PeriodicInspectionPlanOmit
+  periodicInspectionItem?: Prisma.PeriodicInspectionItemOmit
+  plantSetting?: Prisma.PlantSettingOmit
 }
 
 /* Types for Logging */

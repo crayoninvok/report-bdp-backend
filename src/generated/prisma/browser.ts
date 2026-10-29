@@ -67,3 +67,23 @@ export type GLExpenseSummary = Prisma.GLExpenseSummaryModel
  * 
  */
 export type GLTransaction = Prisma.GLTransactionModel
+/**
+ * Model MasterUnit
+ * 
+ */
+export type MasterUnit = Prisma.MasterUnitModel
+/**
+ * Model PeriodicInspectionPlan
+ * 
+ */
+export type PeriodicInspectionPlan = Prisma.PeriodicInspectionPlanModel
+/**
+ * Model PeriodicInspectionItem
+ * 
+ */
+export type PeriodicInspectionItem = Prisma.PeriodicInspectionItemModel
+/**
+ * Model PlantSetting
+ * 
+ */
+export type PlantSetting = Prisma.PlantSettingModel

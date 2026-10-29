@@ -60,7 +60,11 @@ export const ModelName = {
   DailyProduction: 'DailyProduction',
   GLPeriod: 'GLPeriod',
   GLExpenseSummary: 'GLExpenseSummary',
-  GLTransaction: 'GLTransaction'
+  GLTransaction: 'GLTransaction',
+  MasterUnit: 'MasterUnit',
+  PeriodicInspectionPlan: 'PeriodicInspectionPlan',
+  PeriodicInspectionItem: 'PeriodicInspectionItem',
+  PlantSetting: 'PlantSetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -274,6 +278,68 @@ export const GLTransactionScalarFieldEnum = {
 } as const
 
 export type GLTransactionScalarFieldEnum = (typeof GLTransactionScalarFieldEnum)[keyof typeof GLTransactionScalarFieldEnum]
+
+
+export const MasterUnitScalarFieldEnum = {
+  id: 'id',
+  unitCode: 'unitCode',
+  unitNumber: 'unitNumber',
+  category: 'category',
+  brand: 'brand',
+  model: 'model',
+  headUnitCode: 'headUnitCode',
+  pairIndex: 'pairIndex',
+  jobSite: 'jobSite',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MasterUnitScalarFieldEnum = (typeof MasterUnitScalarFieldEnum)[keyof typeof MasterUnitScalarFieldEnum]
+
+
+export const PeriodicInspectionPlanScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  targetUnits: 'targetUnits',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PeriodicInspectionPlanScalarFieldEnum = (typeof PeriodicInspectionPlanScalarFieldEnum)[keyof typeof PeriodicInspectionPlanScalarFieldEnum]
+
+
+export const PeriodicInspectionItemScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  date: 'date',
+  unitCode: 'unitCode',
+  serviceType: 'serviceType',
+  shift: 'shift',
+  status: 'status',
+  inspectorName: 'inspectorName',
+  notes: 'notes',
+  buntutSummary: 'buntutSummary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PeriodicInspectionItemScalarFieldEnum = (typeof PeriodicInspectionItemScalarFieldEnum)[keyof typeof PeriodicInspectionItemScalarFieldEnum]
+
+
+export const PlantSettingScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  key: 'key',
+  value: 'value',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlantSettingScalarFieldEnum = (typeof PlantSettingScalarFieldEnum)[keyof typeof PlantSettingScalarFieldEnum]
 
 
 export const SortOrder = {

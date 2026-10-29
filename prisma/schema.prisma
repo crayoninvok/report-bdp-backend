@@ -222,3 +222,69 @@ model GLTransaction {
   @@index([periodId, accountCode])
   @@index([date])
 }
+
+model MasterUnit {
+  id           String                   @id @default(uuid())
+  unitCode     String                   @unique // e.g. "PM401", "ST801", "DL601", "ST901"
+  unitNumber   Int                      // e.g. 401, 801, 601, 901
+  category     String                   // "Prime Mover", "Vessel 1", "Dolly", "Vessel 2"
+  brand        String                   // "Volvo", "Korindo"
+  model        String                   // "FH16", "SDT110", "DL", "SDT125"
+  headUnitCode String?                  // e.g. "PM401"
+  pairIndex    Int?                     // 1..71
+  jobSite      JobSite                  @default(MuaraPahu)
+  status       String                   @default("Active") // "Active", "Maintenance", "Breakdown", "Standby"
+  inspections  PeriodicInspectionItem[]
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([category])
+  @@index([headUnitCode])
+  @@index([status])
+}
+
+model PeriodicInspectionPlan {
+  id          String                   @id @default(uuid())
+  jobSite     JobSite                  @default(MuaraPahu)
+  date        String                   // YYYY-MM-DD
+  targetUnits Int                      @default(9) // Plan harian (default 9, bisa diubah dinamis)
+  notes       String?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  items       PeriodicInspectionItem[]
+
+  @@unique([jobSite, date])
+  @@index([date])
+}
+
+model PeriodicInspectionItem {
+  id            String                 @id @default(uuid())
+  planId        String
+  plan          PeriodicInspectionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  date          String                 // YYYY-MM-DD
+  unitCode      String                 // e.g. "PM401" (kepala)
+  unit          MasterUnit?            @relation(fields: [unitCode], references: [unitCode])
+  serviceType   String                 @default("PI Regular") // "PI Regular", "P1 (250 HM)", "P2 (500 HM)", "P3 (1000 HM)", "P4 (2000 HM)"
+  shift         String                 @default("Shift 1") // "Shift 1", "Shift 2"
+  status        String                 @default("Scheduled") // "Scheduled", "In Progress", "Completed", "Pending"
+  inspectorName String?
+  notes         String?
+  buntutSummary String?                // e.g. "ST801, DL601, ST901"
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([planId, unitCode])
+  @@index([date])
+  @@index([unitCode])
+  @@index([status])
+}
+
+model PlantSetting {
+  id          String   @id @default(uuid())
+  jobSite     JobSite  @default(MuaraPahu)
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

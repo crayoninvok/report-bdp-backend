@@ -7,6 +7,7 @@ import userRouter from "./router/userRouter";
 import riverJournalRouter from "./router/riverJournalRouter";
 import productionRouter from "./router/productionRouter";
 import glRouter from "./router/glRouter";
+import plantRouter from "./router/plantRouter";
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use("/api/users", userRouter);
 app.use("/api/river-journal", riverJournalRouter);
 app.use("/api/production", productionRouter);
 app.use("/api/gl", glRouter);
+app.use("/api/plant", plantRouter);
 
 
 // Start server locally (on Vercel, serverless function invokes exported app)

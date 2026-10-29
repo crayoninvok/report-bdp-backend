@@ -263,6 +263,7 @@ export const getGLTransactions = async (req: Request, res: Response) => {
     const startDate = req.query.startDate ? String(req.query.startDate).trim() : "";
     const endDate = req.query.endDate ? String(req.query.endDate).trim() : "";
     const search = req.query.q ? String(req.query.q).trim() : "";
+    const voucherType = req.query.voucherType ? String(req.query.voucherType).trim().toUpperCase() : "";
     const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
     const limit = Math.min(10000, Math.max(10, parseInt(req.query.limit as string, 10) || 50));
     const skip = (page - 1) * limit;
@@ -294,6 +295,12 @@ export const getGLTransactions = async (req: Request, res: Response) => {
       where.accountCode = accountCode;
     }
 
+    if (voucherType === "GI") {
+      where.regNo = { startsWith: "GI" };
+    } else if (voucherType === "WITH_QTY") {
+      where.qty = { gt: 0 };
+    }
+
     if (startDate && endDate) {
       where.date = { gte: startDate, lte: endDate };
     } else if (startDate) {
@@ -310,6 +317,7 @@ export const getGLTransactions = async (req: Request, res: Response) => {
         { supplierName: { contains: search, mode: "insensitive" } },
         { remark: { contains: search, mode: "insensitive" } },
         { materialCode: { contains: search, mode: "insensitive" } },
+        { specification: { contains: search, mode: "insensitive" } },
       ];
     }
 

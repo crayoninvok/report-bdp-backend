@@ -213,7 +213,13 @@ export function parseGLExcel(buffer: Buffer, fileName: string): ParsedGLResult {
     const projectArea = row[15] ? String(row[15]).trim().toUpperCase() : undefined;
     const materialCode = row[16] ? String(row[16]).trim() : undefined;
     const specification = row[17] ? String(row[17]).trim() : undefined;
-    const qty = row[18] !== undefined && row[18] !== null ? Number(row[18]) : undefined;
+    let qty: number | undefined = undefined;
+    if (row[18] !== undefined && row[18] !== null && String(row[18]).trim() !== "") {
+      const parsedQty = typeof row[18] === "number" ? row[18] : parseFloat(String(row[18]).replace(/,/g, ""));
+      if (!isNaN(parsedQty)) {
+        qty = parsedQty;
+      }
+    }
     const supplierName = row[20] ? String(row[20]).trim() : undefined;
 
     totalDebet += debet;
