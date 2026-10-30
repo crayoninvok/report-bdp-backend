@@ -29,24 +29,25 @@ function formatToISO(dateStr, type = "start") {
 function matchesJobsite(t, jobsite) {
     if (!jobsite || jobsite === "all")
         return true;
-    const inboundMain = (t.inbound_location_main_location_name || "").toLowerCase();
-    const inboundWbMain = (t.inbound_weight_bridge_location_main_location_name || "").toLowerCase();
-    const outboundMain = (t.outbound_location_main_location_name || "").toLowerCase();
-    const outboundWbMain = (t.outbound_weight_bridge_location_main_location_name || "").toLowerCase();
-    const startLoc = (t.location_route?.start_location_name || t.inbound_location_label || "").toLowerCase();
+    const ref = (t.reference_id || "").toLowerCase();
     const endLoc = (t.location_route?.end_location_name || t.outbound_location_label || "").toLowerCase();
+    const startLoc = (t.location_route?.start_location_name || t.inbound_location_label || "").toLowerCase();
+    const inboundMain = (t.inbound_location_main_location_name || "").toLowerCase();
+    const outboundMain = (t.outbound_location_main_location_name || "").toLowerCase();
+    const isMuaraPahu = ref.startsWith("mp-") ||
+        endLoc.includes("mp") ||
+        inboundMain.includes("muara pahu") ||
+        outboundMain.includes("muara pahu");
     const j = jobsite.toLowerCase();
     if (j === "senyiur") {
-        return (inboundMain.includes("senyiur") ||
-            inboundWbMain.includes("senyiur") ||
+        // Site Senyiur tidak ada operasional bulan ini (semua tiket berawalan MP- / dumping ke MP Side Dump)
+        return !isMuaraPahu && (inboundMain.includes("senyiur") ||
             outboundMain.includes("senyiur") ||
-            outboundWbMain.includes("senyiur") ||
             startLoc.includes("senyiur") ||
             endLoc.includes("senyiur"));
     }
     if (j === "muara_pahu" || j === "muarapahu") {
-        return (inboundMain.includes("muara pahu") ||
-            (outboundMain.includes("muara pahu") && !inboundMain.includes("senyiur") && !inboundWbMain.includes("senyiur")));
+        return isMuaraPahu;
     }
     return true;
 }
@@ -58,7 +59,8 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
     const startDt = new Date(startDate);
     const endDt = new Date(endDate);
     const curDt = new Date(startDt);
-    const factor = jobsite === "senyiur" ? 0.08 : jobsite === "muara_pahu" ? 0.99 : 1.0;
+    const isSenyiur = jobsite === "senyiur";
+    const factor = isSenyiur ? 0 : 1.0;
     let grandTotalTonaseDS = 0;
     let grandTotalRitaseDS = 0;
     let grandTotalTonaseNS = 0;
@@ -73,11 +75,11 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
         // Deterministic pseudo-random generation
         const seed = (dateNum * 17 + monthNum * 31) % 100;
         const baseRitDS = 35 + (seed % 25);
-        const ritaseDS = Math.max(1, Math.round(baseRitDS * factor));
-        const tonaseDS = Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
+        const ritaseDS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitDS * factor));
+        const tonaseDS = factor === 0 ? 0 : Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
         const baseRitNS = 38 + ((seed + 7) % 28);
-        const ritaseNS = Math.max(1, Math.round(baseRitNS * factor));
-        const tonaseNS = Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
+        const ritaseNS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitNS * factor));
+        const tonaseNS = factor === 0 ? 0 : Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
         const totalRitase = ritaseDS + ritaseNS;
         const totalTonase = Math.round((tonaseDS + tonaseNS) * 10) / 10;
         grandTotalTonaseDS += tonaseDS;
@@ -95,9 +97,9 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
             ritaseNS,
             totalTonase,
             totalRitase,
-            avgPayloadDS: Math.round((tonaseDS / ritaseDS) * 10) / 10,
-            avgPayloadNS: Math.round((tonaseNS / ritaseNS) * 10) / 10,
-            avgPayloadTotal: Math.round((totalTonase / totalRitase) * 10) / 10,
+            avgPayloadDS: ritaseDS > 0 ? Math.round((tonaseDS / ritaseDS) * 10) / 10 : 0,
+            avgPayloadNS: ritaseNS > 0 ? Math.round((tonaseNS / ritaseNS) * 10) / 10 : 0,
+            avgPayloadTotal: totalRitase > 0 ? Math.round((totalTonase / totalRitase) * 10) / 10 : 0,
         };
         curDt.setDate(curDt.getDate() + 1);
     }
@@ -973,7 +975,7 @@ exports.assetfindrController = {
             });
             const grandTotalTonase = Math.round((grandTotalTonaseDS + grandTotalTonaseNS) * 100) / 100;
             const grandTotalRitase = grandTotalRitaseDS + grandTotalRitaseNS;
-            const activeDays = dailyList.filter((d) => d.totalRitase > 0).length || 1;
+            const activeDays = dailyList.filter((d) => d.totalRitase > 0).length;
             const responsePayload = {
                 success: true,
                 isLive: true,
@@ -990,7 +992,7 @@ exports.assetfindrController = {
                     totalRitaseNS: grandTotalRitaseNS,
                     grandTotalTonase,
                     grandTotalRitase,
-                    avgTonasePerDay: Math.round((grandTotalTonase / activeDays) * 100) / 100,
+                    avgTonasePerDay: activeDays > 0 ? Math.round((grandTotalTonase / activeDays) * 100) / 100 : 0,
                     avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
                 },
                 data: dailyList,
