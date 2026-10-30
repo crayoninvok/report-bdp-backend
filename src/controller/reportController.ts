@@ -945,13 +945,10 @@ export const getCostTrends = async (req: Request, res: Response) => {
 export const getCostOverallDashboard = async (req: Request, res: Response) => {
   try {
     const user = (req as AuthenticatedRequest).user;
-    const { year, jobSite, minWeek, maxWeek } = req.query;
+    const { year, jobSite } = req.query;
     const targetYear = year ? parseInt(year as string, 10) : 2026;
 
-    const where: any = { year: targetYear, weekNumber: { gte: minWeek ? parseInt(minWeek as string, 10) : 29 } };
-    if (maxWeek) {
-      where.weekNumber = { ...where.weekNumber, lte: parseInt(maxWeek as string, 10) };
-    }
+    const where: any = { year: targetYear };
 
     const requestedSite = (jobSite as string) || "Senyiur";
     if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
@@ -966,22 +963,338 @@ export const getCostOverallDashboard = async (req: Request, res: Response) => {
       orderBy: [{ year: "asc" }, { weekNumber: "asc" }],
     });
 
-    // Group or prepare reports per week
-    let weekReports: {
-      weekNumber: number;
+    type PeriodReportUnit = {
       label: string;
       periodName: string;
       budgetProduksi: number;
       realisasiProduksi: number;
-      itemsMap: Map<string, { budgetCost: number; realisasiCost: number; isParent: boolean; subCategory: string | null; parentName: string | null; accountCode: string | null }>;
-    }[] = [];
+      itemsMap: Map<
+        string,
+        {
+          budgetCost: number;
+          realisasiCost: number;
+          isParent: boolean;
+          subCategory: string | null;
+          parentName: string | null;
+          accountCode: string | null;
+        }
+      >;
+    };
+
+    const calcCostPerTon = (cost: number, tonnage: number) => {
+      return tonnage > 0 ? Math.round(cost / tonnage) : 0;
+    };
+
+    const buildDataset = (units: PeriodReportUnit[]) => {
+      let totalBudgetProduksi = 0;
+      let totalRealisasiProduksi = 0;
+      units.forEach((u) => {
+        totalBudgetProduksi += u.budgetProduksi;
+        totalRealisasiProduksi += u.realisasiProduksi;
+      });
+
+      // 1. SUMMARY TOTAL (Biaya Produksi)
+      const summaryTimeline = units.map((u) => {
+        let bCost = 0;
+        let rCost = 0;
+        PARENT_ACCOUNT_NAMES.forEach((pName) => {
+          const pItem = u.itemsMap.get(pName);
+          if (pItem) {
+            bCost += pItem.budgetCost;
+            rCost += pItem.realisasiCost;
+          }
+        });
+        const bTon = calcCostPerTon(bCost, u.budgetProduksi);
+        const rTon = calcCostPerTon(rCost, u.realisasiProduksi);
+        return {
+          label: u.label,
+          periodName: u.periodName,
+          budgetCost: Math.round(bCost),
+          realisasiCost: Math.round(rCost),
+          deviasiCost: Math.round(bCost - rCost),
+          prodBudget: Math.round(u.budgetProduksi),
+          prodReal: Math.round(u.realisasiProduksi),
+          budgetIdrPerTon: bTon,
+          realisasiIdrPerTon: rTon,
+          deviasiIdrPerTon: bTon - rTon,
+        };
+      });
+
+      const sumTotalB = summaryTimeline.reduce((s, t) => s + t.budgetCost, 0);
+      const sumTotalR = summaryTimeline.reduce((s, t) => s + t.realisasiCost, 0);
+      const summaryTotal = {
+        name: "TOTAL BIAYA PRODUKSI",
+        totalBudget: sumTotalB,
+        totalRealisasi: sumTotalR,
+        totalDeviasi: sumTotalB - sumTotalR,
+        avgBudgetIdrPerTon: calcCostPerTon(sumTotalB, totalBudgetProduksi),
+        avgRealisasiIdrPerTon: calcCostPerTon(sumTotalR, totalRealisasiProduksi),
+        avgDeviasiIdrPerTon:
+          calcCostPerTon(sumTotalB, totalBudgetProduksi) -
+          calcCostPerTon(sumTotalR, totalRealisasiProduksi),
+        timeline: summaryTimeline,
+      };
+
+      // 2. PARENT CATEGORIES
+      const parentCategories = Array.from(PARENT_ACCOUNT_NAMES).map((pName, idx) => {
+        const childAccounts = ACCOUNT_DEFINITIONS.filter(
+          (a) => a.parentName === pName && !a.isParent
+        );
+        const subCats = Array.from(
+          new Set(childAccounts.map((a) => a.subCategory).filter(Boolean))
+        ) as string[];
+
+        const timeline = units.map((u) => {
+          const it = u.itemsMap.get(pName);
+          const b = it ? it.budgetCost : 0;
+          const rVal = it ? it.realisasiCost : 0;
+          const bTon = calcCostPerTon(b, u.budgetProduksi);
+          const rTon = calcCostPerTon(rVal, u.realisasiProduksi);
+          return {
+            label: u.label,
+            periodName: u.periodName,
+            budgetCost: Math.round(b),
+            realisasiCost: Math.round(rVal),
+            deviasiCost: Math.round(b - rVal),
+            prodBudget: Math.round(u.budgetProduksi),
+            prodReal: Math.round(u.realisasiProduksi),
+            budgetIdrPerTon: bTon,
+            realisasiIdrPerTon: rTon,
+            deviasiIdrPerTon: bTon - rTon,
+          };
+        });
+
+        const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
+        const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
+        const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
+        const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
+
+        return {
+          id: `parent-${idx}`,
+          name: pName,
+          type: "parent" as const,
+          subCategories: subCats,
+          accountCount: childAccounts.length,
+          totalBudget: tB,
+          totalRealisasi: tR,
+          totalDeviasi: tB - tR,
+          avgBudgetIdrPerTon: avgBTon,
+          avgRealisasiIdrPerTon: avgRTon,
+          avgDeviasiIdrPerTon: avgBTon - avgRTon,
+          timeline,
+        };
+      });
+
+      // 3. SUB-CATEGORIES
+      const subCatMap = new Map<
+        string,
+        { name: string; parentName: string; accountCodes: string[]; accountNames: string[] }
+      >();
+      ACCOUNT_DEFINITIONS.forEach((a) => {
+        if (!a.isParent && a.subCategory) {
+          const scKey = `${a.parentName || "OTHER"}::${a.subCategory}`;
+          if (!subCatMap.has(scKey)) {
+            subCatMap.set(scKey, {
+              name: a.subCategory,
+              parentName: a.parentName || "OTHER",
+              accountCodes: [],
+              accountNames: [],
+            });
+          }
+          const entry = subCatMap.get(scKey)!;
+          if (a.accountCode) entry.accountCodes.push(a.accountCode);
+          entry.accountNames.push(a.name);
+        }
+      });
+
+      const subCategories = Array.from(subCatMap.values()).map((sc, idx) => {
+        const timeline = units.map((u) => {
+          let b = 0;
+          let rVal = 0;
+          sc.accountNames.forEach((accName) => {
+            const it = u.itemsMap.get(accName);
+            if (it) {
+              b += it.budgetCost;
+              rVal += it.realisasiCost;
+            }
+          });
+          const bTon = calcCostPerTon(b, u.budgetProduksi);
+          const rTon = calcCostPerTon(rVal, u.realisasiProduksi);
+          return {
+            label: u.label,
+            periodName: u.periodName,
+            budgetCost: Math.round(b),
+            realisasiCost: Math.round(rVal),
+            deviasiCost: Math.round(b - rVal),
+            prodBudget: Math.round(u.budgetProduksi),
+            prodReal: Math.round(u.realisasiProduksi),
+            budgetIdrPerTon: bTon,
+            realisasiIdrPerTon: rTon,
+            deviasiIdrPerTon: bTon - rTon,
+          };
+        });
+
+        const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
+        const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
+        const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
+        const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
+
+        return {
+          id: `subcat-${idx}`,
+          name: sc.name,
+          type: "subcategory" as const,
+          parentName: sc.parentName,
+          accountCodes: sc.accountCodes,
+          accountCount: sc.accountNames.length,
+          totalBudget: tB,
+          totalRealisasi: tR,
+          totalDeviasi: tB - tR,
+          avgBudgetIdrPerTon: avgBTon,
+          avgRealisasiIdrPerTon: avgRTon,
+          avgDeviasiIdrPerTon: avgBTon - avgRTon,
+          timeline,
+        };
+      });
+
+      // 4. INDIVIDUAL LEAF ACCOUNTS
+      const leafDefs = ACCOUNT_DEFINITIONS.filter((a) => !a.isParent);
+      const accounts = leafDefs.map((def, idx) => {
+        const timeline = units.map((u) => {
+          const it = u.itemsMap.get(def.name);
+          const b = it ? it.budgetCost : 0;
+          const rVal = it ? it.realisasiCost : 0;
+          const bTon = calcCostPerTon(b, u.budgetProduksi);
+          const rTon = calcCostPerTon(rVal, u.realisasiProduksi);
+          return {
+            label: u.label,
+            periodName: u.periodName,
+            budgetCost: Math.round(b),
+            realisasiCost: Math.round(rVal),
+            deviasiCost: Math.round(b - rVal),
+            prodBudget: Math.round(u.budgetProduksi),
+            prodReal: Math.round(u.realisasiProduksi),
+            budgetIdrPerTon: bTon,
+            realisasiIdrPerTon: rTon,
+            deviasiIdrPerTon: bTon - rTon,
+          };
+        });
+
+        const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
+        const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
+        const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
+        const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
+
+        return {
+          id: `acc-${def.accountCode || idx}`,
+          name: def.name,
+          accountCode: def.accountCode,
+          accountName: def.name,
+          type: "account" as const,
+          parentName: def.parentName || "BEBAN LAINNYA",
+          subCategory: def.subCategory || "Lainnya",
+          costBehavior: def.costBehavior,
+          totalBudget: tB,
+          totalRealisasi: tR,
+          totalDeviasi: tB - tR,
+          avgBudgetIdrPerTon: avgBTon,
+          avgRealisasiIdrPerTon: avgRTon,
+          avgDeviasiIdrPerTon: avgBTon - avgRTon,
+          timeline,
+        };
+      });
+
+      const productionTimeline = units.map((u) => ({
+        label: u.label,
+        periodName: u.periodName,
+        budgetProduksi: Math.round(u.budgetProduksi),
+        realisasiProduksi: Math.round(u.realisasiProduksi),
+        deviasiProduksi: Math.round(u.realisasiProduksi - u.budgetProduksi),
+      }));
+
+      const availablePeriods = units.map((u) => u.label);
+
+      return {
+        totalBudgetProduksi: Math.round(totalBudgetProduksi),
+        totalRealisasiProduksi: Math.round(totalRealisasiProduksi),
+        availablePeriods,
+        productionTimeline,
+        summaryTotal,
+        parentCategories,
+        subCategories,
+        accounts,
+      };
+    };
+
+    // A. Build Monthly Units (Month-to-Date: 10 Months Jan - Okt)
+    const MONTH_CONFIGS = [
+      { month: 1, label: "Jan", periodName: "01-31 Jan 2026", weeks: [5] },
+      { month: 2, label: "Feb", periodName: "01-28 Feb 2026", weeks: [9] },
+      { month: 3, label: "Mar", periodName: "01-31 Mar 2026", weeks: [13] },
+      { month: 4, label: "Apr", periodName: "01-30 Apr 2026", weeks: [18] },
+      { month: 5, label: "Mei", periodName: "01-31 Mei 2026", weeks: [22] },
+      { month: 6, label: "Jun", periodName: "01-30 Jun 2026", weeks: [26] },
+      { month: 7, label: "Jul", periodName: "01-30 Jul 2026", weeks: [30] },
+      { month: 8, label: "Agst", periodName: "01-28 Agst 2026", weeks: [34] },
+      { month: 9, label: "Sept", periodName: "01-30 Sept 2026", weeks: [39] },
+      { month: 10, label: "Okt", periodName: "01-22 Okt 2026", weeks: [40, 41, 42, 43, 44] },
+    ];
+
+    const monthlyUnits: PeriodReportUnit[] = MONTH_CONFIGS.map((mc) => {
+      const matchedReports = rawReports.filter((r) => mc.weeks.includes(r.weekNumber));
+      const itemsMap = new Map<
+        string,
+        {
+          budgetCost: number;
+          realisasiCost: number;
+          isParent: boolean;
+          subCategory: string | null;
+          parentName: string | null;
+          accountCode: string | null;
+        }
+      >();
+
+      let bProd = 0;
+      let rProd = 0;
+
+      matchedReports.forEach((r) => {
+        bProd += r.budgetProduksi || 0;
+        rProd += r.realisasiProduksi || 0;
+        r.items.forEach((it) => {
+          if (!itemsMap.has(it.accountName)) {
+            itemsMap.set(it.accountName, {
+              budgetCost: 0,
+              realisasiCost: 0,
+              isParent: it.isParent,
+              subCategory: it.subCategory,
+              parentName: it.parentName,
+              accountCode: it.accountCode,
+            });
+          }
+          const cur = itemsMap.get(it.accountName)!;
+          cur.budgetCost += it.budgetCost || 0;
+          cur.realisasiCost += it.realisasiCost || 0;
+        });
+      });
+
+      return {
+        label: mc.label,
+        periodName: mc.periodName,
+        budgetProduksi: bProd,
+        realisasiProduksi: rProd,
+        itemsMap,
+      };
+    });
+
+    // B. Build Weekly Units strictly starting from W41 onwards
+    // "Jika ingin by week hanya bisa dari w41"
+    const weeklyReportsOnly = rawReports.filter((r) => r.weekNumber >= 41);
+    let weeklyUnits: PeriodReportUnit[] = [];
 
     if (requestedSite === "ALL") {
-      const weekMap = new Map<number, typeof weekReports[0]>();
-      rawReports.forEach((r) => {
+      const weekMap = new Map<number, PeriodReportUnit>();
+      weeklyReportsOnly.forEach((r) => {
         if (!weekMap.has(r.weekNumber)) {
           weekMap.set(r.weekNumber, {
-            weekNumber: r.weekNumber,
             label: `W${r.weekNumber}`,
             periodName: r.periodName,
             budgetProduksi: 0,
@@ -1003,15 +1316,27 @@ export const getCostOverallDashboard = async (req: Request, res: Response) => {
               accountCode: it.accountCode,
             });
           }
-          const itemVal = wEntry.itemsMap.get(it.accountName)!;
-          itemVal.budgetCost += it.budgetCost || 0;
-          itemVal.realisasiCost += it.realisasiCost || 0;
+          const cur = wEntry.itemsMap.get(it.accountName)!;
+          cur.budgetCost += it.budgetCost || 0;
+          cur.realisasiCost += it.realisasiCost || 0;
         });
       });
-      weekReports = Array.from(weekMap.values()).sort((a, b) => a.weekNumber - b.weekNumber);
+      weeklyUnits = Array.from(weekMap.entries())
+        .sort(([a], [b]) => a - b)
+        .map(([, unit]) => unit);
     } else {
-      weekReports = rawReports.map((r) => {
-        const itemsMap = new Map<string, { budgetCost: number; realisasiCost: number; isParent: boolean; subCategory: string | null; parentName: string | null; accountCode: string | null }>();
+      weeklyUnits = weeklyReportsOnly.map((r) => {
+        const itemsMap = new Map<
+          string,
+          {
+            budgetCost: number;
+            realisasiCost: number;
+            isParent: boolean;
+            subCategory: string | null;
+            parentName: string | null;
+            accountCode: string | null;
+          }
+        >();
         r.items.forEach((it) => {
           itemsMap.set(it.accountName, {
             budgetCost: it.budgetCost || 0,
@@ -1023,7 +1348,6 @@ export const getCostOverallDashboard = async (req: Request, res: Response) => {
           });
         });
         return {
-          weekNumber: r.weekNumber,
           label: `W${r.weekNumber}`,
           periodName: r.periodName,
           budgetProduksi: r.budgetProduksi || 0,
@@ -1033,246 +1357,20 @@ export const getCostOverallDashboard = async (req: Request, res: Response) => {
       });
     }
 
-    const availableWeeks = weekReports.map((w) => w.label);
-
-    let totalBudgetProduksi = 0;
-    let totalRealisasiProduksi = 0;
-    weekReports.forEach((w) => {
-      totalBudgetProduksi += w.budgetProduksi;
-      totalRealisasiProduksi += w.realisasiProduksi;
-    });
-
-    const calcCostPerTon = (cost: number, tonnage: number) => {
-      return tonnage > 0 ? Math.round(cost / tonnage) : 0;
-    };
-
-    // 1. SUMMARY TOTAL (Biaya Produksi)
-    const summaryTimeline = weekReports.map((w) => {
-      let bCost = 0;
-      let rCost = 0;
-      PARENT_ACCOUNT_NAMES.forEach((pName) => {
-        const pItem = w.itemsMap.get(pName);
-        if (pItem) {
-          bCost += pItem.budgetCost;
-          rCost += pItem.realisasiCost;
-        }
-      });
-      const bTon = calcCostPerTon(bCost, w.budgetProduksi);
-      const rTon = calcCostPerTon(rCost, w.realisasiProduksi);
-      return {
-        weekNumber: w.weekNumber,
-        label: w.label,
-        periodName: w.periodName,
-        budgetCost: Math.round(bCost),
-        realisasiCost: Math.round(rCost),
-        deviasiCost: Math.round(bCost - rCost),
-        prodBudget: Math.round(w.budgetProduksi),
-        prodReal: Math.round(w.realisasiProduksi),
-        budgetIdrPerTon: bTon,
-        realisasiIdrPerTon: rTon,
-        deviasiIdrPerTon: bTon - rTon,
-      };
-    });
-
-    const sumTotalB = summaryTimeline.reduce((s, t) => s + t.budgetCost, 0);
-    const sumTotalR = summaryTimeline.reduce((s, t) => s + t.realisasiCost, 0);
-    const summaryTotal = {
-      name: "TOTAL BIAYA PRODUKSI",
-      totalBudget: sumTotalB,
-      totalRealisasi: sumTotalR,
-      totalDeviasi: sumTotalB - sumTotalR,
-      avgBudgetIdrPerTon: calcCostPerTon(sumTotalB, totalBudgetProduksi),
-      avgRealisasiIdrPerTon: calcCostPerTon(sumTotalR, totalRealisasiProduksi),
-      avgDeviasiIdrPerTon: calcCostPerTon(sumTotalB, totalBudgetProduksi) - calcCostPerTon(sumTotalR, totalRealisasiProduksi),
-      timeline: summaryTimeline,
-    };
-
-    // 2. PARENT CATEGORIES
-    const parentCategories = Array.from(PARENT_ACCOUNT_NAMES).map((pName, idx) => {
-      const childAccounts = ACCOUNT_DEFINITIONS.filter((a) => a.parentName === pName && !a.isParent);
-      const subCats = Array.from(new Set(childAccounts.map((a) => a.subCategory).filter(Boolean))) as string[];
-
-      const timeline = weekReports.map((w) => {
-        const it = w.itemsMap.get(pName);
-        const b = it ? it.budgetCost : 0;
-        const rVal = it ? it.realisasiCost : 0;
-        const bTon = calcCostPerTon(b, w.budgetProduksi);
-        const rTon = calcCostPerTon(rVal, w.realisasiProduksi);
-        return {
-          weekNumber: w.weekNumber,
-          label: w.label,
-          periodName: w.periodName,
-          budgetCost: Math.round(b),
-          realisasiCost: Math.round(rVal),
-          deviasiCost: Math.round(b - rVal),
-          prodBudget: Math.round(w.budgetProduksi),
-          prodReal: Math.round(w.realisasiProduksi),
-          budgetIdrPerTon: bTon,
-          realisasiIdrPerTon: rTon,
-          deviasiIdrPerTon: bTon - rTon,
-        };
-      });
-
-      const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
-      const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
-      const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
-      const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
-
-      return {
-        id: `parent-${idx}`,
-        name: pName,
-        type: "parent" as const,
-        subCategories: subCats,
-        accountCount: childAccounts.length,
-        totalBudget: tB,
-        totalRealisasi: tR,
-        totalDeviasi: tB - tR,
-        avgBudgetIdrPerTon: avgBTon,
-        avgRealisasiIdrPerTon: avgRTon,
-        avgDeviasiIdrPerTon: avgBTon - avgRTon,
-        timeline,
-      };
-    });
-
-    // 3. SUB-CATEGORIES
-    const subCatMap = new Map<string, { name: string; parentName: string; accountCodes: string[]; accountNames: string[] }>();
-    ACCOUNT_DEFINITIONS.forEach((a) => {
-      if (!a.isParent && a.subCategory) {
-        const scKey = `${a.parentName || "OTHER"}::${a.subCategory}`;
-        if (!subCatMap.has(scKey)) {
-          subCatMap.set(scKey, {
-            name: a.subCategory,
-            parentName: a.parentName || "OTHER",
-            accountCodes: [],
-            accountNames: [],
-          });
-        }
-        const entry = subCatMap.get(scKey)!;
-        if (a.accountCode) entry.accountCodes.push(a.accountCode);
-        entry.accountNames.push(a.name);
-      }
-    });
-
-    const subCategories = Array.from(subCatMap.values()).map((sc, idx) => {
-      const timeline = weekReports.map((w) => {
-        let b = 0;
-        let rVal = 0;
-        sc.accountNames.forEach((accName) => {
-          const it = w.itemsMap.get(accName);
-          if (it) {
-            b += it.budgetCost;
-            rVal += it.realisasiCost;
-          }
-        });
-        const bTon = calcCostPerTon(b, w.budgetProduksi);
-        const rTon = calcCostPerTon(rVal, w.realisasiProduksi);
-        return {
-          weekNumber: w.weekNumber,
-          label: w.label,
-          periodName: w.periodName,
-          budgetCost: Math.round(b),
-          realisasiCost: Math.round(rVal),
-          deviasiCost: Math.round(b - rVal),
-          prodBudget: Math.round(w.budgetProduksi),
-          prodReal: Math.round(w.realisasiProduksi),
-          budgetIdrPerTon: bTon,
-          realisasiIdrPerTon: rTon,
-          deviasiIdrPerTon: bTon - rTon,
-        };
-      });
-
-      const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
-      const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
-      const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
-      const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
-
-      return {
-        id: `subcat-${idx}`,
-        name: sc.name,
-        type: "subcategory" as const,
-        parentName: sc.parentName,
-        accountCodes: sc.accountCodes,
-        accountCount: sc.accountNames.length,
-        totalBudget: tB,
-        totalRealisasi: tR,
-        totalDeviasi: tB - tR,
-        avgBudgetIdrPerTon: avgBTon,
-        avgRealisasiIdrPerTon: avgRTon,
-        avgDeviasiIdrPerTon: avgBTon - avgRTon,
-        timeline,
-      };
-    });
-
-    // 4. INDIVIDUAL LEAF ACCOUNTS
-    const leafDefs = ACCOUNT_DEFINITIONS.filter((a) => !a.isParent);
-    const accounts = leafDefs.map((def, idx) => {
-      const timeline = weekReports.map((w) => {
-        const it = w.itemsMap.get(def.name);
-        const b = it ? it.budgetCost : 0;
-        const rVal = it ? it.realisasiCost : 0;
-        const bTon = calcCostPerTon(b, w.budgetProduksi);
-        const rTon = calcCostPerTon(rVal, w.realisasiProduksi);
-        return {
-          weekNumber: w.weekNumber,
-          label: w.label,
-          periodName: w.periodName,
-          budgetCost: Math.round(b),
-          realisasiCost: Math.round(rVal),
-          deviasiCost: Math.round(b - rVal),
-          prodBudget: Math.round(w.budgetProduksi),
-          prodReal: Math.round(w.realisasiProduksi),
-          budgetIdrPerTon: bTon,
-          realisasiIdrPerTon: rTon,
-          deviasiIdrPerTon: bTon - rTon,
-        };
-      });
-
-      const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
-      const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
-      const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
-      const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
-
-      return {
-        id: `acc-${def.accountCode || idx}`,
-        name: def.name,
-        accountCode: def.accountCode,
-        accountName: def.name,
-        type: "account" as const,
-        parentName: def.parentName || "BEBAN LAINNYA",
-        subCategory: def.subCategory || "Lainnya",
-        costBehavior: def.costBehavior,
-        totalBudget: tB,
-        totalRealisasi: tR,
-        totalDeviasi: tB - tR,
-        avgBudgetIdrPerTon: avgBTon,
-        avgRealisasiIdrPerTon: avgRTon,
-        avgDeviasiIdrPerTon: avgBTon - avgRTon,
-        timeline,
-      };
-    });
-
-    const productionTimeline = weekReports.map((w) => ({
-      weekNumber: w.weekNumber,
-      label: w.label,
-      periodName: w.periodName,
-      budgetProduksi: Math.round(w.budgetProduksi),
-      realisasiProduksi: Math.round(w.realisasiProduksi),
-      deviasiProduksi: Math.round(w.realisasiProduksi - w.budgetProduksi),
-    }));
+    const monthlyDataset = buildDataset(monthlyUnits);
+    const weeklyDataset = buildDataset(weeklyUnits);
 
     res.json({
       success: true,
       data: {
         site: requestedSite,
         year: targetYear,
-        totalBudgetProduksi: Math.round(totalBudgetProduksi),
-        totalRealisasiProduksi: Math.round(totalRealisasiProduksi),
-        availableWeeks,
-        productionTimeline,
-        summaryTotal,
-        parentCategories,
-        subCategories,
-        accounts,
+        viewMode: "monthly",
+        // Root fallback defaults to monthly
+        ...monthlyDataset,
+        availableWeeks: weeklyDataset.availablePeriods,
+        monthly: monthlyDataset,
+        weekly: weeklyDataset,
       },
     });
   } catch (error: any) {

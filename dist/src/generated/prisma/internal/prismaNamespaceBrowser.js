@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.PlantSettingScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -81,7 +81,14 @@ exports.ModelName = {
     PLSummaryOps: 'PLSummaryOps',
     PLSummaryOpsItem: 'PLSummaryOpsItem',
     RiverJournal: 'RiverJournal',
-    DailyProduction: 'DailyProduction'
+    DailyProduction: 'DailyProduction',
+    GLPeriod: 'GLPeriod',
+    GLExpenseSummary: 'GLExpenseSummary',
+    GLTransaction: 'GLTransaction',
+    MasterUnit: 'MasterUnit',
+    PeriodicInspectionPlan: 'PeriodicInspectionPlan',
+    PeriodicInspectionItem: 'PeriodicInspectionItem',
+    PlantSetting: 'PlantSetting'
 };
 /*
  * Enums
@@ -199,6 +206,99 @@ exports.DailyProductionScalarFieldEnum = {
     tdp: 'tdp',
     production: 'production',
     notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.GLPeriodScalarFieldEnum = {
+    id: 'id',
+    fileName: 'fileName',
+    periodName: 'periodName',
+    year: 'year',
+    month: 'month',
+    startDate: 'startDate',
+    endDate: 'endDate',
+    totalDebet: 'totalDebet',
+    totalTransactions: 'totalTransactions',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.GLExpenseSummaryScalarFieldEnum = {
+    id: 'id',
+    periodId: 'periodId',
+    accountCode: 'accountCode',
+    accountName: 'accountName',
+    hofAmount: 'hofAmount',
+    mphAmount: 'mphAmount',
+    snyAmount: 'snyAmount',
+    grandTotal: 'grandTotal',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.GLTransactionScalarFieldEnum = {
+    id: 'id',
+    periodId: 'periodId',
+    date: 'date',
+    regNo: 'regNo',
+    controlNo: 'controlNo',
+    accountCode: 'accountCode',
+    accountName: 'accountName',
+    accountGroup: 'accountGroup',
+    currency: 'currency',
+    costCenter: 'costCenter',
+    debet: 'debet',
+    credit: 'credit',
+    saldo: 'saldo',
+    projectArea: 'projectArea',
+    materialCode: 'materialCode',
+    specification: 'specification',
+    qty: 'qty',
+    supplierName: 'supplierName',
+    remark: 'remark',
+    createdAt: 'createdAt'
+};
+exports.MasterUnitScalarFieldEnum = {
+    id: 'id',
+    unitCode: 'unitCode',
+    unitNumber: 'unitNumber',
+    category: 'category',
+    brand: 'brand',
+    model: 'model',
+    headUnitCode: 'headUnitCode',
+    pairIndex: 'pairIndex',
+    jobSite: 'jobSite',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PeriodicInspectionPlanScalarFieldEnum = {
+    id: 'id',
+    jobSite: 'jobSite',
+    date: 'date',
+    targetUnits: 'targetUnits',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PeriodicInspectionItemScalarFieldEnum = {
+    id: 'id',
+    planId: 'planId',
+    date: 'date',
+    unitCode: 'unitCode',
+    serviceType: 'serviceType',
+    shift: 'shift',
+    status: 'status',
+    inspectorName: 'inspectorName',
+    notes: 'notes',
+    buntutSummary: 'buntutSummary',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PlantSettingScalarFieldEnum = {
+    id: 'id',
+    jobSite: 'jobSite',
+    key: 'key',
+    value: 'value',
+    description: 'description',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

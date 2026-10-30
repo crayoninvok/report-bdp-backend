@@ -14,8 +14,10 @@ const upload = (0, multer_1.default)({
 });
 router.use(authMiddleware_1.extractUser);
 router.get("/", reportController_1.getReports);
+router.get("/latest-updates", reportController_1.getLatestDataUpdates);
 router.get("/summary/ops", reportController_1.getSummaryOps);
 router.get("/trend", reportController_1.getCostTrends);
+router.get("/cost-overall", reportController_1.getCostOverallDashboard);
 router.post("/upload/preview", upload.single("file"), reportController_1.previewExcelUpload);
 router.post("/upload/commit", upload.single("file"), reportController_1.commitExcelUpload);
 router.get("/:id", reportController_1.getReportDetails);

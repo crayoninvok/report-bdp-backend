@@ -86,12 +86,13 @@ function parsePeriodHeader(headerStr) {
         return null;
     const startDay = parseInt(match[1], 10);
     const endDay = parseInt(match[2], 10);
-    const monthKey = match[3].toLowerCase();
+    const rawMonthStr = match[3];
+    const monthKey = rawMonthStr.toLowerCase();
     const year = parseInt(match[4], 10);
     const month = exports.MONTH_MAP[monthKey];
     if (!month)
         return null;
-    return { startDay, endDay, month, year };
+    return { startDay, endDay, month, year, rawMonthStr };
 }
 /**
  * Parses an uploaded Excel workbook buffer and computes incremental weekly delta
@@ -346,10 +347,12 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
             // Determine Subtrahend (Pengurang)
             // Look for the most recent period in the SAME month before this period's endDay
             let pengurangSnapshot = null;
+            let priorWeekNumber = null;
             // First check within earlier periods in this Excel file
             for (let i = historyList.length - 1; i >= 0; i--) {
                 if (historyList[i].endDay < p.endDay) {
                     pengurangSnapshot = historyList[i];
+                    priorWeekNumber = historyList[i].weekNumber;
                     break;
                 }
             }
@@ -365,6 +368,7 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                     // Sort by endDate descending to get the closest prior period
                     dbMatchesInMonth.sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
                     const latestPrior = dbMatchesInMonth[0];
+                    priorWeekNumber = latestPrior.weekNumber;
                     const acctBMap = new Map();
                     const acctRMap = new Map();
                     for (const it of latestPrior.items) {
@@ -374,6 +378,7 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                     pengurangSnapshot = {
                         periodName: latestPrior.periodName,
                         endDay: new Date(latestPrior.endDate).getUTCDate(),
+                        weekNumber: latestPrior.weekNumber,
                         produksiBudget: latestPrior.mtdBudgetProduksi ?? latestPrior.budgetProduksi,
                         produksiRealisasi: latestPrior.mtdRealisasiProduksi ?? latestPrior.realisasiProduksi,
                         accountBudgetMap: acctBMap,
@@ -450,31 +455,70 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                     ytdRealisasiCost: ytdR,
                 });
             }
+            // Effective weekly period name and start day:
+            // If the Excel header is cumulative MTD starting at day 1 ("01-22 Okt 2026")
+            // and we have a subtrahend period ending at day N (e.g. 15),
+            // the weekly report represents days (N + 1) to endDay (e.g. 16-22 Okt 2026)!
+            let effectiveStartDay = p.startDay;
+            if (p.startDay === 1 && pengurangSnapshot && pengurangSnapshot.endDay < p.endDay) {
+                effectiveStartDay = pengurangSnapshot.endDay + 1;
+            }
+            const effectivePeriodName = `${String(effectiveStartDay).padStart(2, "0")}-${String(p.endDay).padStart(2, "0")} ${p.rawMonthStr} ${p.year}`;
+            const sDateStr = `${p.year}-${String(p.month).padStart(2, "0")}-${String(effectiveStartDay).padStart(2, "0")}`;
+            const eDateStr = `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.endDay).padStart(2, "0")}`;
+            // Smart match existing DB report:
+            // Match by effectivePeriodName, raw header periodName, or (year, month, endDay)
+            const existingDb = existingDbReports.find((r) => {
+                const rName = r.periodName.trim().toLowerCase();
+                if (rName === effectivePeriodName.toLowerCase() ||
+                    rName === p.periodName.toLowerCase()) {
+                    return true;
+                }
+                const rDate = new Date(r.endDate);
+                return (r.year === p.year &&
+                    rDate.getUTCMonth() + 1 === p.month &&
+                    rDate.getUTCDate() === p.endDay);
+            });
+            let weekNum = existingDb ? existingDb.weekNumber : 1;
+            if (!existingDb) {
+                let proposedWeek = priorWeekNumber !== null && priorWeekNumber > 0 ? priorWeekNumber + 1 : 1;
+                // Check if proposedWeek is already taken by an existing report in DB
+                const weekConflict = existingDbReports.find((r) => r.weekNumber === proposedWeek);
+                if (weekConflict) {
+                    const conflictMonth = new Date(weekConflict.startDate).getUTCMonth() + 1;
+                    // If conflict belongs to a later month (e.g. proposed is W35 in August, but W35 in DB is already in September):
+                    // This August month-end column (e.g. 01-31 Agst) is just the final August closing for Week 34!
+                    if (conflictMonth > p.month && priorWeekNumber !== null) {
+                        weekNum = priorWeekNumber;
+                    }
+                    else {
+                        const usedWeeks = new Set(existingDbReports.map((r) => r.weekNumber));
+                        while (usedWeeks.has(proposedWeek)) {
+                            proposedWeek++;
+                        }
+                        weekNum = proposedWeek;
+                    }
+                }
+                else {
+                    weekNum = proposedWeek;
+                }
+            }
             // Record this period's raw data into history so subsequent weeks in this month can subtract it
             historyList.push({
-                periodName: p.periodName,
+                periodName: effectivePeriodName,
                 endDay: p.endDay,
+                weekNumber: weekNum,
                 produksiBudget: rawProdBudget,
                 produksiRealisasi: rawProdReal,
                 accountBudgetMap: rawAccountBudgetMap,
                 accountRealisasiMap: rawAccountRealMap,
             });
-            // Dates & Week Number
-            const sDateStr = `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.startDay).padStart(2, "0")}`;
-            const eDateStr = `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.endDay).padStart(2, "0")}`;
-            const existingDb = dbReportMapByPeriod.get(p.periodName.toLowerCase());
-            let weekNum = existingDb ? existingDb.weekNumber : 1;
-            if (!existingDb) {
-                // Estimate weekNumber based on latest in DB or chronological order
-                const maxDbWeek = existingDbReports.reduce((max, r) => Math.max(max, r.weekNumber), 0);
-                weekNum = maxDbWeek > 0 ? maxDbWeek + 1 : 1;
-            }
             allParsedReports.push({
                 jobSite: site,
-                periodName: p.periodName,
+                periodName: effectivePeriodName,
                 year: p.year,
                 month: p.month,
-                startDay: p.startDay,
+                startDay: effectiveStartDay,
                 endDay: p.endDay,
                 startDate: sDateStr,
                 endDate: eDateStr,
