@@ -24,13 +24,46 @@ function formatToISO(dateStr, type = "start") {
     return s;
 }
 /**
+ * Helper to match ticket against jobsite ('all', 'senyiur', 'muara_pahu')
+ */
+function matchesJobsite(t, jobsite) {
+    if (!jobsite || jobsite === "all")
+        return true;
+    const s = [
+        t.inbound_location_main_location_name,
+        t.inbound_weight_bridge_location_main_location_name,
+        t.outbound_location_main_location_name,
+        t.outbound_weight_bridge_location_main_location_name,
+        t.location_route?.start_location_name,
+        t.location_route?.start_main_location_name,
+        t.location_route?.end_location_name,
+        t.location_route?.end_main_location_name,
+        t.inbound_location_label,
+        t.outbound_location_label,
+        t.inbound_weight_bridge_location_label,
+        t.outbound_weight_bridge_location_label,
+        t.reference_id,
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+    if (jobsite === "senyiur") {
+        return s.includes("senyiur") || s.includes("tj") || s.includes("amm") || s.includes("bt");
+    }
+    if (jobsite === "muara_pahu" || jobsite === "muarapahu") {
+        return s.includes("muara pahu") || s.includes("mp");
+    }
+    return true;
+}
+/**
  * Generate simulated daily production from startDate to endDate
  */
-function generateDemoDailyProduction(startDate, endDate) {
+function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
     const daysMap = {};
     const startDt = new Date(startDate);
     const endDt = new Date(endDate);
     const curDt = new Date(startDt);
+    const factor = jobsite === "senyiur" ? 0.45 : jobsite === "muara_pahu" ? 0.55 : 1.0;
     let grandTotalTonaseDS = 0;
     let grandTotalRitaseDS = 0;
     let grandTotalTonaseNS = 0;
@@ -44,9 +77,11 @@ function generateDemoDailyProduction(startDate, endDate) {
         const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
         // Deterministic pseudo-random generation
         const seed = (dateNum * 17 + monthNum * 31) % 100;
-        const ritaseDS = 35 + (seed % 25);
+        const baseRitDS = 35 + (seed % 25);
+        const ritaseDS = Math.max(1, Math.round(baseRitDS * factor));
         const tonaseDS = Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
-        const ritaseNS = 38 + ((seed + 7) % 28);
+        const baseRitNS = 38 + ((seed + 7) % 28);
+        const ritaseNS = Math.max(1, Math.round(baseRitNS * factor));
         const tonaseNS = Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
         const totalRitase = ritaseDS + ritaseNS;
         const totalTonase = Math.round((tonaseDS + tonaseNS) * 10) / 10;
@@ -626,14 +661,21 @@ exports.assetfindrController = {
                 });
             }
             const responseData = await apiResponse.json();
+            let ticketsData = responseData.data || [];
+            const jobsite = req.query.jobsite?.toLowerCase() || "all";
+            if (jobsite !== "all") {
+                ticketsData = ticketsData.filter((t) => matchesJobsite(t, jobsite));
+            }
             return res.json({
                 success: true,
                 isLive: true,
                 isDemo: false,
-                total_records: responseData.total_records ?? (responseData.data ? responseData.data.length : 0),
+                total_records: jobsite !== "all"
+                    ? ticketsData.length
+                    : responseData.total_records ?? ticketsData.length,
                 page_size: responseData.page_size ?? pageSize,
                 page_no: responseData.page_no ?? pageNo,
-                data: responseData.data || [],
+                data: ticketsData,
             });
         }
         catch (error) {
@@ -789,6 +831,7 @@ exports.assetfindrController = {
             const defaultEnd = `${currentYear}-${currentMonth}-${currentDate}`;
             const startDate = req.query.start_date || defaultStart;
             const endDate = req.query.end_date || defaultEnd;
+            const jobsite = req.query.jobsite?.toLowerCase() || "all";
             let token = req.headers["x-assetfindr-token"] ||
                 req.headers["authorization"] ||
                 process.env.ASSETFINDR_BEARER_TOKEN ||
@@ -797,18 +840,19 @@ exports.assetfindrController = {
                 token = token.slice(7).trim();
             }
             // Check in-memory cache
-            const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}`;
+            const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}_${jobsite}`;
             const cached = dailyProductionCache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
                 return res.json({ ...cached.data, isCached: true });
             }
             // If token is missing, return high-fidelity simulation
             if (!token) {
-                const simData = generateDemoDailyProduction(startDate, endDate);
+                const simData = generateDemoDailyProduction(startDate, endDate, jobsite);
                 return res.json({
                     success: true,
                     isLive: false,
                     isDemo: true,
+                    jobsite,
                     ...simData,
                 });
             }
@@ -891,6 +935,8 @@ exports.assetfindrController = {
             }
             // Aggregate tickets by date and shift
             allTickets.forEach((t) => {
+                if (!matchesJobsite(t, jobsite))
+                    return;
                 const dStr = (t.ticket_date || t.created_at || "").slice(0, 10);
                 if (!daysMap[dStr])
                     return;
