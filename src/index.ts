@@ -23,6 +23,7 @@ app.use(
     allowedHeaders: [
       "Content-Type",
       "Authorization",
+      "x-assetfindr-token",
       "x-user-role",
       "x-user-jobsite",
       "x-user-id",

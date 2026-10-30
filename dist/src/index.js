@@ -24,6 +24,7 @@ app.use((0, cors_1.default)({
     allowedHeaders: [
         "Content-Type",
         "Authorization",
+        "x-assetfindr-token",
         "x-user-role",
         "x-user-jobsite",
         "x-user-id",
