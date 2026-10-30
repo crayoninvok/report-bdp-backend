@@ -52,11 +52,17 @@ function matchesJobsite(t: any, jobsite: string): boolean {
     .join(" ")
     .toLowerCase();
 
+  const isSenyiur =
+    s.includes("senyiur") ||
+    s.includes("tj") ||
+    s.includes("amm") ||
+    s.includes("bt");
+
   if (jobsite === "senyiur") {
-    return s.includes("senyiur") || s.includes("tj") || s.includes("amm") || s.includes("bt");
+    return isSenyiur;
   }
   if (jobsite === "muara_pahu" || jobsite === "muarapahu") {
-    return s.includes("muara pahu") || s.includes("mp");
+    return !isSenyiur;
   }
   return true;
 }
