@@ -29,33 +29,24 @@ function formatToISO(dateStr, type = "start") {
 function matchesJobsite(t, jobsite) {
     if (!jobsite || jobsite === "all")
         return true;
-    const s = [
-        t.inbound_location_main_location_name,
-        t.inbound_weight_bridge_location_main_location_name,
-        t.outbound_location_main_location_name,
-        t.outbound_weight_bridge_location_main_location_name,
-        t.location_route?.start_location_name,
-        t.location_route?.start_main_location_name,
-        t.location_route?.end_location_name,
-        t.location_route?.end_main_location_name,
-        t.inbound_location_label,
-        t.outbound_location_label,
-        t.inbound_weight_bridge_location_label,
-        t.outbound_weight_bridge_location_label,
-        t.reference_id,
-    ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-    const isSenyiur = s.includes("senyiur") ||
-        s.includes("tj") ||
-        s.includes("amm") ||
-        s.includes("bt");
-    if (jobsite === "senyiur") {
-        return isSenyiur;
+    const inboundMain = (t.inbound_location_main_location_name || "").toLowerCase();
+    const inboundWbMain = (t.inbound_weight_bridge_location_main_location_name || "").toLowerCase();
+    const outboundMain = (t.outbound_location_main_location_name || "").toLowerCase();
+    const outboundWbMain = (t.outbound_weight_bridge_location_main_location_name || "").toLowerCase();
+    const startLoc = (t.location_route?.start_location_name || t.inbound_location_label || "").toLowerCase();
+    const endLoc = (t.location_route?.end_location_name || t.outbound_location_label || "").toLowerCase();
+    const j = jobsite.toLowerCase();
+    if (j === "senyiur") {
+        return (inboundMain.includes("senyiur") ||
+            inboundWbMain.includes("senyiur") ||
+            outboundMain.includes("senyiur") ||
+            outboundWbMain.includes("senyiur") ||
+            startLoc.includes("senyiur") ||
+            endLoc.includes("senyiur"));
     }
-    if (jobsite === "muara_pahu" || jobsite === "muarapahu") {
-        return !isSenyiur;
+    if (j === "muara_pahu" || j === "muarapahu") {
+        return (inboundMain.includes("muara pahu") ||
+            (outboundMain.includes("muara pahu") && !inboundMain.includes("senyiur") && !inboundWbMain.includes("senyiur")));
     }
     return true;
 }
@@ -67,7 +58,7 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
     const startDt = new Date(startDate);
     const endDt = new Date(endDate);
     const curDt = new Date(startDt);
-    const factor = jobsite === "senyiur" ? 0.45 : jobsite === "muara_pahu" ? 0.55 : 1.0;
+    const factor = jobsite === "senyiur" ? 0.08 : jobsite === "muara_pahu" ? 0.99 : 1.0;
     let grandTotalTonaseDS = 0;
     let grandTotalRitaseDS = 0;
     let grandTotalTonaseNS = 0;
