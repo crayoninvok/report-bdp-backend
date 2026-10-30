@@ -4,6 +4,16 @@ const ASSETFINDR_BASE_URL = "https://api.assetfindr.com";
 const ASSETFINDR_FIREBASE_API_KEY = "AIzaSyAaLQ5r471mDX_Q9IpxM55o67bCf956P04";
 const DEFAULT_CLIENT_ID = "batara";
 
+const INDO_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const INDO_MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+
+interface DailyCacheEntry {
+  timestamp: number;
+  data: any;
+}
+const dailyProductionCache = new Map<string, DailyCacheEntry>();
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes in-memory cache
+
 /**
  * Format date string to RFC3339 / ISO-8601 required by AssetFindr API
  * e.g., '2026-10-30' -> '2026-10-30T00:00:00+07:00'
@@ -16,6 +26,87 @@ function formatToISO(dateStr: string, type: "start" | "end" = "start"): string {
     return type === "start" ? `${s}T00:00:00+07:00` : `${s}T23:59:59+07:00`;
   }
   return s;
+}
+
+/**
+ * Generate simulated daily production from startDate to endDate
+ */
+function generateDemoDailyProduction(startDate: string, endDate: string) {
+  const daysMap: Record<string, any> = {};
+  const startDt = new Date(startDate);
+  const endDt = new Date(endDate);
+  const curDt = new Date(startDt);
+
+  let grandTotalTonaseDS = 0;
+  let grandTotalRitaseDS = 0;
+  let grandTotalTonaseNS = 0;
+  let grandTotalRitaseNS = 0;
+
+  while (curDt <= endDt) {
+    const dStr = curDt.toISOString().slice(0, 10);
+    const dayOfWeek = curDt.getDay();
+    const dateNum = curDt.getDate();
+    const monthNum = curDt.getMonth();
+    const dayName = INDO_DAYS[dayOfWeek];
+    const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
+
+    // Deterministic pseudo-random generation
+    const seed = (dateNum * 17 + monthNum * 31) % 100;
+    const ritaseDS = 35 + (seed % 25);
+    const tonaseDS = Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
+    const ritaseNS = 38 + ((seed + 7) % 28);
+    const tonaseNS = Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
+    const totalRitase = ritaseDS + ritaseNS;
+    const totalTonase = Math.round((tonaseDS + tonaseNS) * 10) / 10;
+
+    grandTotalTonaseDS += tonaseDS;
+    grandTotalRitaseDS += ritaseDS;
+    grandTotalTonaseNS += tonaseNS;
+    grandTotalRitaseNS += ritaseNS;
+
+    daysMap[dStr] = {
+      date: dStr,
+      day: dateNum,
+      dayName,
+      displayDate,
+      tonaseDS,
+      ritaseDS,
+      tonaseNS,
+      ritaseNS,
+      totalTonase,
+      totalRitase,
+      avgPayloadDS: Math.round((tonaseDS / ritaseDS) * 10) / 10,
+      avgPayloadNS: Math.round((tonaseNS / ritaseNS) * 10) / 10,
+      avgPayloadTotal: Math.round((totalTonase / totalRitase) * 10) / 10,
+    };
+
+    curDt.setDate(curDt.getDate() + 1);
+  }
+
+  const dailyList = Object.values(daysMap).sort((a, b) => a.date.localeCompare(b.date));
+  const grandTotalTonase = Math.round((grandTotalTonaseDS + grandTotalTonaseNS) * 10) / 10;
+  const grandTotalRitase = grandTotalRitaseDS + grandTotalRitaseNS;
+  const activeDays = dailyList.length || 1;
+
+  return {
+    period: {
+      start_date: startDate,
+      end_date: endDate,
+      total_days: dailyList.length,
+      active_days: activeDays,
+    },
+    summary: {
+      totalTonaseDS: Math.round(grandTotalTonaseDS * 10) / 10,
+      totalRitaseDS: grandTotalRitaseDS,
+      totalTonaseNS: Math.round(grandTotalTonaseNS * 10) / 10,
+      totalRitaseNS: grandTotalRitaseNS,
+      grandTotalTonase,
+      grandTotalRitase,
+      avgTonasePerDay: Math.round((grandTotalTonase / activeDays) * 10) / 10,
+      avgPayloadOverall: Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10,
+    },
+    data: dailyList,
+  };
 }
 
 /**
@@ -733,5 +824,232 @@ export const assetfindrController = {
       });
     }
   },
+
+  /**
+   * Get Aggregated Daily Production (Day 01 to Today by Shift DS & NS)
+   * Endpoint: GET /api/assetfindr/daily-production
+   */
+  async getDailyProduction(req: Request, res: Response) {
+    try {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+      const currentDate = String(now.getDate()).padStart(2, "0");
+
+      const defaultStart = `${currentYear}-${currentMonth}-01`;
+      const defaultEnd = `${currentYear}-${currentMonth}-${currentDate}`;
+
+      const startDate = (req.query.start_date as string) || defaultStart;
+      const endDate = (req.query.end_date as string) || defaultEnd;
+
+      let token =
+        (req.headers["x-assetfindr-token"] as string) ||
+        (req.headers["authorization"] as string) ||
+        process.env.ASSETFINDR_BEARER_TOKEN ||
+        "";
+
+      if (token.startsWith("Bearer ")) {
+        token = token.slice(7).trim();
+      }
+
+      // Check in-memory cache
+      const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}`;
+      const cached = dailyProductionCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        return res.json({ ...cached.data, isCached: true });
+      }
+
+      // If token is missing, return high-fidelity simulation
+      if (!token) {
+        const simData = generateDemoDailyProduction(startDate, endDate);
+        return res.json({
+          success: true,
+          isLive: false,
+          isDemo: true,
+          ...simData,
+        });
+      }
+
+      // Fetch page 1
+      const page1Url = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
+      page1Url.searchParams.set("page_no", "1");
+      page1Url.searchParams.set("page_size", "200");
+      page1Url.searchParams.set("ticket_date_start", `${startDate}T00:00:00+07:00`);
+      page1Url.searchParams.set("ticket_date_end", `${endDate}T23:59:59+07:00`);
+      page1Url.searchParams.set("sort_by", "inbound_at");
+      page1Url.searchParams.set("sort_direction", "DESC");
+
+      const page1Res = await fetch(page1Url.toString(), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (!page1Res.ok) {
+        const errorText = await page1Res.text();
+        return res.status(page1Res.status).json({
+          success: false,
+          error: `AssetFindr API error (${page1Res.status}): ${errorText}`,
+        });
+      }
+
+      const page1Data: any = await page1Res.json();
+      const totalRecords = page1Data.total_records || 0;
+      const totalPages = Math.min(Math.ceil(totalRecords / 200), 25); // cap at 25 pages = 5,000 records
+
+      // Fetch remaining pages in parallel
+      const remainingPromises: Promise<any>[] = [];
+      for (let p = 2; p <= totalPages; p++) {
+        const pUrl = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
+        pUrl.searchParams.set("page_no", String(p));
+        pUrl.searchParams.set("page_size", "200");
+        pUrl.searchParams.set("ticket_date_start", `${startDate}T00:00:00+07:00`);
+        pUrl.searchParams.set("ticket_date_end", `${endDate}T23:59:59+07:00`);
+        pUrl.searchParams.set("sort_by", "inbound_at");
+        pUrl.searchParams.set("sort_direction", "DESC");
+
+        remainingPromises.push(
+          fetch(pUrl.toString(), {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          })
+            .then((r) => r.json())
+            .catch(() => ({ data: [] }))
+        );
+      }
+
+      const otherPages = await Promise.all(remainingPromises);
+      const allTickets: any[] = [
+        ...(page1Data.data || []),
+        ...otherPages.flatMap((p: any) => p.data || []),
+      ];
+
+      // Prepare date array from startDate to endDate
+      const daysMap: Record<string, any> = {};
+      const startDt = new Date(startDate);
+      const endDt = new Date(endDate);
+      const curDt = new Date(startDt);
+
+      while (curDt <= endDt) {
+        const dStr = curDt.toISOString().slice(0, 10);
+        const dayOfWeek = curDt.getDay();
+        const dateNum = curDt.getDate();
+        const monthNum = curDt.getMonth();
+        const dayName = INDO_DAYS[dayOfWeek];
+        const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
+
+        daysMap[dStr] = {
+          date: dStr,
+          day: dateNum,
+          dayName,
+          displayDate,
+          tonaseDS: 0,
+          ritaseDS: 0,
+          tonaseNS: 0,
+          ritaseNS: 0,
+          totalTonase: 0,
+          totalRitase: 0,
+          avgPayloadDS: 0,
+          avgPayloadNS: 0,
+          avgPayloadTotal: 0,
+        };
+        curDt.setDate(curDt.getDate() + 1);
+      }
+
+      // Aggregate tickets by date and shift
+      allTickets.forEach((t) => {
+        const dStr = (t.ticket_date || t.created_at || "").slice(0, 10);
+        if (!daysMap[dStr]) return;
+
+        const isNight =
+          t.work_shift_alias === "NS" ||
+          (t.work_shift_name && t.work_shift_name.toLowerCase().includes("night"));
+        const netTon = (t.net_weight || 0) / 1000;
+
+        if (isNight) {
+          daysMap[dStr].tonaseNS += netTon;
+          daysMap[dStr].ritaseNS += 1;
+        } else {
+          daysMap[dStr].tonaseDS += netTon;
+          daysMap[dStr].ritaseDS += 1;
+        }
+        daysMap[dStr].totalTonase += netTon;
+        daysMap[dStr].totalRitase += 1;
+      });
+
+      // Format numbers & compute totals
+      let grandTotalTonaseDS = 0;
+      let grandTotalRitaseDS = 0;
+      let grandTotalTonaseNS = 0;
+      let grandTotalRitaseNS = 0;
+
+      const dailyList = Object.values(daysMap)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((item) => {
+          grandTotalTonaseDS += item.tonaseDS;
+          grandTotalRitaseDS += item.ritaseDS;
+          grandTotalTonaseNS += item.tonaseNS;
+          grandTotalRitaseNS += item.ritaseNS;
+
+          return {
+            ...item,
+            tonaseDS: Math.round(item.tonaseDS * 100) / 100,
+            tonaseNS: Math.round(item.tonaseNS * 100) / 100,
+            totalTonase: Math.round(item.totalTonase * 100) / 100,
+            avgPayloadDS:
+              item.ritaseDS > 0 ? Math.round((item.tonaseDS / item.ritaseDS) * 10) / 10 : 0,
+            avgPayloadNS:
+              item.ritaseNS > 0 ? Math.round((item.tonaseNS / item.ritaseNS) * 10) / 10 : 0,
+            avgPayloadTotal:
+              item.totalRitase > 0 ? Math.round((item.totalTonase / item.totalRitase) * 10) / 10 : 0,
+          };
+        });
+
+      const grandTotalTonase = Math.round((grandTotalTonaseDS + grandTotalTonaseNS) * 100) / 100;
+      const grandTotalRitase = grandTotalRitaseDS + grandTotalRitaseNS;
+      const activeDays = dailyList.filter((d) => d.totalRitase > 0).length || 1;
+
+      const responsePayload = {
+        success: true,
+        isLive: true,
+        period: {
+          start_date: startDate,
+          end_date: endDate,
+          total_days: dailyList.length,
+          active_days: activeDays,
+        },
+        summary: {
+          totalTonaseDS: Math.round(grandTotalTonaseDS * 100) / 100,
+          totalRitaseDS: grandTotalRitaseDS,
+          totalTonaseNS: Math.round(grandTotalTonaseNS * 100) / 100,
+          totalRitaseNS: grandTotalRitaseNS,
+          grandTotalTonase,
+          grandTotalRitase,
+          avgTonasePerDay: Math.round((grandTotalTonase / activeDays) * 100) / 100,
+          avgPayloadOverall:
+            grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
+        },
+        data: dailyList,
+      };
+
+      // Cache the result
+      dailyProductionCache.set(cacheKey, {
+        timestamp: Date.now(),
+        data: responsePayload,
+      });
+
+      return res.json(responsePayload);
+    } catch (error: any) {
+      console.error("Error in getDailyProduction:", error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Gagal memproses data produksi harian AssetFindr",
+      });
+    }
+  },
 };
+
 
