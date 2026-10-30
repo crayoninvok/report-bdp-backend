@@ -925,12 +925,12 @@ export const assetfindrController = {
       }
 
 
-      // Fetch page 1
+      // Fetch page 1 using reconciliation_date (official mining operational shift date)
       const page1Url = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
       page1Url.searchParams.set("page_no", "1");
       page1Url.searchParams.set("page_size", "200");
-      page1Url.searchParams.set("ticket_date_start", `${startDate}T00:00:00+07:00`);
-      page1Url.searchParams.set("ticket_date_end", `${endDate}T23:59:59+07:00`);
+      page1Url.searchParams.set("reconciliation_date_start", `${startDate}T00:00:00Z`);
+      page1Url.searchParams.set("reconciliation_date_end", `${endDate}T23:59:59Z`);
       page1Url.searchParams.set("sort_by", "inbound_at");
       page1Url.searchParams.set("sort_direction", "DESC");
 
@@ -959,8 +959,8 @@ export const assetfindrController = {
         const pUrl = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
         pUrl.searchParams.set("page_no", String(p));
         pUrl.searchParams.set("page_size", "200");
-        pUrl.searchParams.set("ticket_date_start", `${startDate}T00:00:00+07:00`);
-        pUrl.searchParams.set("ticket_date_end", `${endDate}T23:59:59+07:00`);
+        pUrl.searchParams.set("reconciliation_date_start", `${startDate}T00:00:00Z`);
+        pUrl.searchParams.set("reconciliation_date_end", `${endDate}T23:59:59Z`);
         pUrl.searchParams.set("sort_by", "inbound_at");
         pUrl.searchParams.set("sort_direction", "DESC");
 
@@ -1018,7 +1018,7 @@ export const assetfindrController = {
       allTickets.forEach((t) => {
         if (!matchesJobsite(t, jobsite)) return;
 
-        const dStr = (t.ticket_date || t.created_at || "").slice(0, 10);
+        const dStr = (t.reconciliation_date || t.ticket_date || t.created_at || "").slice(0, 10);
         if (!daysMap[dStr]) return;
 
         const isNight =
