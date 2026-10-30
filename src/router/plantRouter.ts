@@ -20,4 +20,7 @@ plantRouter.put("/periodic-inspection/item/:id", plantController.updateInspectio
 plantRouter.delete("/periodic-inspection/item/:id", plantController.deleteInspectionItem);
 plantRouter.post("/periodic-inspection/apply-standard-template", plantController.applyStandardWeeklySchedule);
 
+// 4. Tyre & Rim Usage (from GL Beban Tyre 05110203)
+plantRouter.get("/tyre-rim-usage", plantController.getTyreRimUsage);
+
 export default plantRouter;

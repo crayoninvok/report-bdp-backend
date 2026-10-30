@@ -926,4 +926,260 @@ export const plantController = {
       return res.status(500).json({ success: false, error: error.message });
     }
   },
+
+  /**
+   * 4. Tyre & Rim Usage Analysis (Sourced from GL Beban Tyre 05110203)
+   */
+  getTyreRimUsage: async (req: Request, res: Response) => {
+    try {
+      const site = req.query.site ? String(req.query.site).trim().toUpperCase() : "ALL";
+      const itemType = req.query.itemType ? String(req.query.itemType).trim().toUpperCase() : "ALL"; // "ALL", "TYRE", "RIM"
+      const specification = req.query.specification ? String(req.query.specification).trim() : "";
+      const startDate = req.query.startDate ? String(req.query.startDate).trim() : "";
+      const endDate = req.query.endDate ? String(req.query.endDate).trim() : "";
+      const q = req.query.q ? String(req.query.q).trim() : "";
+      const periodId = req.query.periodId ? String(req.query.periodId).trim() : undefined;
+
+      // Build Prisma where clause
+      const where: any = {
+        accountCode: "05110203", // BEBAN TYRE
+      };
+
+      if (periodId) {
+        where.periodId = periodId;
+      }
+
+      if (site && site !== "ALL" && ["MPH", "SNY"].includes(site)) {
+        where.projectArea = site;
+      }
+
+      if (startDate && endDate) {
+        where.date = { gte: startDate, lte: endDate };
+      } else if (startDate) {
+        where.date = { gte: startDate };
+      } else if (endDate) {
+        where.date = { lte: endDate };
+      }
+
+      if (specification) {
+        where.specification = { contains: specification, mode: "insensitive" };
+      }
+
+      if (q) {
+        where.OR = [
+          { regNo: { contains: q, mode: "insensitive" } },
+          { controlNo: { contains: q, mode: "insensitive" } },
+          { remark: { contains: q, mode: "insensitive" } },
+          { specification: { contains: q, mode: "insensitive" } },
+          { materialCode: { contains: q, mode: "insensitive" } },
+          { costCenter: { contains: q, mode: "insensitive" } },
+        ];
+      }
+
+      const rows = await prisma.gLTransaction.findMany({
+        where,
+        orderBy: [{ date: "desc" }, { id: "asc" }],
+      });
+
+      // Helper regex to extract unit code like PM439, DL661, ST831 from remark or costCenter
+      const extractUnit = (remark: string | null | undefined, cc: string | null | undefined) => {
+        const match = (remark || "").match(/\b(PM\s*\d{3}|DL\s*\d{3}|ST\s*\d{3})\b/i);
+        if (match) {
+          return match[1].replace(/\s+/g, "").toUpperCase();
+        }
+        if (cc && /^(PM|DL|ST)\d{3}$/i.test(cc)) {
+          return cc.toUpperCase();
+        }
+        return "-";
+      };
+
+      // Helper regex to extract wheel position like "DL POS 8", "PM POS 7", "V1 POS 17 & 18", "POS 3 VELG"
+      const extractPosition = (remark: string | null | undefined) => {
+        if (!remark) return "-";
+        const match = remark.match(/(?:PM|DL|V1|V2)?\s*POS\s*[\d\s&,\/-]+(?:\s*VELG)?/i);
+        if (match) return match[0].trim();
+        return "-";
+      };
+
+      // Map rows with parsed info
+      const parsedTransactions = rows.map((r) => {
+        const spec = r.specification || "";
+        const isRim = spec.toUpperCase().includes("RIM");
+        const detectedType = isRim ? "Rim" : "Tyre";
+        const targetUnit = extractUnit(r.remark, r.costCenter);
+        const position = extractPosition(r.remark);
+        const qty = r.qty || 1;
+        const unitPrice = qty > 0 ? r.debet / qty : r.debet;
+
+        return {
+          id: r.id,
+          date: r.date,
+          regNo: r.regNo,
+          accountCode: r.accountCode,
+          accountName: r.accountName,
+          specification: r.specification || "Unspecified",
+          materialCode: r.materialCode || "-",
+          itemType: detectedType as "Tyre" | "Rim",
+          qty,
+          debet: r.debet,
+          unitPrice,
+          costCenter: r.costCenter || "-",
+          targetUnit,
+          position,
+          remark: r.remark || "-",
+          projectArea: r.projectArea || "MPH",
+        };
+      });
+
+      // Apply itemType filter if specified
+      const filtered =
+        itemType === "TYRE"
+          ? parsedTransactions.filter((t) => t.itemType === "Tyre")
+          : itemType === "RIM"
+          ? parsedTransactions.filter((t) => t.itemType === "Rim")
+          : parsedTransactions;
+
+      // Calculate KPIs
+      let totalQty = 0;
+      let totalCost = 0;
+      let tyreCount = 0;
+      let tyreQty = 0;
+      let tyreCost = 0;
+      let rimCount = 0;
+      let rimQty = 0;
+      let rimCost = 0;
+
+      filtered.forEach((t) => {
+        totalQty += t.qty;
+        totalCost += t.debet;
+        if (t.itemType === "Tyre") {
+          tyreCount++;
+          tyreQty += t.qty;
+          tyreCost += t.debet;
+        } else if (t.itemType === "Rim") {
+          rimCount++;
+          rimQty += t.qty;
+          rimCost += t.debet;
+        }
+      });
+
+      const avgTyreCost = tyreQty > 0 ? tyreCost / tyreQty : 0;
+      const avgRimCost = rimQty > 0 ? rimCost / rimQty : 0;
+
+      // Specification Breakdown
+      const specMap: Record<
+        string,
+        { specification: string; itemType: string; count: number; qty: number; totalCost: number }
+      > = {};
+      filtered.forEach((t) => {
+        const s = t.specification;
+        if (!specMap[s]) {
+          specMap[s] = { specification: s, itemType: t.itemType, count: 0, qty: 0, totalCost: 0 };
+        }
+        specMap[s].count++;
+        specMap[s].qty += t.qty;
+        specMap[s].totalCost += t.debet;
+      });
+
+      const specBreakdown = Object.values(specMap)
+        .map((item) => ({
+          ...item,
+          avgPrice: item.qty > 0 ? item.totalCost / item.qty : 0,
+          percentQty: totalQty > 0 ? (item.qty / totalQty) * 100 : 0,
+          percentCost: totalCost > 0 ? (item.totalCost / totalCost) * 100 : 0,
+        }))
+        .sort((a, b) => b.qty - a.qty);
+
+      // Unit Breakdown (Top Units replacing tyres/rims)
+      const unitMap: Record<
+        string,
+        { unitCode: string; count: number; qty: number; tyreQty: number; rimQty: number; totalCost: number }
+      > = {};
+      filtered.forEach((t) => {
+        const u = t.targetUnit !== "-" ? t.targetUnit : "Unassigned";
+        if (!unitMap[u]) {
+          unitMap[u] = { unitCode: u, count: 0, qty: 0, tyreQty: 0, rimQty: 0, totalCost: 0 };
+        }
+        unitMap[u].count++;
+        unitMap[u].qty += t.qty;
+        if (t.itemType === "Tyre") unitMap[u].tyreQty += t.qty;
+        if (t.itemType === "Rim") unitMap[u].rimQty += t.qty;
+        unitMap[u].totalCost += t.debet;
+      });
+
+      const topUnits = Object.values(unitMap)
+        .filter((u) => u.unitCode !== "Unassigned")
+        .sort((a, b) => b.qty - a.qty)
+        .slice(0, 15);
+
+      // Daily Timeline
+      const dailyMap: Record<
+        string,
+        { date: string; tyreQty: number; rimQty: number; totalQty: number; totalCost: number }
+      > = {};
+      filtered.forEach((t) => {
+        const d = t.date;
+        if (!dailyMap[d]) {
+          dailyMap[d] = { date: d, tyreQty: 0, rimQty: 0, totalQty: 0, totalCost: 0 };
+        }
+        if (t.itemType === "Tyre") dailyMap[d].tyreQty += t.qty;
+        if (t.itemType === "Rim") dailyMap[d].rimQty += t.qty;
+        dailyMap[d].totalQty += t.qty;
+        dailyMap[d].totalCost += t.debet;
+      });
+
+      const dailyTimeline = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+      // Position Breakdown (PM vs DL vs V1 vs V2)
+      const positionSummary = {
+        PrimeMover: 0,
+        Dolly: 0,
+        Vessel1: 0,
+        Vessel2: 0,
+        Other: 0,
+      };
+      filtered.forEach((t) => {
+        const posUpper = t.position.toUpperCase();
+        const remarkUpper = t.remark.toUpperCase();
+        if (posUpper.includes("PM") || remarkUpper.includes(" PM POS")) positionSummary.PrimeMover += t.qty;
+        else if (posUpper.includes("DL") || remarkUpper.includes(" DL POS")) positionSummary.Dolly += t.qty;
+        else if (posUpper.includes("V1") || remarkUpper.includes(" V1 POS")) positionSummary.Vessel1 += t.qty;
+        else if (posUpper.includes("V2") || remarkUpper.includes(" V2 POS")) positionSummary.Vessel2 += t.qty;
+        else positionSummary.Other += t.qty;
+      });
+
+      // Get active GL Period
+      const glPeriod = await prisma.gLPeriod.findFirst({
+        where: periodId ? { id: periodId } : undefined,
+        orderBy: [{ year: "desc" }, { month: "desc" }],
+        select: { id: true, periodName: true, startDate: true, endDate: true },
+      });
+
+      return res.json({
+        success: true,
+        period: glPeriod,
+        kpis: {
+          totalTransactions: filtered.length,
+          totalQty,
+          totalCost,
+          tyreCount,
+          tyreQty,
+          tyreCost,
+          avgTyreCost,
+          rimCount,
+          rimQty,
+          rimCost,
+          avgRimCost,
+        },
+        specBreakdown,
+        topUnits,
+        dailyTimeline,
+        positionSummary,
+        transactions: filtered,
+      });
+    } catch (error: any) {
+      console.error("getTyreRimUsage error:", error);
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  },
 };
