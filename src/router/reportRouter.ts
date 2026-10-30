@@ -9,6 +9,7 @@ import {
   updateRealisasi,
   getSummaryOps,
   getCostTrends,
+  getCostOverallDashboard,
   deleteReport,
   previewExcelUpload,
   commitExcelUpload,
@@ -29,6 +30,7 @@ router.get("/", getReports);
 router.get("/latest-updates", getLatestDataUpdates);
 router.get("/summary/ops", getSummaryOps);
 router.get("/trend", getCostTrends);
+router.get("/cost-overall", getCostOverallDashboard);
 router.post("/upload/preview", upload.single("file"), previewExcelUpload);
 router.post("/upload/commit", upload.single("file"), commitExcelUpload);
 router.get("/:id", getReportDetails);

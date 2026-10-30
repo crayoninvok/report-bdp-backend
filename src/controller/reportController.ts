@@ -942,6 +942,344 @@ export const getCostTrends = async (req: Request, res: Response) => {
   }
 };
 
+export const getCostOverallDashboard = async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const { year, jobSite, minWeek, maxWeek } = req.query;
+    const targetYear = year ? parseInt(year as string, 10) : 2026;
+
+    const where: any = { year: targetYear, weekNumber: { gte: minWeek ? parseInt(minWeek as string, 10) : 29 } };
+    if (maxWeek) {
+      where.weekNumber = { ...where.weekNumber, lte: parseInt(maxWeek as string, 10) };
+    }
+
+    const requestedSite = (jobSite as string) || "Senyiur";
+    if (user && user.role !== "SuperAdmin" && user.jobSite !== "HeadOffice") {
+      where.jobSite = user.jobSite;
+    } else if (requestedSite !== "ALL") {
+      where.jobSite = requestedSite as JobSite;
+    }
+
+    const rawReports = await prisma.weeklyReport.findMany({
+      where,
+      include: { items: true },
+      orderBy: [{ year: "asc" }, { weekNumber: "asc" }],
+    });
+
+    // Group or prepare reports per week
+    let weekReports: {
+      weekNumber: number;
+      label: string;
+      periodName: string;
+      budgetProduksi: number;
+      realisasiProduksi: number;
+      itemsMap: Map<string, { budgetCost: number; realisasiCost: number; isParent: boolean; subCategory: string | null; parentName: string | null; accountCode: string | null }>;
+    }[] = [];
+
+    if (requestedSite === "ALL") {
+      const weekMap = new Map<number, typeof weekReports[0]>();
+      rawReports.forEach((r) => {
+        if (!weekMap.has(r.weekNumber)) {
+          weekMap.set(r.weekNumber, {
+            weekNumber: r.weekNumber,
+            label: `W${r.weekNumber}`,
+            periodName: r.periodName,
+            budgetProduksi: 0,
+            realisasiProduksi: 0,
+            itemsMap: new Map(),
+          });
+        }
+        const wEntry = weekMap.get(r.weekNumber)!;
+        wEntry.budgetProduksi += r.budgetProduksi || 0;
+        wEntry.realisasiProduksi += r.realisasiProduksi || 0;
+        r.items.forEach((it) => {
+          if (!wEntry.itemsMap.has(it.accountName)) {
+            wEntry.itemsMap.set(it.accountName, {
+              budgetCost: 0,
+              realisasiCost: 0,
+              isParent: it.isParent,
+              subCategory: it.subCategory,
+              parentName: it.parentName,
+              accountCode: it.accountCode,
+            });
+          }
+          const itemVal = wEntry.itemsMap.get(it.accountName)!;
+          itemVal.budgetCost += it.budgetCost || 0;
+          itemVal.realisasiCost += it.realisasiCost || 0;
+        });
+      });
+      weekReports = Array.from(weekMap.values()).sort((a, b) => a.weekNumber - b.weekNumber);
+    } else {
+      weekReports = rawReports.map((r) => {
+        const itemsMap = new Map<string, { budgetCost: number; realisasiCost: number; isParent: boolean; subCategory: string | null; parentName: string | null; accountCode: string | null }>();
+        r.items.forEach((it) => {
+          itemsMap.set(it.accountName, {
+            budgetCost: it.budgetCost || 0,
+            realisasiCost: it.realisasiCost || 0,
+            isParent: it.isParent,
+            subCategory: it.subCategory,
+            parentName: it.parentName,
+            accountCode: it.accountCode,
+          });
+        });
+        return {
+          weekNumber: r.weekNumber,
+          label: `W${r.weekNumber}`,
+          periodName: r.periodName,
+          budgetProduksi: r.budgetProduksi || 0,
+          realisasiProduksi: r.realisasiProduksi || 0,
+          itemsMap,
+        };
+      });
+    }
+
+    const availableWeeks = weekReports.map((w) => w.label);
+
+    let totalBudgetProduksi = 0;
+    let totalRealisasiProduksi = 0;
+    weekReports.forEach((w) => {
+      totalBudgetProduksi += w.budgetProduksi;
+      totalRealisasiProduksi += w.realisasiProduksi;
+    });
+
+    const calcCostPerTon = (cost: number, tonnage: number) => {
+      return tonnage > 0 ? Math.round(cost / tonnage) : 0;
+    };
+
+    // 1. SUMMARY TOTAL (Biaya Produksi)
+    const summaryTimeline = weekReports.map((w) => {
+      let bCost = 0;
+      let rCost = 0;
+      PARENT_ACCOUNT_NAMES.forEach((pName) => {
+        const pItem = w.itemsMap.get(pName);
+        if (pItem) {
+          bCost += pItem.budgetCost;
+          rCost += pItem.realisasiCost;
+        }
+      });
+      const bTon = calcCostPerTon(bCost, w.budgetProduksi);
+      const rTon = calcCostPerTon(rCost, w.realisasiProduksi);
+      return {
+        weekNumber: w.weekNumber,
+        label: w.label,
+        periodName: w.periodName,
+        budgetCost: Math.round(bCost),
+        realisasiCost: Math.round(rCost),
+        deviasiCost: Math.round(bCost - rCost),
+        prodBudget: Math.round(w.budgetProduksi),
+        prodReal: Math.round(w.realisasiProduksi),
+        budgetIdrPerTon: bTon,
+        realisasiIdrPerTon: rTon,
+        deviasiIdrPerTon: bTon - rTon,
+      };
+    });
+
+    const sumTotalB = summaryTimeline.reduce((s, t) => s + t.budgetCost, 0);
+    const sumTotalR = summaryTimeline.reduce((s, t) => s + t.realisasiCost, 0);
+    const summaryTotal = {
+      name: "TOTAL BIAYA PRODUKSI",
+      totalBudget: sumTotalB,
+      totalRealisasi: sumTotalR,
+      totalDeviasi: sumTotalB - sumTotalR,
+      avgBudgetIdrPerTon: calcCostPerTon(sumTotalB, totalBudgetProduksi),
+      avgRealisasiIdrPerTon: calcCostPerTon(sumTotalR, totalRealisasiProduksi),
+      avgDeviasiIdrPerTon: calcCostPerTon(sumTotalB, totalBudgetProduksi) - calcCostPerTon(sumTotalR, totalRealisasiProduksi),
+      timeline: summaryTimeline,
+    };
+
+    // 2. PARENT CATEGORIES
+    const parentCategories = Array.from(PARENT_ACCOUNT_NAMES).map((pName, idx) => {
+      const childAccounts = ACCOUNT_DEFINITIONS.filter((a) => a.parentName === pName && !a.isParent);
+      const subCats = Array.from(new Set(childAccounts.map((a) => a.subCategory).filter(Boolean))) as string[];
+
+      const timeline = weekReports.map((w) => {
+        const it = w.itemsMap.get(pName);
+        const b = it ? it.budgetCost : 0;
+        const rVal = it ? it.realisasiCost : 0;
+        const bTon = calcCostPerTon(b, w.budgetProduksi);
+        const rTon = calcCostPerTon(rVal, w.realisasiProduksi);
+        return {
+          weekNumber: w.weekNumber,
+          label: w.label,
+          periodName: w.periodName,
+          budgetCost: Math.round(b),
+          realisasiCost: Math.round(rVal),
+          deviasiCost: Math.round(b - rVal),
+          prodBudget: Math.round(w.budgetProduksi),
+          prodReal: Math.round(w.realisasiProduksi),
+          budgetIdrPerTon: bTon,
+          realisasiIdrPerTon: rTon,
+          deviasiIdrPerTon: bTon - rTon,
+        };
+      });
+
+      const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
+      const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
+      const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
+      const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
+
+      return {
+        id: `parent-${idx}`,
+        name: pName,
+        type: "parent" as const,
+        subCategories: subCats,
+        accountCount: childAccounts.length,
+        totalBudget: tB,
+        totalRealisasi: tR,
+        totalDeviasi: tB - tR,
+        avgBudgetIdrPerTon: avgBTon,
+        avgRealisasiIdrPerTon: avgRTon,
+        avgDeviasiIdrPerTon: avgBTon - avgRTon,
+        timeline,
+      };
+    });
+
+    // 3. SUB-CATEGORIES
+    const subCatMap = new Map<string, { name: string; parentName: string; accountCodes: string[]; accountNames: string[] }>();
+    ACCOUNT_DEFINITIONS.forEach((a) => {
+      if (!a.isParent && a.subCategory) {
+        const scKey = `${a.parentName || "OTHER"}::${a.subCategory}`;
+        if (!subCatMap.has(scKey)) {
+          subCatMap.set(scKey, {
+            name: a.subCategory,
+            parentName: a.parentName || "OTHER",
+            accountCodes: [],
+            accountNames: [],
+          });
+        }
+        const entry = subCatMap.get(scKey)!;
+        if (a.accountCode) entry.accountCodes.push(a.accountCode);
+        entry.accountNames.push(a.name);
+      }
+    });
+
+    const subCategories = Array.from(subCatMap.values()).map((sc, idx) => {
+      const timeline = weekReports.map((w) => {
+        let b = 0;
+        let rVal = 0;
+        sc.accountNames.forEach((accName) => {
+          const it = w.itemsMap.get(accName);
+          if (it) {
+            b += it.budgetCost;
+            rVal += it.realisasiCost;
+          }
+        });
+        const bTon = calcCostPerTon(b, w.budgetProduksi);
+        const rTon = calcCostPerTon(rVal, w.realisasiProduksi);
+        return {
+          weekNumber: w.weekNumber,
+          label: w.label,
+          periodName: w.periodName,
+          budgetCost: Math.round(b),
+          realisasiCost: Math.round(rVal),
+          deviasiCost: Math.round(b - rVal),
+          prodBudget: Math.round(w.budgetProduksi),
+          prodReal: Math.round(w.realisasiProduksi),
+          budgetIdrPerTon: bTon,
+          realisasiIdrPerTon: rTon,
+          deviasiIdrPerTon: bTon - rTon,
+        };
+      });
+
+      const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
+      const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
+      const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
+      const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
+
+      return {
+        id: `subcat-${idx}`,
+        name: sc.name,
+        type: "subcategory" as const,
+        parentName: sc.parentName,
+        accountCodes: sc.accountCodes,
+        accountCount: sc.accountNames.length,
+        totalBudget: tB,
+        totalRealisasi: tR,
+        totalDeviasi: tB - tR,
+        avgBudgetIdrPerTon: avgBTon,
+        avgRealisasiIdrPerTon: avgRTon,
+        avgDeviasiIdrPerTon: avgBTon - avgRTon,
+        timeline,
+      };
+    });
+
+    // 4. INDIVIDUAL LEAF ACCOUNTS
+    const leafDefs = ACCOUNT_DEFINITIONS.filter((a) => !a.isParent);
+    const accounts = leafDefs.map((def, idx) => {
+      const timeline = weekReports.map((w) => {
+        const it = w.itemsMap.get(def.name);
+        const b = it ? it.budgetCost : 0;
+        const rVal = it ? it.realisasiCost : 0;
+        const bTon = calcCostPerTon(b, w.budgetProduksi);
+        const rTon = calcCostPerTon(rVal, w.realisasiProduksi);
+        return {
+          weekNumber: w.weekNumber,
+          label: w.label,
+          periodName: w.periodName,
+          budgetCost: Math.round(b),
+          realisasiCost: Math.round(rVal),
+          deviasiCost: Math.round(b - rVal),
+          prodBudget: Math.round(w.budgetProduksi),
+          prodReal: Math.round(w.realisasiProduksi),
+          budgetIdrPerTon: bTon,
+          realisasiIdrPerTon: rTon,
+          deviasiIdrPerTon: bTon - rTon,
+        };
+      });
+
+      const tB = timeline.reduce((s, t) => s + t.budgetCost, 0);
+      const tR = timeline.reduce((s, t) => s + t.realisasiCost, 0);
+      const avgBTon = calcCostPerTon(tB, totalBudgetProduksi);
+      const avgRTon = calcCostPerTon(tR, totalRealisasiProduksi);
+
+      return {
+        id: `acc-${def.accountCode || idx}`,
+        accountCode: def.accountCode,
+        accountName: def.name,
+        type: "account" as const,
+        parentName: def.parentName || "BEBAN LAINNYA",
+        subCategory: def.subCategory || "Lainnya",
+        costBehavior: def.costBehavior,
+        totalBudget: tB,
+        totalRealisasi: tR,
+        totalDeviasi: tB - tR,
+        avgBudgetIdrPerTon: avgBTon,
+        avgRealisasiIdrPerTon: avgRTon,
+        avgDeviasiIdrPerTon: avgBTon - avgRTon,
+        timeline,
+      };
+    });
+
+    const productionTimeline = weekReports.map((w) => ({
+      weekNumber: w.weekNumber,
+      label: w.label,
+      periodName: w.periodName,
+      budgetProduksi: Math.round(w.budgetProduksi),
+      realisasiProduksi: Math.round(w.realisasiProduksi),
+      deviasiProduksi: Math.round(w.realisasiProduksi - w.budgetProduksi),
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        site: requestedSite,
+        year: targetYear,
+        totalBudgetProduksi: Math.round(totalBudgetProduksi),
+        totalRealisasiProduksi: Math.round(totalRealisasiProduksi),
+        availableWeeks,
+        productionTimeline,
+        summaryTotal,
+        parentCategories,
+        subCategories,
+        accounts,
+      },
+    });
+  } catch (error: any) {
+    console.error("getCostOverallDashboard error:", error);
+    res.status(500).json({ success: false, message: "Gagal mengambil data Dashboard Cost Overall" });
+  }
+};
+
 export const previewExcelUpload = async (req: Request, res: Response) => {
   try {
     const user = (req as AuthenticatedRequest).user;
