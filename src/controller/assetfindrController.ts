@@ -1,7 +1,22 @@
 import { Request, Response } from "express";
 
 const ASSETFINDR_BASE_URL = "https://api.assetfindr.com";
+const ASSETFINDR_FIREBASE_API_KEY = "AIzaSyAaLQ5r471mDX_Q9IpxM55o67bCf956P04";
 const DEFAULT_CLIENT_ID = "batara";
+
+/**
+ * Format date string to RFC3339 / ISO-8601 required by AssetFindr API
+ * e.g., '2026-10-30' -> '2026-10-30T00:00:00+07:00'
+ */
+function formatToISO(dateStr: string, type: "start" | "end" = "start"): string {
+  if (!dateStr || !dateStr.trim()) return "";
+  const s = dateStr.trim();
+  if (s.includes("T")) return s;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return type === "start" ? `${s}T00:00:00+07:00` : `${s}T23:59:59+07:00`;
+  }
+  return s;
+}
 
 /**
  * Generate high-fidelity sample data matching AssetFindr PDF schema
@@ -483,26 +498,52 @@ export const assetfindrController = {
         });
       }
 
-      // Build target URL
-      const url = new URL(`${ASSETFINDR_BASE_URL}/client/${clientId}/weight-bridge/tickets`);
-      url.searchParams.set("page_no", String(pageNo));
-      url.searchParams.set("page_size", String(pageSize));
-      if (searchKeyword) url.searchParams.set("search_keyword", searchKeyword);
-      if (ticketDateStart) url.searchParams.set("ticket_date_start", ticketDateStart);
-      if (ticketDateEnd) url.searchParams.set("ticket_date_end", ticketDateEnd);
-      if (reconciliationDateStart)
-        url.searchParams.set("reconciliation_date_start", reconciliationDateStart);
-      if (reconciliationDateEnd)
-        url.searchParams.set("reconciliation_date_end", reconciliationDateEnd);
+      // Build target URL - primary endpoint is /v1/weight-bridge-tickets
+      const primaryUrl = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
+      primaryUrl.searchParams.set("page_no", String(pageNo));
+      primaryUrl.searchParams.set("page_size", String(pageSize));
+      if (searchKeyword) primaryUrl.searchParams.set("search_keyword", searchKeyword);
+
+      const formattedStartDate = formatToISO(ticketDateStart, "start");
+      if (formattedStartDate) primaryUrl.searchParams.set("ticket_date_start", formattedStartDate);
+
+      const formattedEndDate = formatToISO(ticketDateEnd, "end");
+      if (formattedEndDate) primaryUrl.searchParams.set("ticket_date_end", formattedEndDate);
+
+      const formattedReconStart = formatToISO(reconciliationDateStart, "start");
+      if (formattedReconStart) primaryUrl.searchParams.set("reconciliation_date_start", formattedReconStart);
+
+      const formattedReconEnd = formatToISO(reconciliationDateEnd, "end");
+      if (formattedReconEnd) primaryUrl.searchParams.set("reconciliation_date_end", formattedReconEnd);
+
+      const sortBy = (req.query.sort_by as string) || "inbound_at";
+      const sortDirection = (req.query.sort_direction as string) || "DESC";
+      primaryUrl.searchParams.set("sort_by", sortBy);
+      primaryUrl.searchParams.set("sort_direction", sortDirection);
 
       // Call AssetFindr API
-      const apiResponse = await fetch(url.toString(), {
+      let apiResponse = await fetch(primaryUrl.toString(), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
+
+      // If /v1/weight-bridge-tickets returns 404, fallback to /client/${clientId}/weight-bridge/tickets
+      if (apiResponse.status === 404) {
+        const fallbackUrl = new URL(`${ASSETFINDR_BASE_URL}/client/${clientId}/weight-bridge/tickets`);
+        fallbackUrl.searchParams.set("page_no", String(pageNo));
+        fallbackUrl.searchParams.set("page_size", String(pageSize));
+        if (searchKeyword) fallbackUrl.searchParams.set("search_keyword", searchKeyword);
+        apiResponse = await fetch(fallbackUrl.toString(), {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+      }
 
       if (!apiResponse.ok) {
         const errorText = await apiResponse.text();
@@ -512,7 +553,7 @@ export const assetfindrController = {
           return res.status(401).json({
             success: false,
             isLive: false,
-            error: "401 Unauthorized: Token AssetFindr tidak valid atau sudah kedaluwarsa. Silakan perbarui authSession Anda.",
+            error: "401 Unauthorized: Token AssetFindr tidak valid atau sudah kedaluwarsa. Silakan perbarui login atau token Anda.",
             status: 401,
           });
         }
@@ -568,18 +609,31 @@ export const assetfindrController = {
       if (!token) {
         return res.status(400).json({
           success: false,
-          message: "Token tidak boleh kosong. Masukkan token authSession dari AssetFindr.",
+          message: "Token tidak boleh kosong. Masukkan token AssetFindr.",
         });
       }
 
-      const testUrl = `${ASSETFINDR_BASE_URL}/client/${clientId}/weight-bridge/tickets?page_no=1&page_size=1`;
-      const response = await fetch(testUrl, {
+      // Try primary endpoint first
+      let testUrl = `${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets?page_no=1&page_size=1`;
+      let response = await fetch(testUrl, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
+
+      // If 404, fallback to client-specific endpoint
+      if (response.status === 404) {
+        testUrl = `${ASSETFINDR_BASE_URL}/client/${clientId}/weight-bridge/tickets?page_no=1&page_size=1`;
+        response = await fetch(testUrl, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -609,4 +663,75 @@ export const assetfindrController = {
       });
     }
   },
+
+  /**
+   * Authenticate directly with AssetFindr (Firebase + API Login)
+   * Endpoint: POST /api/assetfindr/login
+   */
+  async login(req: Request, res: Response) {
+    try {
+      const email = req.body?.email || "dzaky.athariqf@bataramining.com";
+      const password = req.body?.password;
+      const clientAlias = req.body?.client_alias || "batara";
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: "Password wajib diisi.",
+        });
+      }
+
+      // Step 1: Firebase Auth
+      const fbRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${ASSETFINDR_FIREBASE_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, returnSecureToken: true }),
+        }
+      );
+
+      const fbData: any = await fbRes.json();
+      if (!fbRes.ok || !fbData.idToken) {
+        return res.status(401).json({
+          success: false,
+          error: fbData.error?.message || "Login Firebase gagal. Periksa kembali email atau password Anda.",
+        });
+      }
+
+      // Step 2: AssetFindr /v1/login exchange
+      const loginRes = await fetch(`${ASSETFINDR_BASE_URL}/v1/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_firebase_token: fbData.idToken,
+          client_alias: clientAlias,
+          device_type_ref: "WEB_DESKTOP",
+        }),
+      });
+
+      const loginData: any = await loginRes.json();
+      if (!loginRes.ok || !loginData.jwtToken) {
+        return res.status(401).json({
+          success: false,
+          error: loginData.error || loginData.message || "Pertukaran token AssetFindr gagal.",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Login berhasil! Token AssetFindr diperoleh.",
+        token: loginData.jwtToken,
+        user: loginData.user,
+        logged_in_client_id: loginData.logged_in_client_id,
+      });
+    } catch (error: any) {
+      console.error("Error logging in to AssetFindr:", error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error saat login ke AssetFindr",
+      });
+    }
+  },
 };
+
