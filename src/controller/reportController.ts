@@ -1234,6 +1234,7 @@ export const getCostOverallDashboard = async (req: Request, res: Response) => {
 
       return {
         id: `acc-${def.accountCode || idx}`,
+        name: def.name,
         accountCode: def.accountCode,
         accountName: def.name,
         type: "account" as const,
