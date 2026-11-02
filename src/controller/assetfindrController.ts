@@ -146,7 +146,8 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
       grandTotalTonase,
       grandTotalRitase,
       avgTonasePerDay: Math.round((grandTotalTonase / activeDays) * 10) / 10,
-      avgPayloadOverall: Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10,
+      avgRitasePerDay: Math.round((grandTotalRitase / activeDays) * 10) / 10,
+      avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
     },
     data: dailyList,
   };
@@ -1087,6 +1088,8 @@ export const assetfindrController = {
           grandTotalRitase,
           avgTonasePerDay:
             activeDays > 0 ? Math.round((grandTotalTonase / activeDays) * 100) / 100 : 0,
+          avgRitasePerDay:
+            activeDays > 0 ? Math.round((grandTotalRitase / activeDays) * 10) / 10 : 0,
           avgPayloadOverall:
             grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
         },
