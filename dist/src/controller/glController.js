@@ -51,7 +51,7 @@ const commitGLUpload = async (req, res) => {
             });
         }
         const parsed = (0, glParser_1.parseGLExcel)(req.file.buffer, req.file.originalname);
-        // Run within a Prisma transaction
+        // Run within a Prisma transaction with extended timeout for bulk operations
         const savedPeriod = await prisma_1.prisma.$transaction(async (tx) => {
             // Check if existing record exists for this year, month, and periodName
             const existing = await tx.gLPeriod.findFirst({
@@ -92,8 +92,8 @@ const commitGLUpload = async (req, res) => {
                     })),
                 });
             }
-            // 3. Batch insert transactions (Sheet1) in chunks of 1,000
-            const CHUNK_SIZE = 1000;
+            // 3. Batch insert transactions (Sheet1) in chunks of 1,500
+            const CHUNK_SIZE = 1500;
             for (let i = 0; i < parsed.transactions.length; i += CHUNK_SIZE) {
                 const chunk = parsed.transactions.slice(i, i + CHUNK_SIZE);
                 await tx.gLTransaction.createMany({
@@ -120,6 +120,9 @@ const commitGLUpload = async (req, res) => {
                 });
             }
             return period;
+        }, {
+            maxWait: 15000, // 15 seconds to wait for connection from the pool
+            timeout: 120000, // 120 seconds (2 mins) to complete batch insertions of thousands of rows
         });
         res.json({
             success: true,

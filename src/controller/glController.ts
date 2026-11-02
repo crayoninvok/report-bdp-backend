@@ -54,81 +54,87 @@ export const commitGLUpload = async (req: Request, res: Response) => {
 
     const parsed = parseGLExcel(req.file.buffer, req.file.originalname);
 
-    // Run within a Prisma transaction
-    const savedPeriod = await prisma.$transaction(async (tx) => {
-      // Check if existing record exists for this year, month, and periodName
-      const existing = await tx.gLPeriod.findFirst({
-        where: {
-          year: parsed.year,
-          month: parsed.month,
-          periodName: parsed.periodName,
-        },
-      });
-
-      if (existing) {
-        // Delete existing to replace with the fresh upload
-        await tx.gLPeriod.delete({ where: { id: existing.id } });
-      }
-
-      // 1. Create GLPeriod
-      const period = await tx.gLPeriod.create({
-        data: {
-          fileName: parsed.fileName,
-          periodName: parsed.periodName,
-          year: parsed.year,
-          month: parsed.month,
-          startDate: parsed.startDate ? new Date(parsed.startDate) : null,
-          endDate: parsed.endDate ? new Date(parsed.endDate) : null,
-          totalDebet: parsed.totalDebet,
-          totalTransactions: parsed.totalTransactions,
-        },
-      });
-
-      // 2. Batch insert summaries (Sheet2)
-      if (parsed.summaries.length > 0) {
-        await tx.gLExpenseSummary.createMany({
-          data: parsed.summaries.map((s) => ({
-            periodId: period.id,
-            accountCode: s.accountCode,
-            accountName: s.accountName,
-            hofAmount: s.hofAmount,
-            mphAmount: s.mphAmount,
-            snyAmount: s.snyAmount,
-            grandTotal: s.grandTotal,
-          })),
+    // Run within a Prisma transaction with extended timeout for bulk operations
+    const savedPeriod = await prisma.$transaction(
+      async (tx) => {
+        // Check if existing record exists for this year, month, and periodName
+        const existing = await tx.gLPeriod.findFirst({
+          where: {
+            year: parsed.year,
+            month: parsed.month,
+            periodName: parsed.periodName,
+          },
         });
-      }
 
-      // 3. Batch insert transactions (Sheet1) in chunks of 1,000
-      const CHUNK_SIZE = 1000;
-      for (let i = 0; i < parsed.transactions.length; i += CHUNK_SIZE) {
-        const chunk = parsed.transactions.slice(i, i + CHUNK_SIZE);
-        await tx.gLTransaction.createMany({
-          data: chunk.map((t) => ({
-            periodId: period.id,
-            date: t.date,
-            regNo: t.regNo,
-            controlNo: t.controlNo,
-            accountCode: t.accountCode,
-            accountName: t.accountName,
-            accountGroup: t.accountGroup,
-            currency: t.currency,
-            costCenter: t.costCenter,
-            debet: t.debet,
-            credit: t.credit,
-            saldo: t.saldo,
-            projectArea: t.projectArea,
-            materialCode: t.materialCode,
-            specification: t.specification,
-            qty: t.qty,
-            supplierName: t.supplierName,
-            remark: t.remark,
-          })),
+        if (existing) {
+          // Delete existing to replace with the fresh upload
+          await tx.gLPeriod.delete({ where: { id: existing.id } });
+        }
+
+        // 1. Create GLPeriod
+        const period = await tx.gLPeriod.create({
+          data: {
+            fileName: parsed.fileName,
+            periodName: parsed.periodName,
+            year: parsed.year,
+            month: parsed.month,
+            startDate: parsed.startDate ? new Date(parsed.startDate) : null,
+            endDate: parsed.endDate ? new Date(parsed.endDate) : null,
+            totalDebet: parsed.totalDebet,
+            totalTransactions: parsed.totalTransactions,
+          },
         });
-      }
 
-      return period;
-    });
+        // 2. Batch insert summaries (Sheet2)
+        if (parsed.summaries.length > 0) {
+          await tx.gLExpenseSummary.createMany({
+            data: parsed.summaries.map((s) => ({
+              periodId: period.id,
+              accountCode: s.accountCode,
+              accountName: s.accountName,
+              hofAmount: s.hofAmount,
+              mphAmount: s.mphAmount,
+              snyAmount: s.snyAmount,
+              grandTotal: s.grandTotal,
+            })),
+          });
+        }
+
+        // 3. Batch insert transactions (Sheet1) in chunks of 1,500
+        const CHUNK_SIZE = 1500;
+        for (let i = 0; i < parsed.transactions.length; i += CHUNK_SIZE) {
+          const chunk = parsed.transactions.slice(i, i + CHUNK_SIZE);
+          await tx.gLTransaction.createMany({
+            data: chunk.map((t) => ({
+              periodId: period.id,
+              date: t.date,
+              regNo: t.regNo,
+              controlNo: t.controlNo,
+              accountCode: t.accountCode,
+              accountName: t.accountName,
+              accountGroup: t.accountGroup,
+              currency: t.currency,
+              costCenter: t.costCenter,
+              debet: t.debet,
+              credit: t.credit,
+              saldo: t.saldo,
+              projectArea: t.projectArea,
+              materialCode: t.materialCode,
+              specification: t.specification,
+              qty: t.qty,
+              supplierName: t.supplierName,
+              remark: t.remark,
+            })),
+          });
+        }
+
+        return period;
+      },
+      {
+        maxWait: 15000, // 15 seconds to wait for connection from the pool
+        timeout: 120000, // 120 seconds (2 mins) to complete batch insertions of thousands of rows
+      }
+    );
 
     res.json({
       success: true,
