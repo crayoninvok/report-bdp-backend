@@ -1097,9 +1097,18 @@ const getCostOverallDashboard = async (req, res) => {
                     cur.realisasiCost += it.realisasiCost || 0;
                 });
             });
+            const latestReportInMonth = matchedReports[matchedReports.length - 1];
+            let resolvedPeriodName = mc.periodName;
+            if (latestReportInMonth && matchedReports.length > 1) {
+                const endPart = latestReportInMonth.periodName.split("-")[1] || latestReportInMonth.periodName;
+                resolvedPeriodName = `01-${endPart.trim()}`;
+            }
+            else if (latestReportInMonth) {
+                resolvedPeriodName = latestReportInMonth.periodName;
+            }
             return {
                 label: mc.label,
-                periodName: mc.periodName,
+                periodName: resolvedPeriodName,
                 budgetProduksi: bProd,
                 realisasiProduksi: rProd,
                 itemsMap,
