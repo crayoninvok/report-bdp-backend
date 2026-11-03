@@ -248,6 +248,7 @@ model PeriodicInspectionPlan {
   jobSite     JobSite                  @default(MuaraPahu)
   date        String                   // YYYY-MM-DD
   targetUnits Int                      @default(9) // Plan harian (default 9, bisa diubah dinamis)
+  leadInspector String?
   notes       String?
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt

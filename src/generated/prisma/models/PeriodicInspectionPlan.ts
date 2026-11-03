@@ -39,6 +39,7 @@ export type PeriodicInspectionPlanMinAggregateOutputType = {
   jobSite: $Enums.JobSite | null
   date: string | null
   targetUnits: number | null
+  leadInspector: string | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +50,7 @@ export type PeriodicInspectionPlanMaxAggregateOutputType = {
   jobSite: $Enums.JobSite | null
   date: string | null
   targetUnits: number | null
+  leadInspector: string | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +61,7 @@ export type PeriodicInspectionPlanCountAggregateOutputType = {
   jobSite: number
   date: number
   targetUnits: number
+  leadInspector: number
   notes: number
   createdAt: number
   updatedAt: number
@@ -79,6 +82,7 @@ export type PeriodicInspectionPlanMinAggregateInputType = {
   jobSite?: true
   date?: true
   targetUnits?: true
+  leadInspector?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -89,6 +93,7 @@ export type PeriodicInspectionPlanMaxAggregateInputType = {
   jobSite?: true
   date?: true
   targetUnits?: true
+  leadInspector?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -99,6 +104,7 @@ export type PeriodicInspectionPlanCountAggregateInputType = {
   jobSite?: true
   date?: true
   targetUnits?: true
+  leadInspector?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -196,6 +202,7 @@ export type PeriodicInspectionPlanGroupByOutputType = {
   jobSite: $Enums.JobSite
   date: string
   targetUnits: number
+  leadInspector: string | null
   notes: string | null
   createdAt: Date
   updatedAt: Date
@@ -229,6 +236,7 @@ export type PeriodicInspectionPlanWhereInput = {
   jobSite?: Prisma.EnumJobSiteFilter<"PeriodicInspectionPlan"> | $Enums.JobSite
   date?: Prisma.StringFilter<"PeriodicInspectionPlan"> | string
   targetUnits?: Prisma.IntFilter<"PeriodicInspectionPlan"> | number
+  leadInspector?: Prisma.StringNullableFilter<"PeriodicInspectionPlan"> | string | null
   notes?: Prisma.StringNullableFilter<"PeriodicInspectionPlan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PeriodicInspectionPlan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PeriodicInspectionPlan"> | Date | string
@@ -240,6 +248,7 @@ export type PeriodicInspectionPlanOrderByWithRelationInput = {
   jobSite?: Prisma.SortOrder
   date?: Prisma.SortOrder
   targetUnits?: Prisma.SortOrder
+  leadInspector?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -255,6 +264,7 @@ export type PeriodicInspectionPlanWhereUniqueInput = Prisma.AtLeast<{
   jobSite?: Prisma.EnumJobSiteFilter<"PeriodicInspectionPlan"> | $Enums.JobSite
   date?: Prisma.StringFilter<"PeriodicInspectionPlan"> | string
   targetUnits?: Prisma.IntFilter<"PeriodicInspectionPlan"> | number
+  leadInspector?: Prisma.StringNullableFilter<"PeriodicInspectionPlan"> | string | null
   notes?: Prisma.StringNullableFilter<"PeriodicInspectionPlan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PeriodicInspectionPlan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PeriodicInspectionPlan"> | Date | string
@@ -266,6 +276,7 @@ export type PeriodicInspectionPlanOrderByWithAggregationInput = {
   jobSite?: Prisma.SortOrder
   date?: Prisma.SortOrder
   targetUnits?: Prisma.SortOrder
+  leadInspector?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -284,6 +295,7 @@ export type PeriodicInspectionPlanScalarWhereWithAggregatesInput = {
   jobSite?: Prisma.EnumJobSiteWithAggregatesFilter<"PeriodicInspectionPlan"> | $Enums.JobSite
   date?: Prisma.StringWithAggregatesFilter<"PeriodicInspectionPlan"> | string
   targetUnits?: Prisma.IntWithAggregatesFilter<"PeriodicInspectionPlan"> | number
+  leadInspector?: Prisma.StringNullableWithAggregatesFilter<"PeriodicInspectionPlan"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"PeriodicInspectionPlan"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PeriodicInspectionPlan"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PeriodicInspectionPlan"> | Date | string
@@ -294,6 +306,7 @@ export type PeriodicInspectionPlanCreateInput = {
   jobSite?: $Enums.JobSite
   date: string
   targetUnits?: number
+  leadInspector?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -305,6 +318,7 @@ export type PeriodicInspectionPlanUncheckedCreateInput = {
   jobSite?: $Enums.JobSite
   date: string
   targetUnits?: number
+  leadInspector?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -316,6 +330,7 @@ export type PeriodicInspectionPlanUpdateInput = {
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   date?: Prisma.StringFieldUpdateOperationsInput | string
   targetUnits?: Prisma.IntFieldUpdateOperationsInput | number
+  leadInspector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -327,6 +342,7 @@ export type PeriodicInspectionPlanUncheckedUpdateInput = {
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   date?: Prisma.StringFieldUpdateOperationsInput | string
   targetUnits?: Prisma.IntFieldUpdateOperationsInput | number
+  leadInspector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -338,6 +354,7 @@ export type PeriodicInspectionPlanCreateManyInput = {
   jobSite?: $Enums.JobSite
   date: string
   targetUnits?: number
+  leadInspector?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -348,6 +365,7 @@ export type PeriodicInspectionPlanUpdateManyMutationInput = {
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   date?: Prisma.StringFieldUpdateOperationsInput | string
   targetUnits?: Prisma.IntFieldUpdateOperationsInput | number
+  leadInspector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -358,6 +376,7 @@ export type PeriodicInspectionPlanUncheckedUpdateManyInput = {
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   date?: Prisma.StringFieldUpdateOperationsInput | string
   targetUnits?: Prisma.IntFieldUpdateOperationsInput | number
+  leadInspector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -373,6 +392,7 @@ export type PeriodicInspectionPlanCountOrderByAggregateInput = {
   jobSite?: Prisma.SortOrder
   date?: Prisma.SortOrder
   targetUnits?: Prisma.SortOrder
+  leadInspector?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -387,6 +407,7 @@ export type PeriodicInspectionPlanMaxOrderByAggregateInput = {
   jobSite?: Prisma.SortOrder
   date?: Prisma.SortOrder
   targetUnits?: Prisma.SortOrder
+  leadInspector?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -397,6 +418,7 @@ export type PeriodicInspectionPlanMinOrderByAggregateInput = {
   jobSite?: Prisma.SortOrder
   date?: Prisma.SortOrder
   targetUnits?: Prisma.SortOrder
+  leadInspector?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -430,6 +452,7 @@ export type PeriodicInspectionPlanCreateWithoutItemsInput = {
   jobSite?: $Enums.JobSite
   date: string
   targetUnits?: number
+  leadInspector?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -440,6 +463,7 @@ export type PeriodicInspectionPlanUncheckedCreateWithoutItemsInput = {
   jobSite?: $Enums.JobSite
   date: string
   targetUnits?: number
+  leadInspector?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -466,6 +490,7 @@ export type PeriodicInspectionPlanUpdateWithoutItemsInput = {
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   date?: Prisma.StringFieldUpdateOperationsInput | string
   targetUnits?: Prisma.IntFieldUpdateOperationsInput | number
+  leadInspector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -476,6 +501,7 @@ export type PeriodicInspectionPlanUncheckedUpdateWithoutItemsInput = {
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   date?: Prisma.StringFieldUpdateOperationsInput | string
   targetUnits?: Prisma.IntFieldUpdateOperationsInput | number
+  leadInspector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -517,6 +543,7 @@ export type PeriodicInspectionPlanSelect<ExtArgs extends runtime.Types.Extension
   jobSite?: boolean
   date?: boolean
   targetUnits?: boolean
+  leadInspector?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -529,6 +556,7 @@ export type PeriodicInspectionPlanSelectCreateManyAndReturn<ExtArgs extends runt
   jobSite?: boolean
   date?: boolean
   targetUnits?: boolean
+  leadInspector?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -539,6 +567,7 @@ export type PeriodicInspectionPlanSelectUpdateManyAndReturn<ExtArgs extends runt
   jobSite?: boolean
   date?: boolean
   targetUnits?: boolean
+  leadInspector?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -549,12 +578,13 @@ export type PeriodicInspectionPlanSelectScalar = {
   jobSite?: boolean
   date?: boolean
   targetUnits?: boolean
+  leadInspector?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PeriodicInspectionPlanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "jobSite" | "date" | "targetUnits" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["periodicInspectionPlan"]>
+export type PeriodicInspectionPlanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "jobSite" | "date" | "targetUnits" | "leadInspector" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["periodicInspectionPlan"]>
 export type PeriodicInspectionPlanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | Prisma.PeriodicInspectionPlan$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.PeriodicInspectionPlanCountOutputTypeDefaultArgs<ExtArgs>
@@ -572,6 +602,7 @@ export type $PeriodicInspectionPlanPayload<ExtArgs extends runtime.Types.Extensi
     jobSite: $Enums.JobSite
     date: string
     targetUnits: number
+    leadInspector: string | null
     notes: string | null
     createdAt: Date
     updatedAt: Date
@@ -1003,6 +1034,7 @@ export interface PeriodicInspectionPlanFieldRefs {
   readonly jobSite: Prisma.FieldRef<"PeriodicInspectionPlan", 'JobSite'>
   readonly date: Prisma.FieldRef<"PeriodicInspectionPlan", 'String'>
   readonly targetUnits: Prisma.FieldRef<"PeriodicInspectionPlan", 'Int'>
+  readonly leadInspector: Prisma.FieldRef<"PeriodicInspectionPlan", 'String'>
   readonly notes: Prisma.FieldRef<"PeriodicInspectionPlan", 'String'>
   readonly createdAt: Prisma.FieldRef<"PeriodicInspectionPlan", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PeriodicInspectionPlan", 'DateTime'>

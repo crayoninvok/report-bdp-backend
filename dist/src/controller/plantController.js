@@ -417,6 +417,7 @@ exports.plantController = {
                     isToday: dStr === todayStr,
                     targetUnits,
                     hasCustomTarget: plan && plan.targetUnits !== undefined,
+                    leadInspector: plan?.leadInspector || null,
                     scheduledCount,
                     completedCount,
                     inProgressCount,
@@ -464,17 +465,21 @@ exports.plantController = {
     // -------------------------------------------------------------
     upsertDailyPlan: async (req, res) => {
         try {
-            const { date, targetUnits, notes, jobSite = "MuaraPahu" } = req.body;
+            const { date, targetUnits, notes, leadInspector, jobSite = "MuaraPahu" } = req.body;
             if (!date) {
                 return res
                     .status(400)
                     .json({ success: false, message: "Tanggal (date) wajib diisi" });
             }
-            const numTarget = parseInt(targetUnits, 10);
-            if (isNaN(numTarget) || numTarget < 0) {
-                return res
-                    .status(400)
-                    .json({ success: false, message: "Target units harus angka valid >= 0" });
+            let numTarget = undefined;
+            if (targetUnits !== undefined && targetUnits !== null && targetUnits !== "") {
+                const parsed = parseInt(targetUnits, 10);
+                if (isNaN(parsed) || parsed < 0) {
+                    return res
+                        .status(400)
+                        .json({ success: false, message: "Target units harus angka valid >= 0" });
+                }
+                numTarget = parsed;
             }
             const plan = await prisma_1.prisma.periodicInspectionPlan.upsert({
                 where: {
@@ -484,13 +489,15 @@ exports.plantController = {
                     },
                 },
                 update: {
-                    targetUnits: numTarget,
-                    notes: notes !== undefined ? notes : undefined,
+                    ...(numTarget !== undefined ? { targetUnits: numTarget } : {}),
+                    ...(leadInspector !== undefined ? { leadInspector: leadInspector || null } : {}),
+                    ...(notes !== undefined ? { notes: notes || null } : {}),
                 },
                 create: {
                     jobSite,
                     date,
-                    targetUnits: numTarget,
+                    targetUnits: numTarget !== undefined ? numTarget : 9,
+                    leadInspector: leadInspector || null,
                     notes: notes || null,
                 },
             });

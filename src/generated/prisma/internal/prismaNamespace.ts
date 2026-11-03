@@ -1725,6 +1725,7 @@ export const PeriodicInspectionPlanScalarFieldEnum = {
   jobSite: 'jobSite',
   date: 'date',
   targetUnits: 'targetUnits',
+  leadInspector: 'leadInspector',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
