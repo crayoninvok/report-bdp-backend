@@ -352,3 +352,153 @@ export const getGLTransactions = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Gagal mengambil daftar transaksi GL." });
   }
 };
+
+
+export const getGLFuelConsumption = async (req: Request, res: Response) => {
+  try {
+    let periodId = req.query.periodId as string;
+    const site = req.query.site ? String(req.query.site).trim().toUpperCase() : "";
+    const startDate = req.query.startDate ? String(req.query.startDate).trim() : "";
+    const endDate = req.query.endDate ? String(req.query.endDate).trim() : "";
+
+    // If no periodId and no date range provided, default to latest GL period
+    if (!periodId && !startDate && !endDate) {
+      const latest = await prisma.gLPeriod.findFirst({
+        orderBy: [{ year: "desc" }, { month: "desc" }, { createdAt: "desc" }],
+      });
+      if (latest) {
+        periodId = latest.id;
+      }
+    }
+
+    const where: any = {
+      accountCode: { in: ["05110201", "05110202", "05110805"] },
+    };
+
+    if (periodId && periodId !== "all") {
+      where.periodId = periodId;
+    }
+
+    if (site && site !== "ALL") {
+      where.projectArea = site === "MUARA_PAHU" ? "MPH" : site === "SENYIUR" ? "SNY" : site;
+    }
+
+    if (startDate && endDate) {
+      where.date = { gte: startDate, lte: endDate };
+    } else if (startDate) {
+      where.date = { gte: startDate };
+    } else if (endDate) {
+      where.date = { lte: endDate };
+    }
+
+    // 1. Overall Aggregations
+    const totalAgg = await prisma.gLTransaction.aggregate({
+      where,
+      _sum: { qty: true, debet: true },
+      _count: true,
+    });
+
+    const totalLiters = totalAgg._sum.qty || 0;
+    const totalCost = totalAgg._sum.debet || 0;
+    const totalTransactions = totalAgg._count || 0;
+    const avgPricePerLiter = totalLiters > 0 ? totalCost / totalLiters : 0;
+
+    // 2. Breakdown by Project Area (Site)
+    const siteBreakdown = await prisma.gLTransaction.groupBy({
+      by: ["projectArea"],
+      where,
+      _sum: { qty: true, debet: true },
+      _count: true,
+    });
+
+    // 3. Breakdown by Account
+    const accountBreakdown = await prisma.gLTransaction.groupBy({
+      by: ["accountCode", "accountName"],
+      where,
+      _sum: { qty: true, debet: true },
+      _count: true,
+    });
+
+    // 4. Daily Time-series
+    const dailyData = await prisma.gLTransaction.groupBy({
+      by: ["date"],
+      where: { ...where, qty: { gt: 0 } },
+      _sum: { qty: true, debet: true },
+      _count: true,
+      orderBy: { date: "asc" },
+    });
+
+    // 5. Top 15 Fleets by Fuel Volume
+    const topFleets = await prisma.gLTransaction.groupBy({
+      by: ["costCenter", "projectArea"],
+      where: { ...where, qty: { gt: 0 } },
+      _sum: { qty: true, debet: true },
+      _count: true,
+      orderBy: { _sum: { qty: "desc" } },
+      take: 15,
+    });
+
+    // 6. Recent 15 fuel transactions for live log preview
+    const recentTransactions = await prisma.gLTransaction.findMany({
+      where: { ...where, qty: { gt: 0 } },
+      orderBy: [{ date: "desc" }, { id: "desc" }],
+      take: 15,
+      select: {
+        id: true,
+        date: true,
+        regNo: true,
+        costCenter: true,
+        projectArea: true,
+        specification: true,
+        qty: true,
+        debet: true,
+        remark: true,
+        accountName: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      summary: {
+        totalLiters,
+        totalCost,
+        totalTransactions,
+        avgPricePerLiter,
+        siteBreakdown: siteBreakdown.map((s) => ({
+          projectArea: s.projectArea || "MPH",
+          liters: s._sum.qty || 0,
+          cost: s._sum.debet || 0,
+          transactionCount: s._count,
+        })),
+        accountBreakdown: accountBreakdown.map((a) => ({
+          accountCode: a.accountCode,
+          accountName: a.accountName,
+          liters: a._sum.qty || 0,
+          cost: a._sum.debet || 0,
+          transactionCount: a._count,
+        })),
+      },
+      dailyData: dailyData.map((d) => ({
+        date: d.date,
+        liters: d._sum.qty || 0,
+        cost: d._sum.debet || 0,
+        transactionCount: d._count,
+        avgPrice: d._sum.qty ? (d._sum.debet || 0) / d._sum.qty : 0,
+      })),
+      topFleets: topFleets.map((f) => ({
+        costCenter: f.costCenter || "N/A",
+        projectArea: f.projectArea || "MPH",
+        totalLiters: f._sum.qty || 0,
+        totalCost: f._sum.debet || 0,
+        transactionCount: f._count,
+      })),
+      recentTransactions,
+    });
+  } catch (error: any) {
+    console.error("Error getting GL fuel consumption:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Gagal mengambil data konsumsi BBM dari GL.",
+    });
+  }
+};
