@@ -79,6 +79,9 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
         // Plan Unit Running: 70 untuk bulan November sesuai permintaan operasional
         const isNov = dStr.includes("-11-") || monthNum === 10;
         const planUnitRunning = isNov ? 70 : 70;
+        // Plan Produksi Muara Pahu: Nov 1.028.000 Ton, Harian (dibagi 31) = 33.161,29 Ton
+        const planProductionMonthly = isNov ? 1028000 : 671000;
+        const planProductionDaily = isNov ? 33161.29 : 21645.16;
         let ritaseDS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitDS * factor));
         let ritaseNS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitNS * factor));
         if (dStr === "2026-11-01" && factor !== 0) {
@@ -119,6 +122,8 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
             totalUnitRunning,
             actualTripPerUnit,
             actualTripPerDay: actualTripPerUnit,
+            planProductionMonthly,
+            planProductionDaily,
         };
         curDt.setDate(curDt.getDate() + 1);
     }
@@ -144,6 +149,8 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
             avgRitasePerDay: Math.round((grandTotalRitase / activeDays) * 10) / 10,
             avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
             planUnitRunning: 70,
+            planProductionMonthly: 1028000,
+            planProductionDaily: 33161.29,
         },
         data: dailyList,
     };
@@ -951,6 +958,8 @@ exports.assetfindrController = {
                     avgPayloadNS: 0,
                     avgPayloadTotal: 0,
                     planUnitRunning,
+                    planProductionMonthly: 1028000,
+                    planProductionDaily: 33161.29,
                     totalUnitRunning: 0,
                     actualTripPerUnit: 0,
                     uniqueVehicles: new Set(),
@@ -1045,6 +1054,8 @@ exports.assetfindrController = {
                     avgRitasePerDay: activeDays > 0 ? Math.round((grandTotalRitase / activeDays) * 10) / 10 : 0,
                     avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
                     planUnitRunning: 70,
+                    planProductionMonthly: 1028000,
+                    planProductionDaily: 33161.29,
                 },
                 data: dailyList,
             };

@@ -15,12 +15,14 @@ export const PRODUCTION_TARGETS = {
   payload: 205.0, // Ton per truck
   cycleTime: 7.5, // Jam (target efisiensi)
   fuelRatio: 1.55, // L/Ton
-  unitRunning: 43, // Unit armada aktif
+  unitRunning: 70, // Unit armada aktif (Nov: 70)
   tdp: 2.7, // Trip per Day per unit
   dailyProductionBase: 13266.67, // Ton/hari dasar
-  dailyProductionQ4: 21645.16, // Ton/hari target Okt-Des
+  dailyProductionQ4: 21645.16, // Ton/hari target Okt (671,000 / 31)
+  dailyProductionNovember: 33161.29, // Ton/hari target Nov Muara Pahu (1,028,000 / 31)
   monthlyProductionBase: 398000, // Ton/bulan dasar
-  monthlyProductionTarget: 671000, // Ton/bulan target Okt-Des
+  monthlyProductionTarget: 671000, // Ton/bulan target Okt
+  monthlyProductionNovember: 1028000, // Ton/bulan target Nov Muara Pahu (1,028,000 Ton)
 };
 
 /**
@@ -348,9 +350,24 @@ export const getProductionStats = async (req: Request, res: Response) => {
             .toFixed(2)
         ),
       },
+      {
+        monthKey: "11",
+        monthLabel: "Nov",
+        name: "November 2026",
+        target: 1028000,
+        actual: Number(
+          records
+            .filter((r) => r.date.startsWith("2026-11"))
+            .reduce((acc, r) => acc + r.production, 0)
+            .toFixed(2)
+        ),
+      },
     ];
 
-    const targetDailyProd = PRODUCTION_TARGETS.dailyProductionQ4;
+    const hasNov = records.some((r) => r.date.startsWith("2026-11"));
+    const targetDailyProd = hasNov
+      ? PRODUCTION_TARGETS.dailyProductionNovember
+      : PRODUCTION_TARGETS.dailyProductionQ4;
 
     res.json({
       success: true,
