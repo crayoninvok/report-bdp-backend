@@ -19,9 +19,11 @@ export const PRODUCTION_TARGETS = {
   tdp: 2.7, // Trip per Day per unit
   dailyProductionBase: 13266.67, // Ton/hari dasar
   dailyProductionQ4: 21645.16, // Ton/hari target Okt (671,000 / 31)
+  dailyProductionOctober: 21645.16, // Ton/hari target Okt Muara Pahu (671,000 / 31)
   dailyProductionNovember: 33161.29, // Ton/hari target Nov Muara Pahu (1,028,000 / 31)
   monthlyProductionBase: 398000, // Ton/bulan dasar
   monthlyProductionTarget: 671000, // Ton/bulan target Okt
+  monthlyProductionOctober: 671000, // Ton/bulan target Okt Muara Pahu (671,000 Ton)
   monthlyProductionNovember: 1028000, // Ton/bulan target Nov Muara Pahu (1,028,000 Ton)
 };
 
@@ -365,8 +367,11 @@ export const getProductionStats = async (req: Request, res: Response) => {
     ];
 
     const hasNov = records.some((r) => r.date.startsWith("2026-11"));
+    const hasOct = records.some((r) => r.date.startsWith("2026-10"));
     const targetDailyProd = hasNov
       ? PRODUCTION_TARGETS.dailyProductionNovember
+      : hasOct
+      ? PRODUCTION_TARGETS.dailyProductionOctober
       : PRODUCTION_TARGETS.dailyProductionQ4;
 
     res.json({

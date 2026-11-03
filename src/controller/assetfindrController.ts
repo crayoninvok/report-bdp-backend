@@ -97,10 +97,13 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
 
     // Plan Unit Running: 70 untuk bulan November sesuai permintaan operasional
     const isNov = dStr.includes("-11-") || monthNum === 10;
+    const isOct = dStr.includes("-10-") || monthNum === 9;
     const planUnitRunning = isNov ? 70 : 70;
-    // Plan Produksi Muara Pahu: Nov 1.028.000 Ton, Harian (dibagi 31) = 33.161,29 Ton
-    const planProductionMonthly = isNov ? 1028000 : 671000;
-    const planProductionDaily = isNov ? 33161.29 : 21645.16;
+    // Plan Produksi Muara Pahu:
+    // - Nov 2026: 1.028.000 Ton, Harian (dibagi 31) = 33.161,29 Ton
+    // - Okt 2026: 671.000 Ton, Harian (dibagi 31) = 21.645,16 Ton
+    const planProductionMonthly = isNov ? 1028000 : (isOct ? 671000 : 671000);
+    const planProductionDaily = isNov ? 33161.29 : (isOct ? 21645.16 : 21645.16);
 
     let ritaseDS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitDS * factor));
     let ritaseNS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitNS * factor));
@@ -176,8 +179,8 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
       avgRitasePerDay: Math.round((grandTotalRitase / activeDays) * 10) / 10,
       avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
       planUnitRunning: 70,
-      planProductionMonthly: 1028000,
-      planProductionDaily: 33161.29,
+      planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
+      planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
     },
     data: dailyList,
   };
@@ -1045,8 +1048,8 @@ export const assetfindrController = {
           avgPayloadNS: 0,
           avgPayloadTotal: 0,
           planUnitRunning,
-          planProductionMonthly: 1028000,
-          planProductionDaily: 33161.29,
+          planProductionMonthly: dStr.includes("-11-") ? 1028000 : 671000,
+          planProductionDaily: dStr.includes("-11-") ? 33161.29 : 21645.16,
           totalUnitRunning: 0,
           actualTripPerUnit: 0,
           uniqueVehicles: new Set<string>(),
@@ -1160,8 +1163,8 @@ export const assetfindrController = {
           avgPayloadOverall:
             grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
           planUnitRunning: 70,
-      planProductionMonthly: 1028000,
-      planProductionDaily: 33161.29,
+          planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
+          planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
         },
         data: dailyList,
       };
