@@ -105,8 +105,10 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
     const planProductionMonthly = isNov ? 1028000 : (isOct ? 671000 : 671000);
     const planProductionDaily = isNov ? 33161.29 : (isOct ? 21645.16 : 21645.16);
 
-    let ritaseDS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitDS * factor));
-    let ritaseNS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitNS * factor));
+    const isFuture = dStr > "2026-11-03";
+
+    let ritaseDS = (factor === 0 || isFuture) ? 0 : Math.max(1, Math.round(baseRitDS * factor));
+    let ritaseNS = (factor === 0 || isFuture) ? 0 : Math.max(1, Math.round(baseRitNS * factor));
     if (dStr === "2026-11-01" && factor !== 0) {
       ritaseDS = 80;
       ritaseNS = 79;
@@ -118,12 +120,14 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
       ritaseNS = 4;
     }
     const totalRitase = ritaseDS + ritaseNS;
-    const tonaseDS = factor === 0 ? 0 : Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
-    const tonaseNS = factor === 0 ? 0 : Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
+    const tonaseDS = (factor === 0 || isFuture) ? 0 : Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
+    const tonaseNS = (factor === 0 || isFuture) ? 0 : Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
     const totalTonase = Math.round((tonaseDS + tonaseNS) * 10) / 10;
 
     let totalUnitRunning = 0;
-    if (dStr === "2026-11-01" && factor !== 0) {
+    if (isFuture) {
+      totalUnitRunning = 0;
+    } else if (dStr === "2026-11-01" && factor !== 0) {
       totalUnitRunning = 62;
     } else if (dStr === "2026-11-02" && factor !== 0) {
       totalUnitRunning = 62;
