@@ -118,6 +118,7 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
             planUnitRunning,
             totalUnitRunning,
             actualTripPerUnit,
+            actualTripPerDay: actualTripPerUnit,
         };
         curDt.setDate(curDt.getDate() + 1);
     }
@@ -1015,6 +1016,7 @@ exports.assetfindrController = {
                     totalTonase: Math.round(item.totalTonase * 100) / 100,
                     totalUnitRunning,
                     actualTripPerUnit,
+                    actualTripPerDay: actualTripPerUnit,
                     avgPayloadDS: item.ritaseDS > 0 ? Math.round((item.tonaseDS / item.ritaseDS) * 10) / 10 : 0,
                     avgPayloadNS: item.ritaseNS > 0 ? Math.round((item.tonaseNS / item.ritaseNS) * 10) / 10 : 0,
                     avgPayloadTotal: item.totalRitase > 0 ? Math.round((item.totalTonase / item.totalRitase) * 10) / 10 : 0,

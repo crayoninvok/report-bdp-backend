@@ -142,6 +142,7 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
       planUnitRunning,
       totalUnitRunning,
       actualTripPerUnit,
+      actualTripPerDay: actualTripPerUnit,
     };
 
     curDt.setDate(curDt.getDate() + 1);
@@ -1113,6 +1114,7 @@ export const assetfindrController = {
             totalTonase: Math.round(item.totalTonase * 100) / 100,
             totalUnitRunning,
             actualTripPerUnit,
+            actualTripPerDay: actualTripPerUnit,
             avgPayloadDS:
               item.ritaseDS > 0 ? Math.round((item.tonaseDS / item.ritaseDS) * 10) / 10 : 0,
             avgPayloadNS:
