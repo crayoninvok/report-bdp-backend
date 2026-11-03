@@ -16,6 +16,7 @@ router.use(authMiddleware_1.extractUser);
 router.get("/periods", glController_1.getGLPeriods);
 router.get("/summary", glController_1.getGLExpenseSummaries);
 router.get("/transactions", glController_1.getGLTransactions);
+router.get("/fuel-consumption", glController_1.getGLFuelConsumption);
 router.post("/upload/preview", upload.single("file"), glController_1.previewGLUpload);
 router.post("/upload/commit", upload.single("file"), glController_1.commitGLUpload);
 exports.default = router;

@@ -76,28 +76,46 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
         const seed = (dateNum * 17 + monthNum * 31) % 100;
         const baseRitDS = 35 + (seed % 25);
         const baseRitNS = 38 + ((seed + 7) % 28);
-        // Plan Unit Running: 70 untuk bulan November sesuai permintaan operasional
+        // Plan Unit Running: 25 sesuai dashboard Daily Trip per Unit
         const isNov = dStr.includes("-11-") || monthNum === 10;
         const isOct = dStr.includes("-10-") || monthNum === 9;
-        const planUnitRunning = isNov ? 70 : 70;
+        const planUnitRunning = 25;
         // Plan Produksi Muara Pahu:
         // - Nov 2026: 1.028.000 Ton, Harian (dibagi 31) = 33.161,29 Ton
         // - Okt 2026: 671.000 Ton, Harian (dibagi 31) = 21.645,16 Ton
         const planProductionMonthly = isNov ? 1028000 : (isOct ? 671000 : 671000);
         const planProductionDaily = isNov ? 33161.29 : (isOct ? 21645.16 : 21645.16);
-        let ritaseDS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitDS * factor));
-        let ritaseNS = factor === 0 ? 0 : Math.max(1, Math.round(baseRitNS * factor));
+        const isFuture = dStr > "2026-11-03";
+        let ritaseDS = (factor === 0 || isFuture) ? 0 : Math.max(1, Math.round(baseRitDS * factor));
+        let ritaseNS = (factor === 0 || isFuture) ? 0 : Math.max(1, Math.round(baseRitNS * factor));
         if (dStr === "2026-11-01" && factor !== 0) {
             ritaseDS = 80;
             ritaseNS = 79;
         }
+        else if (dStr === "2026-11-02" && factor !== 0) {
+            ritaseDS = 79;
+            ritaseNS = 78;
+        }
+        else if (dStr === "2026-11-03" && factor !== 0) {
+            ritaseDS = 6;
+            ritaseNS = 4;
+        }
         const totalRitase = ritaseDS + ritaseNS;
-        const tonaseDS = factor === 0 ? 0 : Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
-        const tonaseNS = factor === 0 ? 0 : Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
+        const tonaseDS = (factor === 0 || isFuture) ? 0 : Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
+        const tonaseNS = (factor === 0 || isFuture) ? 0 : Math.round((ritaseNS * (212 + ((seed + 5) % 15))) * 10) / 10;
         const totalTonase = Math.round((tonaseDS + tonaseNS) * 10) / 10;
         let totalUnitRunning = 0;
-        if (dStr === "2026-11-01" && factor !== 0) {
+        if (isFuture) {
+            totalUnitRunning = 0;
+        }
+        else if (dStr === "2026-11-01" && factor !== 0) {
             totalUnitRunning = 62;
+        }
+        else if (dStr === "2026-11-02" && factor !== 0) {
+            totalUnitRunning = 62;
+        }
+        else if (dStr === "2026-11-03" && factor !== 0) {
+            totalUnitRunning = 10;
         }
         else if (totalRitase > 0) {
             totalUnitRunning = Math.round(totalRitase / (2.45 + (seed % 4) * 0.08)) || 60;
@@ -151,7 +169,7 @@ function generateDemoDailyProduction(startDate, endDate, jobsite = "all") {
             avgTonasePerDay: Math.round((grandTotalTonase / activeDays) * 10) / 10,
             avgRitasePerDay: Math.round((grandTotalRitase / activeDays) * 10) / 10,
             avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
-            planUnitRunning: 70,
+            planUnitRunning: 25,
             planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
             planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
         },
@@ -945,7 +963,7 @@ exports.assetfindrController = {
                 const dayName = INDO_DAYS[dayOfWeek];
                 const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
                 const isNov = dStr.includes("-11-") || monthNum === 10;
-                const planUnitRunning = isNov ? 70 : 70;
+                const planUnitRunning = 25;
                 daysMap[dStr] = {
                     date: dStr,
                     day: dateNum,
@@ -1056,7 +1074,7 @@ exports.assetfindrController = {
                     avgTonasePerDay: activeDays > 0 ? Math.round((grandTotalTonase / activeDays) * 100) / 100 : 0,
                     avgRitasePerDay: activeDays > 0 ? Math.round((grandTotalRitase / activeDays) * 10) / 10 : 0,
                     avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
-                    planUnitRunning: 70,
+                    planUnitRunning: 25,
                     planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
                     planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
                 },
