@@ -95,10 +95,10 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
     const baseRitDS = 35 + (seed % 25);
     const baseRitNS = 38 + ((seed + 7) % 28);
 
-    // Plan Unit Running: 70 untuk bulan November sesuai permintaan operasional
+    // Plan Unit Running: 25 sesuai dashboard Daily Trip per Unit
     const isNov = dStr.includes("-11-") || monthNum === 10;
     const isOct = dStr.includes("-10-") || monthNum === 9;
-    const planUnitRunning = isNov ? 70 : 70;
+    const planUnitRunning = 25;
     // Plan Produksi Muara Pahu:
     // - Nov 2026: 1.028.000 Ton, Harian (dibagi 31) = 33.161,29 Ton
     // - Okt 2026: 671.000 Ton, Harian (dibagi 31) = 21.645,16 Ton
@@ -110,6 +110,12 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
     if (dStr === "2026-11-01" && factor !== 0) {
       ritaseDS = 80;
       ritaseNS = 79;
+    } else if (dStr === "2026-11-02" && factor !== 0) {
+      ritaseDS = 79;
+      ritaseNS = 78;
+    } else if (dStr === "2026-11-03" && factor !== 0) {
+      ritaseDS = 6;
+      ritaseNS = 4;
     }
     const totalRitase = ritaseDS + ritaseNS;
     const tonaseDS = factor === 0 ? 0 : Math.round((ritaseDS * (210 + (seed % 15))) * 10) / 10;
@@ -119,6 +125,10 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
     let totalUnitRunning = 0;
     if (dStr === "2026-11-01" && factor !== 0) {
       totalUnitRunning = 62;
+    } else if (dStr === "2026-11-02" && factor !== 0) {
+      totalUnitRunning = 62;
+    } else if (dStr === "2026-11-03" && factor !== 0) {
+      totalUnitRunning = 10;
     } else if (totalRitase > 0) {
       totalUnitRunning = Math.round(totalRitase / (2.45 + (seed % 4) * 0.08)) || 60;
     }
@@ -178,7 +188,7 @@ function generateDemoDailyProduction(startDate: string, endDate: string, jobsite
       avgTonasePerDay: Math.round((grandTotalTonase / activeDays) * 10) / 10,
       avgRitasePerDay: Math.round((grandTotalRitase / activeDays) * 10) / 10,
       avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
-      planUnitRunning: 70,
+      planUnitRunning: 25,
       planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
       planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
     },
@@ -1031,7 +1041,7 @@ export const assetfindrController = {
         const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
 
         const isNov = dStr.includes("-11-") || monthNum === 10;
-        const planUnitRunning = isNov ? 70 : 70;
+        const planUnitRunning = 25;
 
         daysMap[dStr] = {
           date: dStr,
@@ -1162,7 +1172,7 @@ export const assetfindrController = {
             activeDays > 0 ? Math.round((grandTotalRitase / activeDays) * 10) / 10 : 0,
           avgPayloadOverall:
             grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
-          planUnitRunning: 70,
+          planUnitRunning: 25,
           planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
           planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
         },
