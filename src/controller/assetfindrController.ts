@@ -68,7 +68,7 @@ function matchesJobsite(t: any, jobsite: string): boolean {
 /**
  * Generate simulated daily production from startDate to endDate
  */
-function generateDemoDailyProduction(startDate: string, endDate: string, jobsite = "all") {
+export function generateDemoDailyProduction(startDate: string, endDate: string, jobsite = "all") {
   const daysMap: Record<string, any> = {};
   const startDt = new Date(startDate);
   const endDt = new Date(endDate);

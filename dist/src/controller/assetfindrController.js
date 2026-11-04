@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assetfindrController = void 0;
+exports.generateDemoDailyProduction = generateDemoDailyProduction;
 const ASSETFINDR_BASE_URL = "https://api.assetfindr.com";
 const ASSETFINDR_FIREBASE_API_KEY = "AIzaSyAaLQ5r471mDX_Q9IpxM55o67bCf956P04";
 const DEFAULT_CLIENT_ID = "batara";
