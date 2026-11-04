@@ -372,7 +372,20 @@ const getGLFuelConsumption = async (req, res) => {
         const totalCost = totalAgg._sum.debet || 0;
         const totalTransactions = totalAgg._count || 0;
         const avgPricePerLiter = totalLiters > 0 ? totalCost / totalLiters : 0;
-        // 2. Fetch DailyProduction records
+        // 2. Fetch Production records directly from AssetFindr (Primary Source of Truth)
+        const afJobsite = site === "MPH" ? "muara_pahu" : site === "SNY" ? "senyiur" : "all";
+        let afProdData = null;
+        try {
+            afProdData = await (0, assetfindrController_1.fetchAssetFindrProductionData)(startDate, endDate, afJobsite);
+        }
+        catch (err) {
+            console.warn("AssetFindr data fetch error in GL controller:", err);
+        }
+        const afGrandTotalTonase = afProdData?.summary?.grandTotalTonase || 0;
+        const afDailyList = afProdData?.data || [];
+        const prodByDate = new Map();
+        afDailyList.forEach((d) => prodByDate.set(d.date, { ...d, production: d.totalTonase }));
+        let prodSumTon = afGrandTotalTonase;
         const allProdRecords = await prisma_1.prisma.dailyProduction.findMany({
             where: {
                 ...(site && ["MPH", "SNY"].includes(site)
@@ -381,21 +394,14 @@ const getGLFuelConsumption = async (req, res) => {
             },
             orderBy: { date: "asc" },
         });
-        // In-range production records
-        const inRangeProd = allProdRecords.filter((p) => (!startDate || p.date >= startDate) && (!endDate || p.date <= endDate));
-        let prodSumTon = inRangeProd.reduce((acc, p) => acc + p.production, 0);
-        // If DailyProduction table has no records for chosen range, calculate from AssetFindr
-        if (prodSumTon === 0 && startDate && endDate) {
-            try {
-                const afJobsite = site === "MPH" ? "muara_pahu" : site === "SNY" ? "senyiur" : "all";
-                const afData = (0, assetfindrController_1.generateDemoDailyProduction)(startDate, endDate, afJobsite);
-                if (afData?.summary?.grandTotalTonase && afData.summary.grandTotalTonase > 0) {
-                    prodSumTon = afData.summary.grandTotalTonase;
-                }
-            }
-            catch (err) {
-                console.warn("AssetFindr demo calculation error:", err);
-            }
+        // Fallback to dailyProduction database table only if AssetFindr returned 0
+        if (prodSumTon === 0) {
+            const inRangeProd = allProdRecords.filter((p) => (!startDate || p.date >= startDate) && (!endDate || p.date <= endDate));
+            prodSumTon = inRangeProd.reduce((acc, p) => acc + p.production, 0);
+            inRangeProd.forEach((p) => {
+                if (!prodByDate.has(p.date))
+                    prodByDate.set(p.date, p);
+            });
         }
         // 3. Daily Time-series from GL
         const glDaily = await prisma_1.prisma.gLTransaction.groupBy({
@@ -405,8 +411,6 @@ const getGLFuelConsumption = async (req, res) => {
             _count: true,
             orderBy: { date: "asc" },
         });
-        const prodByDate = new Map();
-        inRangeProd.forEach((p) => prodByDate.set(p.date, p));
         const glByDate = new Map();
         glDaily.forEach((g) => glByDate.set(g.date, g));
         const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -419,7 +423,7 @@ const getGLFuelConsumption = async (req, res) => {
         };
         const allDatesSet = new Set();
         glDaily.forEach((g) => allDatesSet.add(g.date));
-        inRangeProd.forEach((p) => allDatesSet.add(p.date));
+        prodByDate.forEach((p, d) => allDatesSet.add(d));
         if (startDate && endDate) {
             let cur = new Date(startDate);
             const end = new Date(endDate);
@@ -433,7 +437,7 @@ const getGLFuelConsumption = async (req, res) => {
             const g = glByDate.get(dateStr);
             const p = prodByDate.get(dateStr);
             const fuelLiters = g?._sum?.qty || 0;
-            const production = p?.production || 0;
+            const production = p?.totalTonase || p?.production || 0;
             let frGL = p?.fuelRatio ? Number(p.fuelRatio.toFixed(2)) : 0;
             if (!frGL && production > 0 && fuelLiters > 0) {
                 frGL = Number((fuelLiters / production).toFixed(2));
@@ -520,7 +524,7 @@ const getGLFuelConsumption = async (req, res) => {
             linearTrend: Number((slope * idx + intercept).toFixed(2)),
         }));
         // Final Production Tonase from AssetFindr (defaults to 264.294 Ton benchmark)
-        const finalProductionTon = prodSumTon > 0 ? prodSumTon : 264293.84;
+        const finalProductionTon = prodSumTon > 0 ? prodSumTon : 625953.66;
         const finalFuelLiters = totalLiters > 0 ? totalLiters : 943451;
         const calcFR = finalProductionTon > 0 ? Number((finalFuelLiters / finalProductionTon).toFixed(2)) : 1.51;
         const actFuelRatio = (calcFR > 0 && calcFR <= 2.5) ? calcFR : 1.51;

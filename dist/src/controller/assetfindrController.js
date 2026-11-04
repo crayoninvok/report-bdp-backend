@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assetfindrController = void 0;
 exports.generateDemoDailyProduction = generateDemoDailyProduction;
+exports.fetchAssetFindrProductionData = fetchAssetFindrProductionData;
 const ASSETFINDR_BASE_URL = "https://api.assetfindr.com";
 const ASSETFINDR_FIREBASE_API_KEY = "AIzaSyAaLQ5r471mDX_Q9IpxM55o67bCf956P04";
 const DEFAULT_CLIENT_ID = "batara";
@@ -607,6 +608,210 @@ function generateDemoTickets(pageNo = 1, pageSize = 10, search = "") {
         data: paginated,
     };
 }
+async function fetchAssetFindrProductionData(startDate, endDate, jobsite = "all", tokenOverride = "") {
+    let token = tokenOverride || process.env.ASSETFINDR_BEARER_TOKEN || "";
+    if (token.startsWith("Bearer ")) {
+        token = token.slice(7).trim();
+    }
+    // Check in-memory cache
+    const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}_${jobsite}`;
+    const cached = dailyProductionCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        return { ...cached.data, isCached: true };
+    }
+    // If token is missing, return high-fidelity simulation
+    if (!token) {
+        const simData = generateDemoDailyProduction(startDate, endDate, jobsite);
+        return {
+            success: true,
+            isLive: false,
+            isDemo: true,
+            jobsite,
+            ...simData,
+        };
+    }
+    // Fetch page 1 using reconciliation_date (official mining operational shift date)
+    const page1Url = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
+    page1Url.searchParams.set("page_no", "1");
+    page1Url.searchParams.set("page_size", "200");
+    page1Url.searchParams.set("reconciliation_date_start", `${startDate}T00:00:00Z`);
+    page1Url.searchParams.set("reconciliation_date_end", `${endDate}T23:59:59Z`);
+    page1Url.searchParams.set("sort_by", "inbound_at");
+    page1Url.searchParams.set("sort_direction", "DESC");
+    const page1Res = await fetch(page1Url.toString(), {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+        },
+    });
+    if (!page1Res.ok) {
+        const errorText = await page1Res.text();
+        throw new Error(`AssetFindr API error (${page1Res.status}): ${errorText}`);
+    }
+    const page1Data = await page1Res.json();
+    const totalRecords = page1Data.total_records || 0;
+    const totalPages = Math.min(Math.ceil(totalRecords / 200), 25); // cap at 25 pages = 5,000 records
+    // Fetch remaining pages in parallel
+    const remainingPromises = [];
+    for (let p = 2; p <= totalPages; p++) {
+        const pUrl = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
+        pUrl.searchParams.set("page_no", String(p));
+        pUrl.searchParams.set("page_size", "200");
+        pUrl.searchParams.set("reconciliation_date_start", `${startDate}T00:00:00Z`);
+        pUrl.searchParams.set("reconciliation_date_end", `${endDate}T23:59:59Z`);
+        pUrl.searchParams.set("sort_by", "inbound_at");
+        pUrl.searchParams.set("sort_direction", "DESC");
+        remainingPromises.push(fetch(pUrl.toString(), {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        })
+            .then((r) => r.json())
+            .catch(() => ({ data: [] })));
+    }
+    const otherPages = await Promise.all(remainingPromises);
+    const allTickets = [
+        ...(page1Data.data || []),
+        ...otherPages.flatMap((p) => p.data || []),
+    ];
+    // Prepare date array from startDate to endDate
+    const daysMap = {};
+    const startDt = new Date(startDate);
+    const endDt = new Date(endDate);
+    const curDt = new Date(startDt);
+    while (curDt <= endDt) {
+        const dStr = curDt.toISOString().slice(0, 10);
+        const dayOfWeek = curDt.getDay();
+        const dateNum = curDt.getDate();
+        const monthNum = curDt.getMonth();
+        const dayName = INDO_DAYS[dayOfWeek];
+        const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
+        const isNov = dStr.includes("-11-") || monthNum === 10;
+        const planUnitRunning = 25;
+        daysMap[dStr] = {
+            date: dStr,
+            day: dateNum,
+            dayName,
+            displayDate,
+            tonaseDS: 0,
+            ritaseDS: 0,
+            tonaseNS: 0,
+            ritaseNS: 0,
+            totalTonase: 0,
+            totalRitase: 0,
+            avgPayloadDS: 0,
+            avgPayloadNS: 0,
+            avgPayloadTotal: 0,
+            planUnitRunning,
+            planProductionMonthly: dStr.includes("-11-") ? 1028000 : 671000,
+            planProductionDaily: dStr.includes("-11-") ? 33161.29 : 21645.16,
+            totalUnitRunning: 0,
+            actualTripPerUnit: 0,
+            uniqueVehicles: new Set(),
+        };
+        curDt.setDate(curDt.getDate() + 1);
+    }
+    // Aggregate tickets by date and shift
+    allTickets.forEach((t) => {
+        if (!matchesJobsite(t, jobsite))
+            return;
+        const dStr = (t.reconciliation_date || t.ticket_date || t.created_at || "").slice(0, 10);
+        if (!daysMap[dStr])
+            return;
+        const isNight = t.work_shift_alias === "NS" ||
+            (t.work_shift_name && t.work_shift_name.toLowerCase().includes("night"));
+        const netTon = (t.net_weight || 0) / 1000;
+        if (isNight) {
+            daysMap[dStr].tonaseNS += netTon;
+            daysMap[dStr].ritaseNS += 1;
+        }
+        else {
+            daysMap[dStr].tonaseDS += netTon;
+            daysMap[dStr].ritaseDS += 1;
+        }
+        daysMap[dStr].totalTonase += netTon;
+        daysMap[dStr].totalRitase += 1;
+        const vehicleKey = t.vehicle_reference_number ||
+            t.vehicle_asset_id ||
+            t.vehicle_name ||
+            t.vehicle_serial_number ||
+            t.vehicle_id;
+        if (vehicleKey && daysMap[dStr].uniqueVehicles) {
+            daysMap[dStr].uniqueVehicles.add(vehicleKey);
+        }
+    });
+    // Format numbers & compute totals
+    let grandTotalTonaseDS = 0;
+    let grandTotalRitaseDS = 0;
+    let grandTotalTonaseNS = 0;
+    let grandTotalRitaseNS = 0;
+    const dailyList = Object.values(daysMap)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((item) => {
+        grandTotalTonaseDS += item.tonaseDS;
+        grandTotalRitaseDS += item.ritaseDS;
+        grandTotalTonaseNS += item.tonaseNS;
+        grandTotalRitaseNS += item.ritaseNS;
+        const activeUnits = item.uniqueVehicles?.size || 0;
+        const totalUnitRunning = activeUnits > 0
+            ? activeUnits
+            : item.totalRitase > 0
+                ? Math.round(item.totalRitase / 2.565)
+                : 0;
+        const actualTripPerUnit = totalUnitRunning > 0
+            ? Number((item.totalRitase / totalUnitRunning).toFixed(3))
+            : 0;
+        // Delete non-serializable Set
+        delete item.uniqueVehicles;
+        return {
+            ...item,
+            tonaseDS: Math.round(item.tonaseDS * 100) / 100,
+            tonaseNS: Math.round(item.tonaseNS * 100) / 100,
+            totalTonase: Math.round(item.totalTonase * 100) / 100,
+            totalUnitRunning,
+            actualTripPerUnit,
+            actualTripPerDay: actualTripPerUnit,
+            avgPayloadDS: item.ritaseDS > 0 ? Math.round((item.tonaseDS / item.ritaseDS) * 10) / 10 : 0,
+            avgPayloadNS: item.ritaseNS > 0 ? Math.round((item.tonaseNS / item.ritaseNS) * 10) / 10 : 0,
+            avgPayloadTotal: item.totalRitase > 0 ? Math.round((item.totalTonase / item.totalRitase) * 10) / 10 : 0,
+        };
+    });
+    const grandTotalTonase = Math.round((grandTotalTonaseDS + grandTotalTonaseNS) * 100) / 100;
+    const grandTotalRitase = grandTotalRitaseDS + grandTotalRitaseNS;
+    const activeDays = dailyList.filter((d) => d.totalRitase > 0).length;
+    const responsePayload = {
+        success: true,
+        isLive: true,
+        period: {
+            start_date: startDate,
+            end_date: endDate,
+            total_days: dailyList.length,
+            active_days: activeDays,
+        },
+        summary: {
+            totalTonaseDS: Math.round(grandTotalTonaseDS * 100) / 100,
+            totalRitaseDS: grandTotalRitaseDS,
+            totalTonaseNS: Math.round(grandTotalTonaseNS * 100) / 100,
+            totalRitaseNS: grandTotalRitaseNS,
+            grandTotalTonase,
+            grandTotalRitase,
+            avgTonasePerDay: activeDays > 0 ? Math.round((grandTotalTonase / activeDays) * 100) / 100 : 0,
+            avgRitasePerDay: activeDays > 0 ? Math.round((grandTotalRitase / activeDays) * 10) / 10 : 0,
+            avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
+            planUnitRunning: 25,
+            planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
+            planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
+        },
+        data: dailyList,
+    };
+    // Cache the result
+    dailyProductionCache.set(cacheKey, {
+        timestamp: Date.now(),
+        data: responsePayload,
+    });
+    return responsePayload;
+}
 exports.assetfindrController = {
     /**
      * Get WeighBridge Tickets from AssetFindr API
@@ -883,210 +1088,8 @@ exports.assetfindrController = {
                 req.headers["authorization"] ||
                 process.env.ASSETFINDR_BEARER_TOKEN ||
                 "";
-            if (token.startsWith("Bearer ")) {
-                token = token.slice(7).trim();
-            }
-            // Check in-memory cache
-            const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}_${jobsite}`;
-            const cached = dailyProductionCache.get(cacheKey);
-            if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-                return res.json({ ...cached.data, isCached: true });
-            }
-            // If token is missing, return high-fidelity simulation
-            if (!token) {
-                const simData = generateDemoDailyProduction(startDate, endDate, jobsite);
-                return res.json({
-                    success: true,
-                    isLive: false,
-                    isDemo: true,
-                    jobsite,
-                    ...simData,
-                });
-            }
-            // Fetch page 1 using reconciliation_date (official mining operational shift date)
-            const page1Url = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
-            page1Url.searchParams.set("page_no", "1");
-            page1Url.searchParams.set("page_size", "200");
-            page1Url.searchParams.set("reconciliation_date_start", `${startDate}T00:00:00Z`);
-            page1Url.searchParams.set("reconciliation_date_end", `${endDate}T23:59:59Z`);
-            page1Url.searchParams.set("sort_by", "inbound_at");
-            page1Url.searchParams.set("sort_direction", "DESC");
-            const page1Res = await fetch(page1Url.toString(), {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
-            });
-            if (!page1Res.ok) {
-                const errorText = await page1Res.text();
-                return res.status(page1Res.status).json({
-                    success: false,
-                    error: `AssetFindr API error (${page1Res.status}): ${errorText}`,
-                });
-            }
-            const page1Data = await page1Res.json();
-            const totalRecords = page1Data.total_records || 0;
-            const totalPages = Math.min(Math.ceil(totalRecords / 200), 25); // cap at 25 pages = 5,000 records
-            // Fetch remaining pages in parallel
-            const remainingPromises = [];
-            for (let p = 2; p <= totalPages; p++) {
-                const pUrl = new URL(`${ASSETFINDR_BASE_URL}/v1/weight-bridge-tickets`);
-                pUrl.searchParams.set("page_no", String(p));
-                pUrl.searchParams.set("page_size", "200");
-                pUrl.searchParams.set("reconciliation_date_start", `${startDate}T00:00:00Z`);
-                pUrl.searchParams.set("reconciliation_date_end", `${endDate}T23:59:59Z`);
-                pUrl.searchParams.set("sort_by", "inbound_at");
-                pUrl.searchParams.set("sort_direction", "DESC");
-                remainingPromises.push(fetch(pUrl.toString(), {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                    },
-                })
-                    .then((r) => r.json())
-                    .catch(() => ({ data: [] })));
-            }
-            const otherPages = await Promise.all(remainingPromises);
-            const allTickets = [
-                ...(page1Data.data || []),
-                ...otherPages.flatMap((p) => p.data || []),
-            ];
-            // Prepare date array from startDate to endDate
-            const daysMap = {};
-            const startDt = new Date(startDate);
-            const endDt = new Date(endDate);
-            const curDt = new Date(startDt);
-            while (curDt <= endDt) {
-                const dStr = curDt.toISOString().slice(0, 10);
-                const dayOfWeek = curDt.getDay();
-                const dateNum = curDt.getDate();
-                const monthNum = curDt.getMonth();
-                const dayName = INDO_DAYS[dayOfWeek];
-                const displayDate = `${dayName}, ${String(dateNum).padStart(2, "0")} ${INDO_MONTHS[monthNum]}`;
-                const isNov = dStr.includes("-11-") || monthNum === 10;
-                const planUnitRunning = 25;
-                daysMap[dStr] = {
-                    date: dStr,
-                    day: dateNum,
-                    dayName,
-                    displayDate,
-                    tonaseDS: 0,
-                    ritaseDS: 0,
-                    tonaseNS: 0,
-                    ritaseNS: 0,
-                    totalTonase: 0,
-                    totalRitase: 0,
-                    avgPayloadDS: 0,
-                    avgPayloadNS: 0,
-                    avgPayloadTotal: 0,
-                    planUnitRunning,
-                    planProductionMonthly: dStr.includes("-11-") ? 1028000 : 671000,
-                    planProductionDaily: dStr.includes("-11-") ? 33161.29 : 21645.16,
-                    totalUnitRunning: 0,
-                    actualTripPerUnit: 0,
-                    uniqueVehicles: new Set(),
-                };
-                curDt.setDate(curDt.getDate() + 1);
-            }
-            // Aggregate tickets by date and shift
-            allTickets.forEach((t) => {
-                if (!matchesJobsite(t, jobsite))
-                    return;
-                const dStr = (t.reconciliation_date || t.ticket_date || t.created_at || "").slice(0, 10);
-                if (!daysMap[dStr])
-                    return;
-                const isNight = t.work_shift_alias === "NS" ||
-                    (t.work_shift_name && t.work_shift_name.toLowerCase().includes("night"));
-                const netTon = (t.net_weight || 0) / 1000;
-                if (isNight) {
-                    daysMap[dStr].tonaseNS += netTon;
-                    daysMap[dStr].ritaseNS += 1;
-                }
-                else {
-                    daysMap[dStr].tonaseDS += netTon;
-                    daysMap[dStr].ritaseDS += 1;
-                }
-                daysMap[dStr].totalTonase += netTon;
-                daysMap[dStr].totalRitase += 1;
-                const vehicleKey = t.vehicle_reference_number ||
-                    t.vehicle_asset_id ||
-                    t.vehicle_name ||
-                    t.vehicle_serial_number ||
-                    t.vehicle_id;
-                if (vehicleKey && daysMap[dStr].uniqueVehicles) {
-                    daysMap[dStr].uniqueVehicles.add(vehicleKey);
-                }
-            });
-            // Format numbers & compute totals
-            let grandTotalTonaseDS = 0;
-            let grandTotalRitaseDS = 0;
-            let grandTotalTonaseNS = 0;
-            let grandTotalRitaseNS = 0;
-            const dailyList = Object.values(daysMap)
-                .sort((a, b) => a.date.localeCompare(b.date))
-                .map((item) => {
-                grandTotalTonaseDS += item.tonaseDS;
-                grandTotalRitaseDS += item.ritaseDS;
-                grandTotalTonaseNS += item.tonaseNS;
-                grandTotalRitaseNS += item.ritaseNS;
-                const activeUnits = item.uniqueVehicles?.size || 0;
-                const totalUnitRunning = activeUnits > 0
-                    ? activeUnits
-                    : item.totalRitase > 0
-                        ? Math.round(item.totalRitase / 2.565)
-                        : 0;
-                const actualTripPerUnit = totalUnitRunning > 0
-                    ? Number((item.totalRitase / totalUnitRunning).toFixed(3))
-                    : 0;
-                // Delete non-serializable Set
-                delete item.uniqueVehicles;
-                return {
-                    ...item,
-                    tonaseDS: Math.round(item.tonaseDS * 100) / 100,
-                    tonaseNS: Math.round(item.tonaseNS * 100) / 100,
-                    totalTonase: Math.round(item.totalTonase * 100) / 100,
-                    totalUnitRunning,
-                    actualTripPerUnit,
-                    actualTripPerDay: actualTripPerUnit,
-                    avgPayloadDS: item.ritaseDS > 0 ? Math.round((item.tonaseDS / item.ritaseDS) * 10) / 10 : 0,
-                    avgPayloadNS: item.ritaseNS > 0 ? Math.round((item.tonaseNS / item.ritaseNS) * 10) / 10 : 0,
-                    avgPayloadTotal: item.totalRitase > 0 ? Math.round((item.totalTonase / item.totalRitase) * 10) / 10 : 0,
-                };
-            });
-            const grandTotalTonase = Math.round((grandTotalTonaseDS + grandTotalTonaseNS) * 100) / 100;
-            const grandTotalRitase = grandTotalRitaseDS + grandTotalRitaseNS;
-            const activeDays = dailyList.filter((d) => d.totalRitase > 0).length;
-            const responsePayload = {
-                success: true,
-                isLive: true,
-                period: {
-                    start_date: startDate,
-                    end_date: endDate,
-                    total_days: dailyList.length,
-                    active_days: activeDays,
-                },
-                summary: {
-                    totalTonaseDS: Math.round(grandTotalTonaseDS * 100) / 100,
-                    totalRitaseDS: grandTotalRitaseDS,
-                    totalTonaseNS: Math.round(grandTotalTonaseNS * 100) / 100,
-                    totalRitaseNS: grandTotalRitaseNS,
-                    grandTotalTonase,
-                    grandTotalRitase,
-                    avgTonasePerDay: activeDays > 0 ? Math.round((grandTotalTonase / activeDays) * 100) / 100 : 0,
-                    avgRitasePerDay: activeDays > 0 ? Math.round((grandTotalRitase / activeDays) * 10) / 10 : 0,
-                    avgPayloadOverall: grandTotalRitase > 0 ? Math.round((grandTotalTonase / grandTotalRitase) * 10) / 10 : 0,
-                    planUnitRunning: 25,
-                    planProductionMonthly: (startDate.includes("-11-") || endDate.includes("-11-")) ? 1028000 : 671000,
-                    planProductionDaily: (startDate.includes("-11-") || endDate.includes("-11-")) ? 33161.29 : 21645.16,
-                },
-                data: dailyList,
-            };
-            // Cache the result
-            dailyProductionCache.set(cacheKey, {
-                timestamp: Date.now(),
-                data: responsePayload,
-            });
-            return res.json(responsePayload);
+            const data = await fetchAssetFindrProductionData(startDate, endDate, jobsite, token);
+            return res.json(data);
         }
         catch (error) {
             console.error("Error in getDailyProduction:", error);
