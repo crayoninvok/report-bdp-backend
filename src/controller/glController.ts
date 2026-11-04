@@ -477,7 +477,11 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
       const g = glByDate.get(dateStr);
       const p = prodByDate.get(dateStr);
       const fuelLiters = g?._sum?.qty || 0;
+      const fuelCost = g?._sum?.debet || 0;
       const production = p?.totalTonase || p?.production || 0;
+      const costPerLiter = fuelLiters > 0 ? Math.round(fuelCost / fuelLiters) : 0;
+      const costPerTon = production > 0 ? Math.round(fuelCost / production) : 0;
+      const transactionCount = g?._count || 0;
 
       let frGL = p?.fuelRatio ? Number(p.fuelRatio.toFixed(2)) : 0;
       if (!frGL && production > 0 && fuelLiters > 0) {
@@ -497,9 +501,14 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
         date: dateStr,
         dateLabel: formatLabel(dateStr),
         fuelLiters,
+        fuelCost,
+        cost: fuelCost,
+        costPerLiter,
+        costPerTon,
         production,
         frGL,
         planFR: 1.55,
+        transactionCount,
       };
     });
 
@@ -584,8 +593,10 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
         totalProduction: finalProductionTon,
         totalFuelConsumption: finalFuelLiters,
         totalCost,
+        avgCostPerDay: sortedDates.length > 0 ? Math.round(totalCost / sortedDates.length) : 0,
         totalTransactions,
-        avgPricePerLiter,
+        avgPricePerLiter: Math.round(avgPricePerLiter),
+        avgCostPerTon: finalProductionTon > 0 ? Math.round(totalCost / finalProductionTon) : 0,
         actFuelRatio,
         planFuelRatio: 1.55,
       },
