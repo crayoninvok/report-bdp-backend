@@ -7,6 +7,7 @@ import {
   getGLExpenseSummaries,
   getGLTransactions,
   getGLFuelConsumption,
+  getGLProfitCenter,
 } from "../controller/glController";
 import { extractUser } from "../middleware/authMiddleware";
 
@@ -22,6 +23,7 @@ router.get("/periods", getGLPeriods);
 router.get("/summary", getGLExpenseSummaries);
 router.get("/transactions", getGLTransactions);
 router.get("/fuel-consumption", getGLFuelConsumption);
+router.get("/profit-center", getGLProfitCenter);
 router.post("/upload/preview", upload.single("file"), previewGLUpload);
 router.post("/upload/commit", upload.single("file"), commitGLUpload);
 

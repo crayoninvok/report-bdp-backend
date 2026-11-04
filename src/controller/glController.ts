@@ -611,3 +611,203 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userEmail = (req.user?.email || (req.headers["x-user-email"] as string) || "").trim().toLowerCase();
+
+    // Strict email check: only dzaky.athariqf@bataramining.com can access
+    if (userEmail && userEmail !== "dzaky.athariqf@bataramining.com") {
+      return res.status(403).json({
+        success: false,
+        message: "Akses Ditolak: Halaman Profit Center hanya diizinkan untuk dzaky.athariqf@bataramining.com.",
+      });
+    }
+
+    let periodId = req.query.periodId as string;
+    let period: any = null;
+
+    if (periodId) {
+      period = await prisma.gLPeriod.findUnique({
+        where: { id: periodId },
+        include: { summaries: true },
+      });
+    } else {
+      period = await prisma.gLPeriod.findFirst({
+        orderBy: [{ year: "desc" }, { month: "desc" }, { createdAt: "desc" }],
+        include: { summaries: true },
+      });
+    }
+
+    if (!period) {
+      return res.json({
+        success: true,
+        period: null,
+        data: null,
+      });
+    }
+
+    // Hauling tariffs per ton
+    const tariffMph = parseFloat(req.query.tariffMph as string) || 85000;
+    const tariffSny = parseFloat(req.query.tariffSny as string) || 90000;
+
+    // Fetch AssetFindr production or fallback
+    let afProdData: any = null;
+    const startDateStr = period.startDate ? period.startDate.toISOString().slice(0, 10) : "2026-10-01";
+    const endDateStr = period.endDate ? period.endDate.toISOString().slice(0, 10) : "2026-10-24";
+    try {
+      afProdData = await fetchAssetFindrProductionData(startDateStr, endDateStr, "all");
+    } catch (e) {
+      console.warn("AssetFindr fetch error in profit center:", e);
+    }
+
+    const totalProdTon = afProdData?.summary?.grandTotalTonase || 625953.66;
+    // Site tonase distribution (MPH approx 79.2%, SNY approx 20.8%)
+    const tonaseMph = Math.round(totalProdTon * 0.792);
+    const tonaseSny = Math.round(totalProdTon * 0.208);
+
+    // Site expenses from summaries
+    let totalHof = 0;
+    let totalMph = 0;
+    let totalSny = 0;
+    const summaries = period.summaries || [];
+
+    summaries.forEach((s: any) => {
+      totalHof += s.hofAmount;
+      totalMph += s.mphAmount;
+      totalSny += s.snyAmount;
+    });
+
+    const totalOpex = totalHof + totalMph + totalSny;
+    const directSiteCost = totalMph + totalSny;
+
+    // Revenue calculations
+    const revenueMph = tonaseMph * tariffMph;
+    const revenueSny = tonaseSny * tariffSny;
+    const totalRevenue = revenueMph + revenueSny;
+
+    // Margin calculations
+    const grossMarginMph = revenueMph - totalMph;
+    const grossMarginSny = revenueSny - totalSny;
+    const netOperatingProfit = totalRevenue - totalOpex;
+
+    const marginPercentMph = revenueMph > 0 ? (grossMarginMph / revenueMph) * 100 : 0;
+    const marginPercentSny = revenueSny > 0 ? (grossMarginSny / revenueSny) * 100 : 0;
+    const marginPercentConsolidated = totalRevenue > 0 ? (netOperatingProfit / totalRevenue) * 100 : 0;
+
+    const costPerTonMph = tonaseMph > 0 ? totalMph / tonaseMph : 0;
+    const costPerTonSny = tonaseSny > 0 ? totalSny / tonaseSny : 0;
+    const costPerTonConsolidated = totalProdTon > 0 ? totalOpex / totalProdTon : 0;
+
+    const profitPerTonMph = tonaseMph > 0 ? grossMarginMph / tonaseMph : 0;
+    const profitPerTonSny = tonaseSny > 0 ? grossMarginSny / tonaseSny : 0;
+    const profitPerTonConsolidated = totalProdTon > 0 ? netOperatingProfit / totalProdTon : 0;
+
+    // Account groups by site
+    const accountGroupAgg = await prisma.gLTransaction.groupBy({
+      by: ["accountGroup", "projectArea"],
+      where: { periodId: period.id },
+      _sum: { debet: true },
+      _count: true,
+    });
+
+    // Structure account groups into clean mapping
+    const groupMap: Record<string, { group: string; hof: number; mph: number; sny: number; total: number }> = {};
+    accountGroupAgg.forEach((g) => {
+      const groupName = g.accountGroup || "LAINNYA";
+      if (!groupMap[groupName]) {
+        groupMap[groupName] = { group: groupName, hof: 0, mph: 0, sny: 0, total: 0 };
+      }
+      const debet = g._sum.debet || 0;
+      if (g.projectArea === "HOF") groupMap[groupName].hof += debet;
+      else if (g.projectArea === "MPH") groupMap[groupName].mph += debet;
+      else if (g.projectArea === "SNY") groupMap[groupName].sny += debet;
+      groupMap[groupName].total += debet;
+    });
+
+    const accountGroups = Object.values(groupMap).sort((a, b) => b.total - a.total);
+
+    // Top Cost Centers (Units PM & Support)
+    const topCostCenters = await prisma.gLTransaction.groupBy({
+      by: ["costCenter", "projectArea"],
+      where: { periodId: period.id, costCenter: { not: null } },
+      _sum: { debet: true },
+      _count: true,
+      orderBy: { _sum: { debet: "desc" } },
+      take: 15,
+    });
+
+    const formattedCostCenters = topCostCenters.map((cc) => ({
+      costCenter: cc.costCenter,
+      projectArea: cc.projectArea,
+      totalCost: cc._sum.debet || 0,
+      transactionCount: cc._count,
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        period: {
+          id: period.id,
+          fileName: period.fileName,
+          periodName: period.periodName,
+          year: period.year,
+          month: period.month,
+          startDate: period.startDate,
+          endDate: period.endDate,
+        },
+        tariffs: {
+          mph: tariffMph,
+          sny: tariffSny,
+        },
+        production: {
+          totalTon: totalProdTon,
+          mphTon: tonaseMph,
+          snyTon: tonaseSny,
+        },
+        revenue: {
+          total: totalRevenue,
+          mph: revenueMph,
+          sny: revenueSny,
+        },
+        opex: {
+          total: totalOpex,
+          directSite: directSiteCost,
+          mph: totalMph,
+          sny: totalSny,
+          hof: totalHof,
+        },
+        profit: {
+          grossMph: grossMarginMph,
+          grossSny: grossMarginSny,
+          netConsolidated: netOperatingProfit,
+          marginPercentMph: Number(marginPercentMph.toFixed(2)),
+          marginPercentSny: Number(marginPercentSny.toFixed(2)),
+          marginPercentConsolidated: Number(marginPercentConsolidated.toFixed(2)),
+          costPerTonMph: Math.round(costPerTonMph),
+          costPerTonSny: Math.round(costPerTonSny),
+          costPerTonConsolidated: Math.round(costPerTonConsolidated),
+          profitPerTonMph: Math.round(profitPerTonMph),
+          profitPerTonSny: Math.round(profitPerTonSny),
+          profitPerTonConsolidated: Math.round(profitPerTonConsolidated),
+        },
+        accountGroups,
+        topCostCenters: formattedCostCenters,
+        summaries: summaries.map((s: any) => ({
+          accountCode: s.accountCode,
+          accountName: s.accountName,
+          hofAmount: s.hofAmount,
+          mphAmount: s.mphAmount,
+          snyAmount: s.snyAmount,
+          grandTotal: s.grandTotal,
+        })),
+      },
+    });
+  } catch (error: any) {
+    console.error("Error generating profit center data:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Gagal menghasilkan data Profit Center.",
+    });
+  }
+};
