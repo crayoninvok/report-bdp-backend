@@ -647,24 +647,41 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
       });
     }
 
-    // Hauling tariffs per ton
-    const tariffMph = parseFloat(req.query.tariffMph as string) || 85000;
-    const tariffSny = parseFloat(req.query.tariffSny as string) || 90000;
+    // Rate per ton-km (Default 2026: Rp 1,050.00 ton/km)
+    const ratePerTonKm = parseFloat(req.query.ratePerTonKm as string) || 1050;
+    const avgKmOverall = parseFloat(req.query.avgKmOverall as string) || 82.37;
+    const avgKmSny = parseFloat(req.query.avgKmSny as string) || 73.37;
+    const avgKmMph = parseFloat(req.query.avgKmMph as string) || 91.37;
 
-    // Fetch AssetFindr production or fallback
-    let afProdData: any = null;
+    // Fetch AssetFindr production for Senyiur & Muara Pahu
     const startDateStr = period.startDate ? period.startDate.toISOString().slice(0, 10) : "2026-10-01";
     const endDateStr = period.endDate ? period.endDate.toISOString().slice(0, 10) : "2026-10-24";
+    
+    let tonaseSny = 0;
+    let tonaseMph = 0;
+    let totalProdTon = 0;
+
     try {
-      afProdData = await fetchAssetFindrProductionData(startDateStr, endDateStr, "all");
+      const [snyProd, mphProd, allProd] = await Promise.all([
+        fetchAssetFindrProductionData(startDateStr, endDateStr, "senyiur").catch(() => null),
+        fetchAssetFindrProductionData(startDateStr, endDateStr, "muara_pahu").catch(() => null),
+        fetchAssetFindrProductionData(startDateStr, endDateStr, "all").catch(() => null),
+      ]);
+
+      tonaseSny = snyProd?.summary?.grandTotalTonase || 0;
+      tonaseMph = mphProd?.summary?.grandTotalTonase || 0;
+      totalProdTon = allProd?.summary?.grandTotalTonase || (tonaseSny + tonaseMph);
+
+      // If breakdown was 0 but allProd had tonase
+      if (tonaseSny === 0 && tonaseMph === 0 && totalProdTon > 0) {
+        tonaseMph = totalProdTon; // Active site in Oct
+      }
     } catch (e) {
       console.warn("AssetFindr fetch error in profit center:", e);
+      totalProdTon = 625953.66;
+      tonaseMph = 625953.66;
+      tonaseSny = 0;
     }
-
-    const totalProdTon = afProdData?.summary?.grandTotalTonase || 625953.66;
-    // Site tonase distribution (MPH approx 79.2%, SNY approx 20.8%)
-    const tonaseMph = Math.round(totalProdTon * 0.792);
-    const tonaseSny = Math.round(totalProdTon * 0.208);
 
     // Site expenses from summaries
     let totalHof = 0;
@@ -681,12 +698,15 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
     const totalOpex = totalHof + totalMph + totalSny;
     const directSiteCost = totalMph + totalSny;
 
-    // Revenue calculations
-    const revenueMph = tonaseMph * tariffMph;
-    const revenueSny = tonaseSny * tariffSny;
-    const totalRevenue = revenueMph + revenueSny;
+    // A. KEUNTUNGAN KOTOR (REVENUE) = Total Tonase * Average Distance (km) * Rate per ton/km (Rp 1,050)
+    // Per Site & Consolidated
+    const revenueSny = Math.round(tonaseSny * avgKmSny * ratePerTonKm);
+    const revenueMph = Math.round(tonaseMph * avgKmMph * ratePerTonKm);
+    const totalRevenue = revenueSny + revenueMph > 0 
+      ? revenueSny + revenueMph 
+      : Math.round(totalProdTon * avgKmOverall * ratePerTonKm);
 
-    // Margin calculations
+    // B. KEUNTUNGAN BERSIH = Keuntungan Kotor - Beban Cost yang ada pada GL
     const grossMarginMph = revenueMph - totalMph;
     const grossMarginSny = revenueSny - totalSny;
     const netOperatingProfit = totalRevenue - totalOpex;
@@ -756,9 +776,16 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
           startDate: period.startDate,
           endDate: period.endDate,
         },
+        ratePerTonKm,
+        distances: {
+          overall: avgKmOverall,
+          mph: avgKmMph,
+          sny: avgKmSny,
+        },
         tariffs: {
-          mph: tariffMph,
-          sny: tariffSny,
+          mph: Math.round(avgKmMph * ratePerTonKm),
+          sny: Math.round(avgKmSny * ratePerTonKm),
+          ratePerTonKm,
         },
         production: {
           totalTon: totalProdTon,
