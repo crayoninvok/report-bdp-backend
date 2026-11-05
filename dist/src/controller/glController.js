@@ -567,6 +567,27 @@ const getGLFuelConsumption = async (req, res) => {
     }
 };
 exports.getGLFuelConsumption = getGLFuelConsumption;
+// Official YTD GL Expenses 2026 (Jan - Okt 2026 from BDP Financial Report)
+const YTD_GL_EXPENSES_2026 = {
+    snyCost: 317033436148,
+    mphCost: 59012938902,
+    hofCost: 13514226,
+    totalCost: 376046375050,
+    summaries: [
+        { accountCode: "05110201", accountName: "BEBAN FUEL - PRODUCTION", snyAmount: 105572318509, mphAmount: 28219522019, hofAmount: 0, grandTotal: 133791840528 },
+        { accountCode: "05110301", accountName: "BEBAN SUB KONTRAKTOR", snyAmount: 107751328648, mphAmount: 13171666024, hofAmount: 0, grandTotal: 120922994672 },
+        { accountCode: "05110401", accountName: "BEBAN RENTAL ALAT PRODUKSI", snyAmount: 106695584240, mphAmount: 13085935484, hofAmount: 0, grandTotal: 119781519724 },
+        { accountCode: "05110101", accountName: "BEBAN COMPENSATION AND BENEFIT - SITE", snyAmount: 42464435907, mphAmount: 7414225131, hofAmount: 0, grandTotal: 49878661038 },
+        { accountCode: "05110202", accountName: "BEBAN TYRE", snyAmount: 29071049049, mphAmount: 3627445063, hofAmount: 0, grandTotal: 32698494112 },
+        { accountCode: "05110501", accountName: "BEBAN REPAIRS & MAINTENANCE", snyAmount: 14133780844, mphAmount: 2004909066, hofAmount: 0, grandTotal: 16138689910 },
+        { accountCode: "05110502", accountName: "BEBAN SPAREPART", snyAmount: 11238197161, mphAmount: 841568415, hofAmount: 0, grandTotal: 12079765576 },
+        { accountCode: "05110601", accountName: "BEBAN OVERHEAD COST - SITE", snyAmount: 7895364015, mphAmount: 1339274009, hofAmount: 0, grandTotal: 9234638024 },
+        { accountCode: "05110402", accountName: "BEBAN RENTAL ALAT NON PRODUKSI", snyAmount: 2885150361, mphAmount: 282780000, hofAmount: 0, grandTotal: 3167930361 },
+        { accountCode: "05110701", accountName: "BEBAN PENYUSUTAN DAN AMORTISASI - SITE", snyAmount: 2297831568, mphAmount: 894593658, hofAmount: 0, grandTotal: 3192425226 },
+        { accountCode: "05110801", accountName: "BEBAN MOBILISASI", snyAmount: 1317074707, mphAmount: 1063601771, hofAmount: 0, grandTotal: 2380676478 },
+        { accountCode: "05110503", accountName: "BEBAN TOOLS", snyAmount: 377586159, mphAmount: 145547902, hofAmount: 0, grandTotal: 523134061 },
+    ]
+};
 const getGLProfitCenter = async (req, res) => {
     try {
         const userEmail = (req.user?.email || req.headers["x-user-email"] || "").trim().toLowerCase();
@@ -682,6 +703,20 @@ const getGLProfitCenter = async (req, res) => {
         const profitPerTonMph = tonaseMph > 0 ? grossMarginMph / tonaseMph : 0;
         const profitPerTonSny = tonaseSny > 0 ? grossMarginSny / tonaseSny : 0;
         const profitPerTonConsolidated = totalProdTon > 0 ? netOperatingProfit / totalProdTon : 0;
+        // YTD Financial Calculations (Tahun 2026 Penuh)
+        const ytdTonKmSny = yearlySnyTon * avgKmSny;
+        const ytdTonKmMph = yearlyMphTon * avgKmMph;
+        const ytdTonKmTotal = ytdTonKmSny + ytdTonKmMph;
+        const ytdRevSny = Math.round(ytdTonKmSny * ratePerTonKm);
+        const ytdRevMph = Math.round(ytdTonKmMph * ratePerTonKm);
+        const ytdTotalRevenue = ytdRevSny + ytdRevMph; // ~Rp 518.229.073.080 (~518 Miliar)
+        const ytdTotalOpex = YTD_GL_EXPENSES_2026.totalCost; // ~Rp 376.046.375.050
+        const ytdNetProfit = ytdTotalRevenue - ytdTotalOpex; // ~Rp 142.182.698.030
+        const ytdNetProfitSny = ytdRevSny - YTD_GL_EXPENSES_2026.snyCost;
+        const ytdNetProfitMph = ytdRevMph - YTD_GL_EXPENSES_2026.mphCost;
+        const ytdMarginPercent = ytdTotalRevenue > 0 ? Number(((ytdNetProfit / ytdTotalRevenue) * 100).toFixed(2)) : 0;
+        const ytdMarginPercentSny = ytdRevSny > 0 ? Number(((ytdNetProfitSny / ytdRevSny) * 100).toFixed(2)) : 0;
+        const ytdMarginPercentMph = ytdRevMph > 0 ? Number(((ytdNetProfitMph / ytdRevMph) * 100).toFixed(2)) : 0;
         // Account groups by site
         const accountGroupAgg = await prisma_1.prisma.gLTransaction.groupBy({
             by: ["accountGroup", "projectArea"],
@@ -759,6 +794,39 @@ const getGLProfitCenter = async (req, res) => {
                     snyRit: yearlySnyRit,
                     totalTonKm: Math.round(yearlySnyTon * avgKmSny + yearlyMphTon * avgKmMph),
                     grossRevenue: Math.round((yearlySnyTon * avgKmSny + yearlyMphTon * avgKmMph) * ratePerTonKm),
+                },
+                ytd: {
+                    year: 2026,
+                    production: {
+                        totalTon: yearlyTotalTon,
+                        mphTon: yearlyMphTon,
+                        snyTon: yearlySnyTon,
+                        totalRit: yearlyTotalRit,
+                        mphRit: yearlyMphRit,
+                        snyRit: yearlySnyRit,
+                        totalTonKm: Math.round(ytdTonKmTotal),
+                    },
+                    revenue: {
+                        total: ytdTotalRevenue,
+                        mph: ytdRevMph,
+                        sny: ytdRevSny,
+                    },
+                    opex: {
+                        total: ytdTotalOpex,
+                        directSite: YTD_GL_EXPENSES_2026.snyCost + YTD_GL_EXPENSES_2026.mphCost,
+                        mph: YTD_GL_EXPENSES_2026.mphCost,
+                        sny: YTD_GL_EXPENSES_2026.snyCost,
+                        hof: YTD_GL_EXPENSES_2026.hofCost,
+                    },
+                    profit: {
+                        netConsolidated: ytdNetProfit,
+                        netMph: ytdNetProfitMph,
+                        netSny: ytdNetProfitSny,
+                        marginPercentConsolidated: ytdMarginPercent,
+                        marginPercentMph: ytdMarginPercentMph,
+                        marginPercentSny: ytdMarginPercentSny,
+                    },
+                    summaries: YTD_GL_EXPENSES_2026.summaries,
                 },
                 revenue: {
                     total: totalRevenue,
