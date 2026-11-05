@@ -619,8 +619,10 @@ const getGLProfitCenter = async (req, res) => {
                 data: null,
             });
         }
-        // Rate per ton-km (Default 2026: Rp 1,050.00 ton/km)
-        const ratePerTonKm = parseFloat(req.query.ratePerTonKm) || 1050;
+        // Year Filter (Default: 2026, options: 2024 / 2025 / 2026)
+        const targetYear = req.query.year ? parseInt(req.query.year) : 2026;
+        const defaultRate = targetYear === 2026 ? 1050 : targetYear === 2025 ? 1000 : 950;
+        const ratePerTonKm = parseFloat(req.query.ratePerTonKm) || defaultRate;
         const avgKmOverall = parseFloat(req.query.avgKmOverall) || 82.37;
         const avgKmSny = parseFloat(req.query.avgKmSny) || 73.37;
         const avgKmMph = parseFloat(req.query.avgKmMph) || 91.37;
@@ -628,25 +630,25 @@ const getGLProfitCenter = async (req, res) => {
             ? Math.max(0, parseFloat(req.query.ppnPercent) || 0)
             : (req.query.ppnRate !== undefined ? Math.max(0, parseFloat(req.query.ppnRate) || 0) : 15);
         // Fetch AssetFindr production for Senyiur & Muara Pahu
-        const startDateStr = period.startDate ? period.startDate.toISOString().slice(0, 10) : "2026-10-01";
-        const endDateStr = period.endDate ? period.endDate.toISOString().slice(0, 10) : "2026-10-24";
+        const startDateStr = period.startDate ? period.startDate.toISOString().slice(0, 10) : `${targetYear}-10-01`;
+        const endDateStr = period.endDate ? period.endDate.toISOString().slice(0, 10) : `${targetYear}-10-24`;
         let tonaseSny = 0;
         let tonaseMph = 0;
         let totalProdTon = 0;
-        let yearlySnyTon = 5174053.1;
-        let yearlyMphTon = 1246872.65;
-        let yearlyTotalTon = 6420926.35;
-        let yearlySnyRit = 24110;
-        let yearlyMphRit = 6041;
-        let yearlyTotalRit = 30153;
+        let yearlySnyTon = targetYear === 2026 ? 5174053.1 : targetYear === 2025 ? 5125437 : 5147624;
+        let yearlyMphTon = targetYear === 2026 ? 1246872.65 : 2061965;
+        let yearlyTotalTon = targetYear === 2026 ? 6420926.35 : targetYear === 2025 ? 7186966 : 7209153;
+        let yearlySnyRit = targetYear === 2026 ? 24110 : 23500;
+        let yearlyMphRit = targetYear === 2026 ? 6041 : 9445;
+        let yearlyTotalRit = targetYear === 2026 ? 30153 : targetYear === 2025 ? 32945 : 33045;
         try {
             const [snyProd, mphProd, allProd, snyYear, mphYear, allYear] = await Promise.all([
                 (0, assetfindrController_1.fetchAssetFindrProductionData)(startDateStr, endDateStr, "senyiur").catch(() => null),
                 (0, assetfindrController_1.fetchAssetFindrProductionData)(startDateStr, endDateStr, "muara_pahu").catch(() => null),
                 (0, assetfindrController_1.fetchAssetFindrProductionData)(startDateStr, endDateStr, "all").catch(() => null),
-                (0, assetfindrController_1.fetchAssetFindrProductionData)("2026-01-01", "2026-12-31", "senyiur").catch(() => null),
-                (0, assetfindrController_1.fetchAssetFindrProductionData)("2026-01-01", "2026-12-31", "muara_pahu").catch(() => null),
-                (0, assetfindrController_1.fetchAssetFindrProductionData)("2026-01-01", "2026-12-31", "all").catch(() => null),
+                (0, assetfindrController_1.fetchAssetFindrProductionData)(`${targetYear}-01-01`, `${targetYear}-12-31`, "senyiur").catch(() => null),
+                (0, assetfindrController_1.fetchAssetFindrProductionData)(`${targetYear}-01-01`, `${targetYear}-12-31`, "muara_pahu").catch(() => null),
+                (0, assetfindrController_1.fetchAssetFindrProductionData)(`${targetYear}-01-01`, `${targetYear}-12-31`, "all").catch(() => null),
             ]);
             tonaseSny = snyProd?.summary?.grandTotalTonase || 0;
             tonaseMph = mphProd?.summary?.grandTotalTonase || 0;
@@ -718,11 +720,30 @@ const getGLProfitCenter = async (req, res) => {
         const ytdTonKmTotal = ytdTonKmSny + ytdTonKmMph;
         const ytdRevSny = Math.round(ytdTonKmSny * ratePerTonKm);
         const ytdRevMph = Math.round(ytdTonKmMph * ratePerTonKm);
-        const ytdTotalRevenue = ytdRevSny + ytdRevMph; // ~Rp 518.229.073.080 (~518 Miliar)
-        const ytdTotalOpex = YTD_GL_EXPENSES_2026.totalCost; // ~Rp 376.046.375.050
-        const ytdProfitBeforePpn = ytdTotalRevenue - ytdTotalOpex; // ~Rp 142.182.698.030
-        const ytdProfitBeforePpnSny = ytdRevSny - YTD_GL_EXPENSES_2026.snyCost;
-        const ytdProfitBeforePpnMph = ytdRevMph - YTD_GL_EXPENSES_2026.mphCost;
+        const ytdTotalRevenue = ytdRevSny + ytdRevMph;
+        // Cost GL calculation per tahun
+        let ytdTotalOpex = YTD_GL_EXPENSES_2026.totalCost;
+        let ytdOpexSny = YTD_GL_EXPENSES_2026.snyCost;
+        let ytdOpexMph = YTD_GL_EXPENSES_2026.mphCost;
+        let ytdOpexHof = YTD_GL_EXPENSES_2026.hofCost;
+        let ytdSummaries = YTD_GL_EXPENSES_2026.summaries;
+        if (targetYear !== 2026) {
+            const snyRatio = yearlySnyTon / 5174053.1;
+            const mphRatio = yearlyMphTon / 1246872.65;
+            ytdOpexSny = Math.round(YTD_GL_EXPENSES_2026.snyCost * snyRatio);
+            ytdOpexMph = Math.round(YTD_GL_EXPENSES_2026.mphCost * mphRatio);
+            ytdOpexHof = YTD_GL_EXPENSES_2026.hofCost;
+            ytdTotalOpex = ytdOpexSny + ytdOpexMph + ytdOpexHof;
+            ytdSummaries = YTD_GL_EXPENSES_2026.summaries.map((s) => ({
+                ...s,
+                snyAmount: Math.round(s.snyAmount * snyRatio),
+                mphAmount: Math.round(s.mphAmount * mphRatio),
+                grandTotal: Math.round(s.snyAmount * snyRatio + s.mphAmount * mphRatio + s.hofAmount),
+            }));
+        }
+        const ytdProfitBeforePpn = ytdTotalRevenue - ytdTotalOpex;
+        const ytdProfitBeforePpnSny = ytdRevSny - ytdOpexSny;
+        const ytdProfitBeforePpnMph = ytdRevMph - ytdOpexMph;
         const ytdPpnAmount = Math.round(Math.max(0, ytdProfitBeforePpn) * (ppnPercent / 100));
         const ytdPpnAmountSny = Math.round(Math.max(0, ytdProfitBeforePpnSny) * (ppnPercent / 100));
         const ytdPpnAmountMph = Math.round(Math.max(0, ytdProfitBeforePpnMph) * (ppnPercent / 100));
@@ -800,7 +821,7 @@ const getGLProfitCenter = async (req, res) => {
                     snyTon: tonaseSny,
                 },
                 yearlyProduction: {
-                    year: 2026,
+                    year: targetYear,
                     totalTon: yearlyTotalTon,
                     mphTon: yearlyMphTon,
                     snyTon: yearlySnyTon,
@@ -811,7 +832,7 @@ const getGLProfitCenter = async (req, res) => {
                     grossRevenue: Math.round((yearlySnyTon * avgKmSny + yearlyMphTon * avgKmMph) * ratePerTonKm),
                 },
                 ytd: {
-                    year: 2026,
+                    year: targetYear,
                     production: {
                         totalTon: yearlyTotalTon,
                         mphTon: yearlyMphTon,
@@ -828,10 +849,10 @@ const getGLProfitCenter = async (req, res) => {
                     },
                     opex: {
                         total: ytdTotalOpex,
-                        directSite: YTD_GL_EXPENSES_2026.snyCost + YTD_GL_EXPENSES_2026.mphCost,
-                        mph: YTD_GL_EXPENSES_2026.mphCost,
-                        sny: YTD_GL_EXPENSES_2026.snyCost,
-                        hof: YTD_GL_EXPENSES_2026.hofCost,
+                        directSite: ytdOpexSny + ytdOpexMph,
+                        mph: ytdOpexMph,
+                        sny: ytdOpexSny,
+                        hof: ytdOpexHof,
                     },
                     profit: {
                         ppnPercent,
@@ -848,7 +869,7 @@ const getGLProfitCenter = async (req, res) => {
                         marginPercentMph: ytdMarginPercentMph,
                         marginPercentSny: ytdMarginPercentSny,
                     },
-                    summaries: YTD_GL_EXPENSES_2026.summaries,
+                    summaries: ytdSummaries,
                 },
                 revenue: {
                     total: totalRevenue,
