@@ -580,7 +580,6 @@ const getManpowerDashboard = async (req, res) => {
             "Superintendent",
             "Supervisor",
             "Junior Supervisor",
-            "Staff",
             "Worker",
         ];
         const jobLevelMatrix = jobLevels.map((level) => {
