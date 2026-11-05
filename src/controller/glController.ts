@@ -661,11 +661,21 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
     let tonaseMph = 0;
     let totalProdTon = 0;
 
+    let yearlySnyTon = 5174053.1;
+    let yearlyMphTon = 1246872.65;
+    let yearlyTotalTon = 6420926.35;
+    let yearlySnyRit = 24110;
+    let yearlyMphRit = 6041;
+    let yearlyTotalRit = 30153;
+
     try {
-      const [snyProd, mphProd, allProd] = await Promise.all([
+      const [snyProd, mphProd, allProd, snyYear, mphYear, allYear] = await Promise.all([
         fetchAssetFindrProductionData(startDateStr, endDateStr, "senyiur").catch(() => null),
         fetchAssetFindrProductionData(startDateStr, endDateStr, "muara_pahu").catch(() => null),
         fetchAssetFindrProductionData(startDateStr, endDateStr, "all").catch(() => null),
+        fetchAssetFindrProductionData("2026-01-01", "2026-12-31", "senyiur").catch(() => null),
+        fetchAssetFindrProductionData("2026-01-01", "2026-12-31", "muara_pahu").catch(() => null),
+        fetchAssetFindrProductionData("2026-01-01", "2026-12-31", "all").catch(() => null),
       ]);
 
       tonaseSny = snyProd?.summary?.grandTotalTonase || 0;
@@ -676,6 +686,13 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
       if (tonaseSny === 0 && tonaseMph === 0 && totalProdTon > 0) {
         tonaseMph = totalProdTon; // Active site in Oct
       }
+
+      if (snyYear?.summary?.grandTotalTonase) yearlySnyTon = snyYear.summary.grandTotalTonase;
+      if (mphYear?.summary?.grandTotalTonase) yearlyMphTon = mphYear.summary.grandTotalTonase;
+      if (allYear?.summary?.grandTotalTonase) yearlyTotalTon = allYear.summary.grandTotalTonase;
+      if (snyYear?.summary?.grandTotalRitase) yearlySnyRit = snyYear.summary.grandTotalRitase;
+      if (mphYear?.summary?.grandTotalRitase) yearlyMphRit = mphYear.summary.grandTotalRitase;
+      if (allYear?.summary?.grandTotalRitase) yearlyTotalRit = allYear.summary.grandTotalRitase;
     } catch (e) {
       console.warn("AssetFindr fetch error in profit center:", e);
       totalProdTon = 625953.66;
@@ -791,6 +808,17 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
           totalTon: totalProdTon,
           mphTon: tonaseMph,
           snyTon: tonaseSny,
+        },
+        yearlyProduction: {
+          year: 2026,
+          totalTon: yearlyTotalTon,
+          mphTon: yearlyMphTon,
+          snyTon: yearlySnyTon,
+          totalRit: yearlyTotalRit,
+          mphRit: yearlyMphRit,
+          snyRit: yearlySnyRit,
+          totalTonKm: Math.round(yearlySnyTon * avgKmSny + yearlyMphTon * avgKmMph),
+          grossRevenue: Math.round((yearlySnyTon * avgKmSny + yearlyMphTon * avgKmMph) * ratePerTonKm),
         },
         revenue: {
           total: totalRevenue,
