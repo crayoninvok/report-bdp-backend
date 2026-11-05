@@ -591,11 +591,15 @@ const YTD_GL_EXPENSES_2026 = {
 const getGLProfitCenter = async (req, res) => {
     try {
         const userEmail = (req.user?.email || req.headers["x-user-email"] || "").trim().toLowerCase();
-        // Strict email check: only dzaky.athariqf@bataramining.com can access
-        if (userEmail && userEmail !== "dzaky.athariqf@bataramining.com") {
+        const allowedProfitCenterEmails = [
+            "dzaky.athariqf@bataramining.com",
+            "dellafajar@bataramining.com",
+        ];
+        // Strict email check: only authorized accounts can access
+        if (userEmail && !allowedProfitCenterEmails.includes(userEmail)) {
             return res.status(403).json({
                 success: false,
-                message: "Akses Ditolak: Halaman Profit Center hanya diizinkan untuk dzaky.athariqf@bataramining.com.",
+                message: "Akses Ditolak: Halaman Profit Center hanya diizinkan untuk akun eksekutif yang berwenang.",
             });
         }
         let periodId = req.query.periodId;
