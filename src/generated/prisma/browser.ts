@@ -87,3 +87,8 @@ export type PeriodicInspectionItem = Prisma.PeriodicInspectionItemModel
  * 
  */
 export type PlantSetting = Prisma.PlantSettingModel
+/**
+ * Model MasterManpower
+ * 
+ */
+export type MasterManpower = Prisma.MasterManpowerModel

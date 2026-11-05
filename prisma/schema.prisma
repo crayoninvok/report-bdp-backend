@@ -289,3 +289,81 @@ model PlantSetting {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+
+model MasterManpower {
+  id                  String   @id @default(uuid())
+  employeeId          String   @unique
+  fullName            String
+  statusKeaktifan     String?  // Exist, Exit
+  barcode             String?
+  organization        String?  // HSE, Hrga, Production, Plant, Operations, FA & Procurement, etc.
+  jobPosition         String?  // Spv Hse, Spv Finance, Driver, etc.
+  jobLevel            String?  // Worker, Junior Supervisor, Supervisor, Manager, Director
+  joinDate            String?
+  resignDate          String?
+  statusEmployee      String?  // Contract, Permanent
+  endDate             String?
+  signDate            String?
+  email               String?
+  birthDate           String?
+  age                 String?
+  birthPlace          String?
+  citizenIdAddress    String?
+  residentialAddress  String?
+  npwp                String?
+  ptkpStatus          String?
+  employeeTaxStatus   String?
+  taxConfig           String?
+  bankName            String?
+  bankAccount         String?
+  bankAccountHolder   String?
+  bpjsKetenagakerjaan String?
+  bpjsKesehatan       String?
+  nik                 String?
+  mobilePhone         String?
+  phone               String?
+  branchName          String?  // Muara Pahu, Senyiur, HO Jakarta
+  parentBranchName    String?
+  religion            String?
+  gender              String?
+  maritalStatus       String?
+  bloodType           String?
+  nationalityCode     String?
+  currency            String?
+  lengthOfService     String?
+  paymentSchedule     String?
+  approvalLine        String?
+  manager             String?
+  grade               String?
+  className           String?
+  profilePicture      String?
+  costCenter          String?
+  costCenterCategory  String?
+  sbu                 String?
+  pointOfHire         String?  // Lokal, Non Lokal
+  tinggiBadan         String?
+  beratBadan          String?
+  ukuranBaju          String?
+  ukuranCelana        String?
+  warnaHelm           String?
+  safetyShoes         String?
+  tglTerakhirMcu      String?
+  followUpMcu         String?
+  trainingInternal    String?
+  trainingExternal    String?
+  sertifikasi         String?
+  namaIbuKandung      String?
+  pendidikan          String?
+  jurusan             String?
+  kota                String?
+  provinsi            String?
+  rawJson             String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([statusKeaktifan])
+  @@index([branchName])
+  @@index([organization])
+  @@index([jobPosition])
+}

@@ -64,7 +64,8 @@ export const ModelName = {
   MasterUnit: 'MasterUnit',
   PeriodicInspectionPlan: 'PeriodicInspectionPlan',
   PeriodicInspectionItem: 'PeriodicInspectionItem',
-  PlantSetting: 'PlantSetting'
+  PlantSetting: 'PlantSetting',
+  MasterManpower: 'MasterManpower'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -341,6 +342,81 @@ export const PlantSettingScalarFieldEnum = {
 } as const
 
 export type PlantSettingScalarFieldEnum = (typeof PlantSettingScalarFieldEnum)[keyof typeof PlantSettingScalarFieldEnum]
+
+
+export const MasterManpowerScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  fullName: 'fullName',
+  statusKeaktifan: 'statusKeaktifan',
+  barcode: 'barcode',
+  organization: 'organization',
+  jobPosition: 'jobPosition',
+  jobLevel: 'jobLevel',
+  joinDate: 'joinDate',
+  resignDate: 'resignDate',
+  statusEmployee: 'statusEmployee',
+  endDate: 'endDate',
+  signDate: 'signDate',
+  email: 'email',
+  birthDate: 'birthDate',
+  age: 'age',
+  birthPlace: 'birthPlace',
+  citizenIdAddress: 'citizenIdAddress',
+  residentialAddress: 'residentialAddress',
+  npwp: 'npwp',
+  ptkpStatus: 'ptkpStatus',
+  employeeTaxStatus: 'employeeTaxStatus',
+  taxConfig: 'taxConfig',
+  bankName: 'bankName',
+  bankAccount: 'bankAccount',
+  bankAccountHolder: 'bankAccountHolder',
+  bpjsKetenagakerjaan: 'bpjsKetenagakerjaan',
+  bpjsKesehatan: 'bpjsKesehatan',
+  nik: 'nik',
+  mobilePhone: 'mobilePhone',
+  phone: 'phone',
+  branchName: 'branchName',
+  parentBranchName: 'parentBranchName',
+  religion: 'religion',
+  gender: 'gender',
+  maritalStatus: 'maritalStatus',
+  bloodType: 'bloodType',
+  nationalityCode: 'nationalityCode',
+  currency: 'currency',
+  lengthOfService: 'lengthOfService',
+  paymentSchedule: 'paymentSchedule',
+  approvalLine: 'approvalLine',
+  manager: 'manager',
+  grade: 'grade',
+  className: 'className',
+  profilePicture: 'profilePicture',
+  costCenter: 'costCenter',
+  costCenterCategory: 'costCenterCategory',
+  sbu: 'sbu',
+  pointOfHire: 'pointOfHire',
+  tinggiBadan: 'tinggiBadan',
+  beratBadan: 'beratBadan',
+  ukuranBaju: 'ukuranBaju',
+  ukuranCelana: 'ukuranCelana',
+  warnaHelm: 'warnaHelm',
+  safetyShoes: 'safetyShoes',
+  tglTerakhirMcu: 'tglTerakhirMcu',
+  followUpMcu: 'followUpMcu',
+  trainingInternal: 'trainingInternal',
+  trainingExternal: 'trainingExternal',
+  sertifikasi: 'sertifikasi',
+  namaIbuKandung: 'namaIbuKandung',
+  pendidikan: 'pendidikan',
+  jurusan: 'jurusan',
+  kota: 'kota',
+  provinsi: 'provinsi',
+  rawJson: 'rawJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MasterManpowerScalarFieldEnum = (typeof MasterManpowerScalarFieldEnum)[keyof typeof MasterManpowerScalarFieldEnum]
 
 
 export const SortOrder = {
