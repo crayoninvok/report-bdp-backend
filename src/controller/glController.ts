@@ -674,6 +674,9 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
     const avgKmOverall = parseFloat(req.query.avgKmOverall as string) || 82.37;
     const avgKmSny = parseFloat(req.query.avgKmSny as string) || 73.37;
     const avgKmMph = parseFloat(req.query.avgKmMph as string) || 91.37;
+    const ppnPercent = req.query.ppnPercent !== undefined
+      ? Math.max(0, parseFloat(req.query.ppnPercent as string) || 0)
+      : (req.query.ppnRate !== undefined ? Math.max(0, parseFloat(req.query.ppnRate as string) || 0) : 15);
 
     // Fetch AssetFindr production for Senyiur & Muara Pahu
     const startDateStr = period.startDate ? period.startDate.toISOString().slice(0, 10) : "2026-10-01";
@@ -745,10 +748,18 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
       ? revenueSny + revenueMph 
       : Math.round(totalProdTon * avgKmOverall * ratePerTonKm);
 
-    // B. KEUNTUNGAN BERSIH = Keuntungan Kotor - Beban Cost yang ada pada GL
-    const grossMarginMph = revenueMph - totalMph;
-    const grossMarginSny = revenueSny - totalSny;
-    const netOperatingProfit = totalRevenue - totalOpex;
+    // B. PROFIT = (Revenue - Cost) - PPN (15% - 20%)
+    const profitBeforePpnMph = revenueMph - totalMph;
+    const profitBeforePpnSny = revenueSny - totalSny;
+    const profitBeforePpnConsolidated = totalRevenue - totalOpex;
+
+    const ppnAmountMph = Math.round(Math.max(0, profitBeforePpnMph) * (ppnPercent / 100));
+    const ppnAmountSny = Math.round(Math.max(0, profitBeforePpnSny) * (ppnPercent / 100));
+    const ppnAmountConsolidated = Math.round(Math.max(0, profitBeforePpnConsolidated) * (ppnPercent / 100));
+
+    const grossMarginMph = profitBeforePpnMph - ppnAmountMph;
+    const grossMarginSny = profitBeforePpnSny - ppnAmountSny;
+    const netOperatingProfit = profitBeforePpnConsolidated - ppnAmountConsolidated;
 
     const marginPercentMph = revenueMph > 0 ? (grossMarginMph / revenueMph) * 100 : 0;
     const marginPercentSny = revenueSny > 0 ? (grossMarginSny / revenueSny) * 100 : 0;
@@ -770,9 +781,18 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
     const ytdRevMph = Math.round(ytdTonKmMph * ratePerTonKm);
     const ytdTotalRevenue = ytdRevSny + ytdRevMph; // ~Rp 518.229.073.080 (~518 Miliar)
     const ytdTotalOpex = YTD_GL_EXPENSES_2026.totalCost; // ~Rp 376.046.375.050
-    const ytdNetProfit = ytdTotalRevenue - ytdTotalOpex; // ~Rp 142.182.698.030
-    const ytdNetProfitSny = ytdRevSny - YTD_GL_EXPENSES_2026.snyCost;
-    const ytdNetProfitMph = ytdRevMph - YTD_GL_EXPENSES_2026.mphCost;
+
+    const ytdProfitBeforePpn = ytdTotalRevenue - ytdTotalOpex; // ~Rp 142.182.698.030
+    const ytdProfitBeforePpnSny = ytdRevSny - YTD_GL_EXPENSES_2026.snyCost;
+    const ytdProfitBeforePpnMph = ytdRevMph - YTD_GL_EXPENSES_2026.mphCost;
+
+    const ytdPpnAmount = Math.round(Math.max(0, ytdProfitBeforePpn) * (ppnPercent / 100));
+    const ytdPpnAmountSny = Math.round(Math.max(0, ytdProfitBeforePpnSny) * (ppnPercent / 100));
+    const ytdPpnAmountMph = Math.round(Math.max(0, ytdProfitBeforePpnMph) * (ppnPercent / 100));
+
+    const ytdNetProfit = ytdProfitBeforePpn - ytdPpnAmount;
+    const ytdNetProfitSny = ytdProfitBeforePpnSny - ytdPpnAmountSny;
+    const ytdNetProfitMph = ytdProfitBeforePpnMph - ytdPpnAmountMph;
     const ytdMarginPercent = ytdTotalRevenue > 0 ? Number(((ytdNetProfit / ytdTotalRevenue) * 100).toFixed(2)) : 0;
     const ytdMarginPercentSny = ytdRevSny > 0 ? Number(((ytdNetProfitSny / ytdRevSny) * 100).toFixed(2)) : 0;
     const ytdMarginPercentMph = ytdRevMph > 0 ? Number(((ytdNetProfitMph / ytdRevMph) * 100).toFixed(2)) : 0;
@@ -881,6 +901,13 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
             hof: YTD_GL_EXPENSES_2026.hofCost,
           },
           profit: {
+            ppnPercent,
+            ppnAmount: ytdPpnAmount,
+            ppnAmountMph: ytdPpnAmountMph,
+            ppnAmountSny: ytdPpnAmountSny,
+            profitBeforePpn: ytdProfitBeforePpn,
+            profitBeforePpnMph: ytdProfitBeforePpnMph,
+            profitBeforePpnSny: ytdProfitBeforePpnSny,
             netConsolidated: ytdNetProfit,
             netMph: ytdNetProfitMph,
             netSny: ytdNetProfitSny,
@@ -903,6 +930,13 @@ export const getGLProfitCenter = async (req: AuthenticatedRequest, res: Response
           hof: totalHof,
         },
         profit: {
+          ppnPercent,
+          ppnAmount: ppnAmountConsolidated,
+          ppnAmountMph,
+          ppnAmountSny,
+          profitBeforePpn: profitBeforePpnConsolidated,
+          profitBeforePpnMph,
+          profitBeforePpnSny,
           grossMph: grossMarginMph,
           grossSny: grossMarginSny,
           netConsolidated: netOperatingProfit,
