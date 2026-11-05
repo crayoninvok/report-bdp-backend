@@ -725,6 +725,142 @@ export const getManpowerDashboard = async (req: Request, res: Response) => {
       ],
     };
 
+    // 8. Monthly Manpower Trend (Bulan ke Bulan)
+    const ID_MONTHS: Record<string, number> = {
+      januari: 0,
+      februari: 1,
+      maret: 2,
+      april: 3,
+      mei: 4,
+      juni: 5,
+      juli: 6,
+      agustus: 7,
+      september: 8,
+      oktober: 9,
+      november: 10,
+      desember: 11,
+    };
+
+    const parseIndoDate = (dateStr?: string | null): Date | null => {
+      if (!dateStr) return null;
+      const parts = dateStr.trim().split(/\s+/);
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = ID_MONTHS[parts[1].toLowerCase()];
+        const year = parseInt(parts[2], 10);
+        if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+          return new Date(Date.UTC(year, month, day));
+        }
+      }
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const parsedRecords = allRecords.map((r) => ({
+      ...r,
+      normalizedBranch: normalizeBranch(r.branchName),
+      join: parseIndoDate(r.joinDate),
+      resign: parseIndoDate(r.resignDate),
+    }));
+
+    const allJoinDates = parsedRecords.map((p) => p.join?.getTime()).filter(Boolean) as number[];
+    const minJoinDate = allJoinDates.length > 0 ? new Date(Math.min(...allJoinDates)) : new Date(Date.UTC(2024, 7, 1));
+    const startYear = minJoinDate.getUTCFullYear();
+    const startMonth = minJoinDate.getUTCMonth();
+    const endYear = 2026;
+    const endMonth = 11; // December 2026
+
+    const monthNamesId = [
+      "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+      "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
+    ];
+
+    const monthlyTrend: any[] = [];
+    let curYear = startYear;
+    let curMonth = startMonth;
+
+    while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
+      const periodKey = `${curYear}-${String(curMonth + 1).padStart(2, "0")}`;
+      const periodLabel = `${monthNamesId[curMonth]} ${curYear}`;
+      const endOfMonth = new Date(Date.UTC(curYear, curMonth + 1, 0, 23, 59, 59));
+
+      let joined = 0;
+      let resigned = 0;
+      let hoJoined = 0, hoResigned = 0;
+      let mpJoined = 0, mpResigned = 0;
+      let snyJoined = 0, snyResigned = 0;
+
+      let activeEndMonth = 0;
+      let hoActive = 0, mpActive = 0, snyActive = 0;
+
+      for (const p of parsedRecords) {
+        // Hired in this month
+        if (
+          p.join &&
+          p.join.getUTCFullYear() === curYear &&
+          p.join.getUTCMonth() === curMonth
+        ) {
+          joined++;
+          if (p.normalizedBranch === "HO Jakarta") hoJoined++;
+          else if (p.normalizedBranch === "Site Muara Pahu") mpJoined++;
+          else snyJoined++;
+        }
+
+        // Resigned in this month
+        if (
+          p.resign &&
+          p.resign.getUTCFullYear() === curYear &&
+          p.resign.getUTCMonth() === curMonth
+        ) {
+          resigned++;
+          if (p.normalizedBranch === "HO Jakarta") hoResigned++;
+          else if (p.normalizedBranch === "Site Muara Pahu") mpResigned++;
+          else snyResigned++;
+        }
+
+        // Active at end of this month
+        if (p.join && p.join <= endOfMonth) {
+          if (!p.resign || p.resign > endOfMonth) {
+            activeEndMonth++;
+            if (p.normalizedBranch === "HO Jakarta") hoActive++;
+            else if (p.normalizedBranch === "Site Muara Pahu") mpActive++;
+            else snyActive++;
+          }
+        }
+      }
+
+      const netGrowth = joined - resigned;
+      const denominator = activeEndMonth + resigned;
+      const turnoverRate = denominator > 0 ? Number(((resigned / denominator) * 100).toFixed(1)) : 0;
+
+      monthlyTrend.push({
+        period: periodKey,
+        year: curYear,
+        month: curMonth + 1,
+        label: periodLabel,
+        joined,
+        resigned,
+        netGrowth,
+        activeEndMonth,
+        hoActive,
+        muaraPahuActive: mpActive,
+        senyiurActive: snyActive,
+        hoJoined,
+        hoResigned,
+        mpJoined,
+        mpResigned,
+        snyJoined,
+        snyResigned,
+        turnoverRate,
+      });
+
+      curMonth++;
+      if (curMonth > 11) {
+        curMonth = 0;
+        curYear++;
+      }
+    }
+
     let latestUpdate: Date | null = null;
     allRecords.forEach((r) => {
       if (!latestUpdate || r.updatedAt > latestUpdate) latestUpdate = r.updatedAt;
@@ -740,6 +876,7 @@ export const getManpowerDashboard = async (req: Request, res: Response) => {
         jobLevel: jobLevelMatrix,
         pendidikan,
         branchComparison,
+        monthlyTrend,
         lastSync: latestUpdate ? (latestUpdate as Date).toISOString() : null,
       },
     });
