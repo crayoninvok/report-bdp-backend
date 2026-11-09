@@ -362,10 +362,10 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
     let startDate = req.query.startDate ? String(req.query.startDate).trim() : "";
     let endDate = req.query.endDate ? String(req.query.endDate).trim() : "";
 
-    // Default to 2026-10-01 to 2026-10-24 if not specified
+    // Default to 2026-10-01 to 2026-11-06 if not specified
     if (!startDate && !endDate) {
       startDate = "2026-10-01";
-      endDate = "2026-10-24";
+      endDate = "2026-11-06";
     }
 
     // Beban Fuel - Production only (Account 05110201)

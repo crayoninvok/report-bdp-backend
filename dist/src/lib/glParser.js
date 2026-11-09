@@ -110,7 +110,31 @@ function parseGLExcel(buffer, fileName) {
     if (sheet2Name && wb.Sheets[sheet2Name]) {
         const ws2 = wb.Sheets[sheet2Name];
         const data2 = XLSX.utils.sheet_to_json(ws2, { header: 1 });
-        // Expect Row 1 headers: Row Labels, HOF, MPH, SNY, Grand Total
+        // Dynamic header resolution from Row 1
+        // (e.g. ["Row Labels", "HOF", "MPH", "SNY", "Grand Total"] or ["Row Labels", "MPH", "SNY", "Grand Total"])
+        const headerRow = data2[1] || [];
+        let hofCol = -1;
+        let mphCol = -1;
+        let snyCol = -1;
+        let gtCol = -1;
+        for (let c = 0; c < headerRow.length; c++) {
+            const h = String(headerRow[c] || "").trim().toUpperCase();
+            if (h === "HOF")
+                hofCol = c;
+            else if (h === "MPH")
+                mphCol = c;
+            else if (h === "SNY")
+                snyCol = c;
+            else if (h.includes("GRAND TOTAL") || h === "TOTAL")
+                gtCol = c;
+        }
+        // Fallbacks if not found by header name:
+        if (hofCol === -1 && mphCol === -1 && snyCol === -1) {
+            hofCol = 1;
+            mphCol = 2;
+            snyCol = 3;
+            gtCol = 4;
+        }
         for (let i = 2; i < data2.length; i++) {
             const row = data2[i];
             if (!row || row.length === 0)
@@ -118,10 +142,10 @@ function parseGLExcel(buffer, fileName) {
             const label = String(row[0] || "").trim();
             if (!label || label.toLowerCase().includes("grand total")) {
                 if (label.toLowerCase().includes("grand total")) {
-                    s2HofTotal = Number(row[1] || 0);
-                    s2MphTotal = Number(row[2] || 0);
-                    s2SnyTotal = Number(row[3] || 0);
-                    s2GrandTotal = Number(row[4] || 0);
+                    s2HofTotal = hofCol >= 0 ? Number(row[hofCol] || 0) : 0;
+                    s2MphTotal = mphCol >= 0 ? Number(row[mphCol] || 0) : 0;
+                    s2SnyTotal = snyCol >= 0 ? Number(row[snyCol] || 0) : 0;
+                    s2GrandTotal = gtCol >= 0 ? Number(row[gtCol] || 0) : s2HofTotal + s2MphTotal + s2SnyTotal;
                 }
                 continue;
             }
@@ -135,10 +159,10 @@ function parseGLExcel(buffer, fileName) {
             else {
                 accountCode = label.split(" ")[0].trim();
             }
-            const hof = Number(row[1] || 0);
-            const mph = Number(row[2] || 0);
-            const sny = Number(row[3] || 0);
-            const total = Number(row[4] || hof + mph + sny);
+            const hof = hofCol >= 0 ? Number(row[hofCol] || 0) : 0;
+            const mph = mphCol >= 0 ? Number(row[mphCol] || 0) : 0;
+            const sny = snyCol >= 0 ? Number(row[snyCol] || 0) : 0;
+            const total = gtCol >= 0 ? Number(row[gtCol] || 0) : hof + mph + sny;
             summaries.push({
                 accountCode,
                 accountName,
