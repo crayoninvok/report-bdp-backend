@@ -1,8 +1,28 @@
 import { Request, Response } from "express";
 
+export const DEFAULT_ACTIVE_ASSETFINDR_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4NTM4MjY1NTEsImp0aSI6ImJmN2FmZjA1NjVkMDc4ZTU5ZjFmZThmNmZkYTU5ZWVjIiwidXNlcl9pZCI6InVzcl9kNWU5OWJmYi0zZDg4LTRlM2EtYTQwNC1iOWY1YTc4ODZhYjUiLCJsY2lkIjoiY2xuXzY4YWQxZTI4LWYxYzYtNDAwOC04OWRkLTI5ZjliYWMwNjI5NiIsInBnaWQiOiJwZ3BfMDQ5MDQyZjktMmE3OS00M2ZjLThmZDAtNTQxNzlkYThkNTgyIn0.7fCy0KRk_YdkInO3UvhRm6KeSA59wgFrbn3j592BvNM";
+
 const ASSETFINDR_BASE_URL = "https://api.assetfindr.com";
 const ASSETFINDR_FIREBASE_API_KEY = "AIzaSyAaLQ5r471mDX_Q9IpxM55o67bCf956P04";
 const DEFAULT_CLIENT_ID = "batara";
+
+/**
+ * Resolve active bearer token with corporate default fallback
+ */
+export function resolveAssetFindrToken(providedToken?: string): string {
+  let t = (providedToken || "").trim();
+  if (t.startsWith("Bearer ")) {
+    t = t.slice(7).trim();
+  }
+  if (!t || t === "undefined" || t === "null" || t.length < 20) {
+    t = (process.env.ASSETFINDR_BEARER_TOKEN || DEFAULT_ACTIVE_ASSETFINDR_TOKEN).trim();
+    if (t.startsWith("Bearer ")) {
+      t = t.slice(7).trim();
+    }
+  }
+  return t;
+}
 
 const INDO_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const INDO_MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
@@ -1259,10 +1279,7 @@ export async function fetchAssetFindrProductionData(
   jobsite = "all",
   tokenOverride = ""
 ): Promise<any> {
-  let token = tokenOverride || process.env.ASSETFINDR_BEARER_TOKEN || "";
-  if (token.startsWith("Bearer ")) {
-    token = token.slice(7).trim();
-  }
+  const token = resolveAssetFindrToken(tokenOverride);
 
   // Check in-memory cache
   const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}_${jobsite}`;
@@ -1696,16 +1713,11 @@ export const assetfindrController = {
       const reconciliationDateStart = (req.query.reconciliation_date_start as string) || "";
       const reconciliationDateEnd = (req.query.reconciliation_date_end as string) || "";
 
-      // Extract token from request headers or env
-      let token =
+      // Extract token from request headers or env with corporate default fallback
+      const token = resolveAssetFindrToken(
         (req.headers["x-assetfindr-token"] as string) ||
-        (req.headers["authorization"] as string) ||
-        process.env.ASSETFINDR_BEARER_TOKEN ||
-        "";
-
-      if (token.startsWith("Bearer ")) {
-        token = token.slice(7).trim();
-      }
+        (req.headers["authorization"] as string)
+      );
 
       // If token is missing, return demo simulation data
       if (!token) {
@@ -1827,16 +1839,11 @@ export const assetfindrController = {
    */
   async testConnection(req: Request, res: Response) {
     try {
-      let token =
+      const token = resolveAssetFindrToken(
         req.body?.token ||
         (req.headers["x-assetfindr-token"] as string) ||
-        (req.headers["authorization"] as string) ||
-        process.env.ASSETFINDR_BEARER_TOKEN ||
-        "";
-
-      if (token.startsWith("Bearer ")) {
-        token = token.slice(7).trim();
-      }
+        (req.headers["authorization"] as string)
+      );
 
       const clientId = req.body?.client_id || DEFAULT_CLIENT_ID;
 
@@ -1986,11 +1993,10 @@ export const assetfindrController = {
       const endDate = (req.query.end_date as string) || defaultEnd;
       const jobsite = (req.query.jobsite as string)?.toLowerCase() || "all";
 
-      let token =
+      const token = resolveAssetFindrToken(
         (req.headers["x-assetfindr-token"] as string) ||
-        (req.headers["authorization"] as string) ||
-        process.env.ASSETFINDR_BEARER_TOKEN ||
-        "";
+        (req.headers["authorization"] as string)
+      );
 
       const data = await fetchAssetFindrProductionData(startDate, endDate, jobsite, token);
       return res.json(data);

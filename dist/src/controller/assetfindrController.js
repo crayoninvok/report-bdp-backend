@@ -1,13 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assetfindrController = void 0;
+exports.assetfindrController = exports.DEFAULT_ACTIVE_ASSETFINDR_TOKEN = void 0;
+exports.resolveAssetFindrToken = resolveAssetFindrToken;
 exports.generateDemoDailyProduction = generateDemoDailyProduction;
 exports.buildFleetUnitPerformance = buildFleetUnitPerformance;
 exports.buildOperatorPerformance = buildOperatorPerformance;
 exports.fetchAssetFindrProductionData = fetchAssetFindrProductionData;
+exports.DEFAULT_ACTIVE_ASSETFINDR_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4NTM4MjY1NTEsImp0aSI6ImJmN2FmZjA1NjVkMDc4ZTU5ZjFmZThmNmZkYTU5ZWVjIiwidXNlcl9pZCI6InVzcl9kNWU5OWJmYi0zZDg4LTRlM2EtYTQwNC1iOWY1YTc4ODZhYjUiLCJsY2lkIjoiY2xuXzY4YWQxZTI4LWYxYzYtNDAwOC04OWRkLTI5ZjliYWMwNjI5NiIsInBnaWQiOiJwZ3BfMDQ5MDQyZjktMmE3OS00M2ZjLThmZDAtNTQxNzlkYThkNTgyIn0.7fCy0KRk_YdkInO3UvhRm6KeSA59wgFrbn3j592BvNM";
 const ASSETFINDR_BASE_URL = "https://api.assetfindr.com";
 const ASSETFINDR_FIREBASE_API_KEY = "AIzaSyAaLQ5r471mDX_Q9IpxM55o67bCf956P04";
 const DEFAULT_CLIENT_ID = "batara";
+/**
+ * Resolve active bearer token with corporate default fallback
+ */
+function resolveAssetFindrToken(providedToken) {
+    let t = (providedToken || "").trim();
+    if (t.startsWith("Bearer ")) {
+        t = t.slice(7).trim();
+    }
+    if (!t || t === "undefined" || t === "null" || t.length < 20) {
+        t = (process.env.ASSETFINDR_BEARER_TOKEN || exports.DEFAULT_ACTIVE_ASSETFINDR_TOKEN).trim();
+        if (t.startsWith("Bearer ")) {
+            t = t.slice(7).trim();
+        }
+    }
+    return t;
+}
 const INDO_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const INDO_MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
 const dailyProductionCache = new Map();
@@ -1151,10 +1169,7 @@ const HISTORICAL_MONTHLY_PRODUCTION = {
     "2026-10": { days: 31, senyiurTon: 0, senyiurRit: 0, mpTon: 847175, mpRit: 4108 },
 };
 async function fetchAssetFindrProductionData(startDate, endDate, jobsite = "all", tokenOverride = "") {
-    let token = tokenOverride || process.env.ASSETFINDR_BEARER_TOKEN || "";
-    if (token.startsWith("Bearer ")) {
-        token = token.slice(7).trim();
-    }
+    const token = resolveAssetFindrToken(tokenOverride);
     // Check in-memory cache
     const cacheKey = `${token.slice(-12)}_${startDate}_${endDate}_${jobsite}`;
     const cached = dailyProductionCache.get(cacheKey);
@@ -1532,14 +1547,9 @@ exports.assetfindrController = {
             const ticketDateEnd = req.query.ticket_date_end || "";
             const reconciliationDateStart = req.query.reconciliation_date_start || "";
             const reconciliationDateEnd = req.query.reconciliation_date_end || "";
-            // Extract token from request headers or env
-            let token = req.headers["x-assetfindr-token"] ||
-                req.headers["authorization"] ||
-                process.env.ASSETFINDR_BEARER_TOKEN ||
-                "";
-            if (token.startsWith("Bearer ")) {
-                token = token.slice(7).trim();
-            }
+            // Extract token from request headers or env with corporate default fallback
+            const token = resolveAssetFindrToken(req.headers["x-assetfindr-token"] ||
+                req.headers["authorization"]);
             // If token is missing, return demo simulation data
             if (!token) {
                 const demo = generateDemoTickets(pageNo, pageSize, searchKeyword);
@@ -1650,14 +1660,9 @@ exports.assetfindrController = {
      */
     async testConnection(req, res) {
         try {
-            let token = req.body?.token ||
+            const token = resolveAssetFindrToken(req.body?.token ||
                 req.headers["x-assetfindr-token"] ||
-                req.headers["authorization"] ||
-                process.env.ASSETFINDR_BEARER_TOKEN ||
-                "";
-            if (token.startsWith("Bearer ")) {
-                token = token.slice(7).trim();
-            }
+                req.headers["authorization"]);
             const clientId = req.body?.client_id || DEFAULT_CLIENT_ID;
             if (!token) {
                 return res.status(400).json({
@@ -1789,10 +1794,8 @@ exports.assetfindrController = {
             const startDate = req.query.start_date || defaultStart;
             const endDate = req.query.end_date || defaultEnd;
             const jobsite = req.query.jobsite?.toLowerCase() || "all";
-            let token = req.headers["x-assetfindr-token"] ||
-                req.headers["authorization"] ||
-                process.env.ASSETFINDR_BEARER_TOKEN ||
-                "";
+            const token = resolveAssetFindrToken(req.headers["x-assetfindr-token"] ||
+                req.headers["authorization"]);
             const data = await fetchAssetFindrProductionData(startDate, endDate, jobsite, token);
             return res.json(data);
         }
