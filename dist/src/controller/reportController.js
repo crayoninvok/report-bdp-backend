@@ -1060,7 +1060,7 @@ const getCostOverallDashboard = async (req, res) => {
                 accounts,
             };
         };
-        // A. Build Monthly Units (Month-to-Date: 10 Months Jan - Okt)
+        // A. Build Monthly Units (Month-to-Date: 11 Months Jan - Nov)
         const MONTH_CONFIGS = [
             { month: 1, label: "Jan", periodName: "01-31 Jan 2026", weeks: [5] },
             { month: 2, label: "Feb", periodName: "01-28 Feb 2026", weeks: [9] },
@@ -1071,7 +1071,8 @@ const getCostOverallDashboard = async (req, res) => {
             { month: 7, label: "Jul", periodName: "01-30 Jul 2026", weeks: [30] },
             { month: 8, label: "Agst", periodName: "01-28 Agst 2026", weeks: [34] },
             { month: 9, label: "Sept", periodName: "01-30 Sept 2026", weeks: [39] },
-            { month: 10, label: "Okt", periodName: "01-22 Okt 2026", weeks: [40, 41, 42, 43, 44] },
+            { month: 10, label: "Okt", periodName: "01-31 Okt 2026", weeks: [40, 41, 42, 43] },
+            { month: 11, label: "Nov", periodName: "01-05 Nov 2026", weeks: [44] },
         ];
         const monthlyUnits = MONTH_CONFIGS.map((mc) => {
             const matchedReports = rawReports.filter((r) => mc.weeks.includes(r.weekNumber));
@@ -1099,7 +1100,13 @@ const getCostOverallDashboard = async (req, res) => {
             });
             const latestReportInMonth = matchedReports[matchedReports.length - 1];
             let resolvedPeriodName = mc.periodName;
-            if (latestReportInMonth && matchedReports.length > 1) {
+            if (mc.month === 10) {
+                resolvedPeriodName = "01-31 Okt 2026";
+            }
+            else if (mc.month === 11) {
+                resolvedPeriodName = "01-05 Nov 2026";
+            }
+            else if (latestReportInMonth && matchedReports.length > 1) {
                 const endPart = latestReportInMonth.periodName.split("-")[1] || latestReportInMonth.periodName;
                 resolvedPeriodName = `01-${endPart.trim()}`;
             }

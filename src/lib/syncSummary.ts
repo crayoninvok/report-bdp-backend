@@ -30,11 +30,12 @@ const PARENT_ACCOUNTS = new Set([
 
 export async function syncSummaryForMonth(site: JobSite, year: number = 2026, month: number = 10) {
   try {
+    const weeksForMonth = month === 11 ? [44] : [40, 41, 42, 43];
     const reps = await prisma.weeklyReport.findMany({
       where: {
         jobSite: site,
         year,
-        weekNumber: { in: [40, 41, 42, 43, 44] },
+        weekNumber: { in: weeksForMonth },
       },
       include: { items: true },
       orderBy: { weekNumber: "asc" },

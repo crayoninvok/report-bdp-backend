@@ -231,6 +231,7 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                         8: { sny: 90, mph: 91 },
                         9: { sny: 107, mph: 108 },
                         10: { sny: 124, mph: 126 },
+                        11: { sny: 141, mph: 144 },
                     };
                     const cols = sumColMap[p.month];
                     if (cols) {
@@ -290,7 +291,7 @@ async function parseExcelReport(buffer, fileName = "uploaded.xlsx", targetJobSit
                 const mphSumSheetKey = "PL Summary 1 OPS (MPH)";
                 const mphSumSheet = wb.Sheets[mphSumSheetKey] || wb.Sheets[mphSumSheetKey.trim()];
                 const sumColMapMph = {
-                    1: 2, 2: 9, 3: 16, 4: 23, 5: 37, 6: 55, 7: 74, 8: 91, 9: 108, 10: 126,
+                    1: 2, 2: 9, 3: 16, 4: 23, 5: 37, 6: 55, 7: 74, 8: 91, 9: 108, 10: 126, 11: 144,
                 };
                 const baseCol = sumColMapMph[p.month];
                 if (mphSumSheet && baseCol) {
