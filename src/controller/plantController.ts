@@ -1,140 +1,13 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { JobSite } from "../generated/prisma/client";
-
-/**
- * Normalizes input unit code to Prime Mover code
- * e.g. "401" -> "PM401", "pm401" -> "PM401", "PM401" -> "PM401"
- */
-function normalizeHeadCode(input: string): string {
-  const clean = input.trim().toUpperCase();
-  if (/^\d{3}$/.test(clean)) {
-    return `PM${clean}`;
-  }
-  return clean;
-}
-
-/**
- * Helper to get Monday and Sunday dates of a given date (or current date)
- */
-function getWeekRange(dateInput?: string): {
-  startDate: string;
-  endDate: string;
-  dates: string[];
-} {
-  const d = dateInput ? new Date(dateInput) : new Date();
-  if (isNaN(d.getTime())) {
-    return getWeekRange();
-  }
-
-  // Adjust to Monday (1) through Sunday (7)
-  const day = d.getDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day; // If Sunday, day=0 -> diff=-6
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + diffToMonday);
-
-  const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const cur = new Date(monday);
-    cur.setDate(monday.getDate() + i);
-    const yyyy = cur.getFullYear();
-    const mm = String(cur.getMonth() + 1).padStart(2, "0");
-    const dd = String(cur.getDate()).padStart(2, "0");
-    dates.push(`${yyyy}-${mm}-${dd}`);
-  }
-
-  return {
-    startDate: dates[0],
-    endDate: dates[6],
-    dates,
-  };
-}
-
-/**
- * Helper to generate date range from startDate to endDate (supports multi-week / fixed date ranges up to 90 days)
- */
-function getDateRange(startDateStr: string, endDateStr: string): {
-  startDate: string;
-  endDate: string;
-  dates: string[];
-} {
-  const startParts = (startDateStr || "").split("-").map((p) => parseInt(p, 10));
-  const endParts = (endDateStr || "").split("-").map((p) => parseInt(p, 10));
-  const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
-  const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
-
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
-    return getWeekRange(startDateStr);
-  }
-
-  const dates: string[] = [];
-  const cur = new Date(start);
-  let count = 0;
-  while (cur <= end && count < 90) {
-    const yyyy = cur.getFullYear();
-    const mm = String(cur.getMonth() + 1).padStart(2, "0");
-    const dd = String(cur.getDate()).padStart(2, "0");
-    dates.push(`${yyyy}-${mm}-${dd}`);
-    cur.setDate(cur.getDate() + 1);
-    count++;
-  }
-
-  return {
-    startDate: dates[0],
-    endDate: dates[dates.length - 1],
-    dates,
-  };
-}
-
-const INDO_DAYS = [
-  "Minggu",
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-];
-
-const INDO_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "Mei",
-  "Jun",
-  "Jul",
-  "Agu",
-  "Sep",
-  "Okt",
-  "Nov",
-  "Des",
-];
-
-function formatIndoDate(dateStr: string): string {
-  try {
-    const parts = dateStr.split("-");
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    return `${d} ${INDO_MONTHS[m]} ${y}`;
-  } catch {
-    return dateStr;
-  }
-}
-
-function getIndoDayName(dateStr: string): string {
-  try {
-    const parts = dateStr.split("-");
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    const dt = new Date(y, m, d);
-    return INDO_DAYS[dt.getDay()];
-  } catch {
-    return "";
-  }
-}
+import {
+  normalizeHeadCode,
+  getWeekRange,
+  getDateRange,
+  formatIndoDate,
+  getIndoDayName,
+} from "../lib/plantHelpers";
 
 export const plantController = {
   // -------------------------------------------------------------
@@ -311,6 +184,7 @@ export const plantController = {
       const settings = await prisma.plantSetting.findMany();
       const settingsMap: Record<string, string> = {
         daily_pi_target: "9",
+        daily_pm_target: "4",
       };
       for (const s of settings) {
         settingsMap[s.key] = s.value;

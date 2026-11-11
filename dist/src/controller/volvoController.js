@@ -1,52 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRawPositions = exports.getRawVehicles = exports.getLiveMonitoringUnits = void 0;
-const https_1 = __importDefault(require("https"));
+const volvoClient_1 = require("../lib/volvoClient");
 // In-memory cache for 15 seconds to prevent rate-limiting on Volvo API
 let cachedData = null;
 const CACHE_TTL_MS = 15000;
-const VOLVO_AUTH = Buffer.from("D0F8071975:bnHLdWXITe").toString("base64");
-function fetchFromVolvo(path, acceptHeader) {
-    return new Promise((resolve, reject) => {
-        const req = https_1.default.request({
-            hostname: "api.volvotrucks.com",
-            port: 443,
-            path: path,
-            method: "GET",
-            headers: {
-                Authorization: `Basic ${VOLVO_AUTH}`,
-                Accept: acceptHeader,
-                "User-Agent": "ReportCompany-Batara/1.0",
-            },
-            timeout: 10000,
-        }, (res) => {
-            let raw = "";
-            res.on("data", (chunk) => (raw += chunk));
-            res.on("end", () => {
-                if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                    try {
-                        resolve(JSON.parse(raw));
-                    }
-                    catch (e) {
-                        reject(new Error(`Gagal mem-parsing response dari Volvo: ${raw.slice(0, 200)}`));
-                    }
-                }
-                else {
-                    reject(new Error(`Volvo API error (${res.statusCode}): ${raw.slice(0, 200) || "Unknown error"}`));
-                }
-            });
-        });
-        req.on("error", (err) => reject(err));
-        req.on("timeout", () => {
-            req.destroy();
-            reject(new Error("Timeout menghubungi server Volvo Trucks API"));
-        });
-        req.end();
-    });
-}
 /**
  * Controller: Get live monitoring units (merged vehicles + latest positions)
  */
@@ -63,8 +21,8 @@ const getLiveMonitoringUnits = async (req, res) => {
         }
         // Fetch vehicles and positions in parallel
         const [vehiclesPayload, positionsPayload] = await Promise.all([
-            fetchFromVolvo("/vehicle/vehicles", "application/x.volvogroup.com.vehicles.v1.0+json"),
-            fetchFromVolvo("/vehicle/vehiclepositions?latestOnly=true", "application/x.volvogroup.com.vehiclepositions.v1.0+json"),
+            (0, volvoClient_1.fetchFromVolvo)("/vehicle/vehicles", "application/x.volvogroup.com.vehicles.v1.0+json"),
+            (0, volvoClient_1.fetchFromVolvo)("/vehicle/vehiclepositions?latestOnly=true", "application/x.volvogroup.com.vehiclepositions.v1.0+json"),
         ]);
         const vehicles = vehiclesPayload?.vehicleResponse?.vehicles || [];
         const positions = positionsPayload?.vehiclePositionResponse?.vehiclePositions || [];
@@ -177,7 +135,7 @@ exports.getLiveMonitoringUnits = getLiveMonitoringUnits;
  */
 const getRawVehicles = async (req, res) => {
     try {
-        const data = await fetchFromVolvo("/vehicle/vehicles", "application/x.volvogroup.com.vehicles.v1.0+json");
+        const data = await (0, volvoClient_1.fetchFromVolvo)("/vehicle/vehicles", "application/x.volvogroup.com.vehicles.v1.0+json");
         res.json(data);
     }
     catch (error) {
@@ -190,7 +148,7 @@ exports.getRawVehicles = getRawVehicles;
  */
 const getRawPositions = async (req, res) => {
     try {
-        const data = await fetchFromVolvo("/vehicle/vehiclepositions?latestOnly=true", "application/x.volvogroup.com.vehiclepositions.v1.0+json");
+        const data = await (0, volvoClient_1.fetchFromVolvo)("/vehicle/vehiclepositions?latestOnly=true", "application/x.volvogroup.com.vehiclepositions.v1.0+json");
         res.json(data);
     }
     catch (error) {

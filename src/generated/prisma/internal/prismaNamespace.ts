@@ -410,6 +410,8 @@ export const ModelName = {
   MasterUnit: 'MasterUnit',
   PeriodicInspectionPlan: 'PeriodicInspectionPlan',
   PeriodicInspectionItem: 'PeriodicInspectionItem',
+  PreventiveMaintenancePlan: 'PreventiveMaintenancePlan',
+  PreventiveMaintenanceItem: 'PreventiveMaintenanceItem',
   PlantSetting: 'PlantSetting',
   MasterManpower: 'MasterManpower'
 } as const
@@ -427,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "plantSetting" | "masterManpower"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "masterManpower"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1393,6 +1395,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PreventiveMaintenancePlan: {
+      payload: Prisma.$PreventiveMaintenancePlanPayload<ExtArgs>
+      fields: Prisma.PreventiveMaintenancePlanFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PreventiveMaintenancePlanFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PreventiveMaintenancePlanFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>
+        }
+        findFirst: {
+          args: Prisma.PreventiveMaintenancePlanFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PreventiveMaintenancePlanFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>
+        }
+        findMany: {
+          args: Prisma.PreventiveMaintenancePlanFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>[]
+        }
+        create: {
+          args: Prisma.PreventiveMaintenancePlanCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>
+        }
+        createMany: {
+          args: Prisma.PreventiveMaintenancePlanCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PreventiveMaintenancePlanCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>[]
+        }
+        delete: {
+          args: Prisma.PreventiveMaintenancePlanDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>
+        }
+        update: {
+          args: Prisma.PreventiveMaintenancePlanUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>
+        }
+        deleteMany: {
+          args: Prisma.PreventiveMaintenancePlanDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PreventiveMaintenancePlanUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PreventiveMaintenancePlanUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>[]
+        }
+        upsert: {
+          args: Prisma.PreventiveMaintenancePlanUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenancePlanPayload>
+        }
+        aggregate: {
+          args: Prisma.PreventiveMaintenancePlanAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePreventiveMaintenancePlan>
+        }
+        groupBy: {
+          args: Prisma.PreventiveMaintenancePlanGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreventiveMaintenancePlanGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PreventiveMaintenancePlanCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreventiveMaintenancePlanCountAggregateOutputType> | number
+        }
+      }
+    }
+    PreventiveMaintenanceItem: {
+      payload: Prisma.$PreventiveMaintenanceItemPayload<ExtArgs>
+      fields: Prisma.PreventiveMaintenanceItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PreventiveMaintenanceItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PreventiveMaintenanceItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>
+        }
+        findFirst: {
+          args: Prisma.PreventiveMaintenanceItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PreventiveMaintenanceItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>
+        }
+        findMany: {
+          args: Prisma.PreventiveMaintenanceItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>[]
+        }
+        create: {
+          args: Prisma.PreventiveMaintenanceItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>
+        }
+        createMany: {
+          args: Prisma.PreventiveMaintenanceItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PreventiveMaintenanceItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>[]
+        }
+        delete: {
+          args: Prisma.PreventiveMaintenanceItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>
+        }
+        update: {
+          args: Prisma.PreventiveMaintenanceItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.PreventiveMaintenanceItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PreventiveMaintenanceItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PreventiveMaintenanceItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.PreventiveMaintenanceItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreventiveMaintenanceItemPayload>
+        }
+        aggregate: {
+          args: Prisma.PreventiveMaintenanceItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePreventiveMaintenanceItem>
+        }
+        groupBy: {
+          args: Prisma.PreventiveMaintenanceItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreventiveMaintenanceItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PreventiveMaintenanceItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreventiveMaintenanceItemCountAggregateOutputType> | number
+        }
+      }
+    }
     PlantSetting: {
       payload: Prisma.$PlantSettingPayload<ExtArgs>
       fields: Prisma.PlantSettingFieldRefs
@@ -1827,6 +1977,42 @@ export const PeriodicInspectionItemScalarFieldEnum = {
 export type PeriodicInspectionItemScalarFieldEnum = (typeof PeriodicInspectionItemScalarFieldEnum)[keyof typeof PeriodicInspectionItemScalarFieldEnum]
 
 
+export const PreventiveMaintenancePlanScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  targetUnits: 'targetUnits',
+  leadMechanic: 'leadMechanic',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreventiveMaintenancePlanScalarFieldEnum = (typeof PreventiveMaintenancePlanScalarFieldEnum)[keyof typeof PreventiveMaintenancePlanScalarFieldEnum]
+
+
+export const PreventiveMaintenanceItemScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  date: 'date',
+  unitCode: 'unitCode',
+  serviceType: 'serviceType',
+  shift: 'shift',
+  status: 'status',
+  mechanicName: 'mechanicName',
+  currentKm: 'currentKm',
+  currentHm: 'currentHm',
+  nextDueKm: 'nextDueKm',
+  nextDueHm: 'nextDueHm',
+  notes: 'notes',
+  buntutSummary: 'buntutSummary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreventiveMaintenanceItemScalarFieldEnum = (typeof PreventiveMaintenanceItemScalarFieldEnum)[keyof typeof PreventiveMaintenanceItemScalarFieldEnum]
+
+
 export const PlantSettingScalarFieldEnum = {
   id: 'id',
   jobSite: 'jobSite',
@@ -2199,6 +2385,8 @@ export type GlobalOmitConfig = {
   masterUnit?: Prisma.MasterUnitOmit
   periodicInspectionPlan?: Prisma.PeriodicInspectionPlanOmit
   periodicInspectionItem?: Prisma.PeriodicInspectionItemOmit
+  preventiveMaintenancePlan?: Prisma.PreventiveMaintenancePlanOmit
+  preventiveMaintenanceItem?: Prisma.PreventiveMaintenanceItemOmit
   plantSetting?: Prisma.PlantSettingOmit
   masterManpower?: Prisma.MasterManpowerOmit
 }

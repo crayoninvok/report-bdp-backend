@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import https from "https";
+import { fetchFromVolvo } from "../lib/volvoClient";
 
 // In-memory cache for 15 seconds to prevent rate-limiting on Volvo API
 let cachedData: {
@@ -7,53 +7,6 @@ let cachedData: {
   data: any;
 } | null = null;
 const CACHE_TTL_MS = 15000;
-
-const VOLVO_AUTH = Buffer.from("D0F8071975:bnHLdWXITe").toString("base64");
-
-function fetchFromVolvo(path: string, acceptHeader: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const req = https.request(
-      {
-        hostname: "api.volvotrucks.com",
-        port: 443,
-        path: path,
-        method: "GET",
-        headers: {
-          Authorization: `Basic ${VOLVO_AUTH}`,
-          Accept: acceptHeader,
-          "User-Agent": "ReportCompany-Batara/1.0",
-        },
-        timeout: 10000,
-      },
-      (res) => {
-        let raw = "";
-        res.on("data", (chunk) => (raw += chunk));
-        res.on("end", () => {
-          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            try {
-              resolve(JSON.parse(raw));
-            } catch (e) {
-              reject(new Error(`Gagal mem-parsing response dari Volvo: ${raw.slice(0, 200)}`));
-            }
-          } else {
-            reject(
-              new Error(
-                `Volvo API error (${res.statusCode}): ${raw.slice(0, 200) || "Unknown error"}`
-              )
-            );
-          }
-        });
-      }
-    );
-
-    req.on("error", (err) => reject(err));
-    req.on("timeout", () => {
-      req.destroy();
-      reject(new Error("Timeout menghubungi server Volvo Trucks API"));
-    });
-    req.end();
-  });
-}
 
 /**
  * Controller: Get live monitoring units (merged vehicles + latest positions)

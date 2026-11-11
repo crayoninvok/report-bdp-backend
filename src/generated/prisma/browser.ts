@@ -83,6 +83,16 @@ export type PeriodicInspectionPlan = Prisma.PeriodicInspectionPlanModel
  */
 export type PeriodicInspectionItem = Prisma.PeriodicInspectionItemModel
 /**
+ * Model PreventiveMaintenancePlan
+ * 
+ */
+export type PreventiveMaintenancePlan = Prisma.PreventiveMaintenancePlanModel
+/**
+ * Model PreventiveMaintenanceItem
+ * 
+ */
+export type PreventiveMaintenanceItem = Prisma.PreventiveMaintenanceItemModel
+/**
  * Model PlantSetting
  * 
  */

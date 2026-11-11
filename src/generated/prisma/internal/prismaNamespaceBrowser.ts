@@ -64,6 +64,8 @@ export const ModelName = {
   MasterUnit: 'MasterUnit',
   PeriodicInspectionPlan: 'PeriodicInspectionPlan',
   PeriodicInspectionItem: 'PeriodicInspectionItem',
+  PreventiveMaintenancePlan: 'PreventiveMaintenancePlan',
+  PreventiveMaintenanceItem: 'PreventiveMaintenanceItem',
   PlantSetting: 'PlantSetting',
   MasterManpower: 'MasterManpower'
 } as const
@@ -329,6 +331,42 @@ export const PeriodicInspectionItemScalarFieldEnum = {
 } as const
 
 export type PeriodicInspectionItemScalarFieldEnum = (typeof PeriodicInspectionItemScalarFieldEnum)[keyof typeof PeriodicInspectionItemScalarFieldEnum]
+
+
+export const PreventiveMaintenancePlanScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  targetUnits: 'targetUnits',
+  leadMechanic: 'leadMechanic',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreventiveMaintenancePlanScalarFieldEnum = (typeof PreventiveMaintenancePlanScalarFieldEnum)[keyof typeof PreventiveMaintenancePlanScalarFieldEnum]
+
+
+export const PreventiveMaintenanceItemScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  date: 'date',
+  unitCode: 'unitCode',
+  serviceType: 'serviceType',
+  shift: 'shift',
+  status: 'status',
+  mechanicName: 'mechanicName',
+  currentKm: 'currentKm',
+  currentHm: 'currentHm',
+  nextDueKm: 'nextDueKm',
+  nextDueHm: 'nextDueHm',
+  notes: 'notes',
+  buntutSummary: 'buntutSummary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreventiveMaintenanceItemScalarFieldEnum = (typeof PreventiveMaintenanceItemScalarFieldEnum)[keyof typeof PreventiveMaintenanceItemScalarFieldEnum]
 
 
 export const PlantSettingScalarFieldEnum = {

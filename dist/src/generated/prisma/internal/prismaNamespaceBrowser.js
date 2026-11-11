@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MasterManpowerScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MasterManpowerScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -88,6 +88,8 @@ exports.ModelName = {
     MasterUnit: 'MasterUnit',
     PeriodicInspectionPlan: 'PeriodicInspectionPlan',
     PeriodicInspectionItem: 'PeriodicInspectionItem',
+    PreventiveMaintenancePlan: 'PreventiveMaintenancePlan',
+    PreventiveMaintenanceItem: 'PreventiveMaintenanceItem',
     PlantSetting: 'PlantSetting',
     MasterManpower: 'MasterManpower'
 };
@@ -290,6 +292,34 @@ exports.PeriodicInspectionItemScalarFieldEnum = {
     shift: 'shift',
     status: 'status',
     inspectorName: 'inspectorName',
+    notes: 'notes',
+    buntutSummary: 'buntutSummary',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PreventiveMaintenancePlanScalarFieldEnum = {
+    id: 'id',
+    jobSite: 'jobSite',
+    date: 'date',
+    targetUnits: 'targetUnits',
+    leadMechanic: 'leadMechanic',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PreventiveMaintenanceItemScalarFieldEnum = {
+    id: 'id',
+    planId: 'planId',
+    date: 'date',
+    unitCode: 'unitCode',
+    serviceType: 'serviceType',
+    shift: 'shift',
+    status: 'status',
+    mechanicName: 'mechanicName',
+    currentKm: 'currentKm',
+    currentHm: 'currentHm',
+    nextDueKm: 'nextDueKm',
+    nextDueHm: 'nextDueHm',
     notes: 'notes',
     buntutSummary: 'buntutSummary',
     createdAt: 'createdAt',

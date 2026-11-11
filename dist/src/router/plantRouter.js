@@ -2,14 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const plantController_1 = require("../controller/plantController");
+const pmController_1 = require("../controller/pmController");
 const plantRouter = (0, express_1.Router)();
 // 1. Master Units
 plantRouter.get("/units", plantController_1.plantController.getMasterUnits);
 plantRouter.put("/units/:unitCode", plantController_1.plantController.updateUnit);
-// 2. Settings (daily_pi_target)
+// 2. Settings (daily_pi_target, daily_pm_target)
 plantRouter.get("/settings", plantController_1.plantController.getPlantSettings);
 plantRouter.put("/settings", plantController_1.plantController.updatePlantSetting);
-// 3. Weekly Schedule & Daily Items
+// 3. Weekly Schedule & Daily Items (Periodic Inspection)
 plantRouter.get("/periodic-inspection/weekly", plantController_1.plantController.getWeeklySchedule);
 plantRouter.post("/periodic-inspection/plan", plantController_1.plantController.upsertDailyPlan);
 plantRouter.post("/periodic-inspection/item", plantController_1.plantController.addInspectionItem);
@@ -17,6 +18,15 @@ plantRouter.post("/periodic-inspection/bulk-add", plantController_1.plantControl
 plantRouter.put("/periodic-inspection/item/:id", plantController_1.plantController.updateInspectionItem);
 plantRouter.delete("/periodic-inspection/item/:id", plantController_1.plantController.deleteInspectionItem);
 plantRouter.post("/periodic-inspection/apply-standard-template", plantController_1.plantController.applyStandardWeeklySchedule);
-// 4. Tyre & Rim Usage (from GL Beban Tyre 05110203)
+// 4. Weekly Schedule, Daily Items & Radar KM/HM (Preventive Maintenance)
+plantRouter.get("/preventive-maintenance/weekly", pmController_1.pmController.getPmWeeklySchedule);
+plantRouter.post("/preventive-maintenance/plan", pmController_1.pmController.upsertPmDailyPlan);
+plantRouter.post("/preventive-maintenance/item", pmController_1.pmController.addPmItem);
+plantRouter.post("/preventive-maintenance/bulk-add", pmController_1.pmController.bulkAddPmItems);
+plantRouter.put("/preventive-maintenance/item/:id", pmController_1.pmController.updatePmItem);
+plantRouter.delete("/preventive-maintenance/item/:id", pmController_1.pmController.deletePmItem);
+plantRouter.post("/preventive-maintenance/auto-schedule-due", pmController_1.pmController.autoScheduleDueUnits);
+plantRouter.get("/preventive-maintenance/radar", pmController_1.pmController.getPmRadar);
+// 5. Tyre & Rim Usage (from GL Beban Tyre 05110203)
 plantRouter.get("/tyre-rim-usage", plantController_1.plantController.getTyreRimUsage);
 exports.default = plantRouter;

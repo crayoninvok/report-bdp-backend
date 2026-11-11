@@ -2,121 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.plantController = void 0;
 const prisma_1 = require("../lib/prisma");
-/**
- * Normalizes input unit code to Prime Mover code
- * e.g. "401" -> "PM401", "pm401" -> "PM401", "PM401" -> "PM401"
- */
-function normalizeHeadCode(input) {
-    const clean = input.trim().toUpperCase();
-    if (/^\d{3}$/.test(clean)) {
-        return `PM${clean}`;
-    }
-    return clean;
-}
-/**
- * Helper to get Monday and Sunday dates of a given date (or current date)
- */
-function getWeekRange(dateInput) {
-    const d = dateInput ? new Date(dateInput) : new Date();
-    if (isNaN(d.getTime())) {
-        return getWeekRange();
-    }
-    // Adjust to Monday (1) through Sunday (7)
-    const day = d.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day; // If Sunday, day=0 -> diff=-6
-    const monday = new Date(d);
-    monday.setDate(d.getDate() + diffToMonday);
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-        const cur = new Date(monday);
-        cur.setDate(monday.getDate() + i);
-        const yyyy = cur.getFullYear();
-        const mm = String(cur.getMonth() + 1).padStart(2, "0");
-        const dd = String(cur.getDate()).padStart(2, "0");
-        dates.push(`${yyyy}-${mm}-${dd}`);
-    }
-    return {
-        startDate: dates[0],
-        endDate: dates[6],
-        dates,
-    };
-}
-/**
- * Helper to generate date range from startDate to endDate (supports multi-week / fixed date ranges up to 90 days)
- */
-function getDateRange(startDateStr, endDateStr) {
-    const startParts = (startDateStr || "").split("-").map((p) => parseInt(p, 10));
-    const endParts = (endDateStr || "").split("-").map((p) => parseInt(p, 10));
-    const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
-    const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
-    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
-        return getWeekRange(startDateStr);
-    }
-    const dates = [];
-    const cur = new Date(start);
-    let count = 0;
-    while (cur <= end && count < 90) {
-        const yyyy = cur.getFullYear();
-        const mm = String(cur.getMonth() + 1).padStart(2, "0");
-        const dd = String(cur.getDate()).padStart(2, "0");
-        dates.push(`${yyyy}-${mm}-${dd}`);
-        cur.setDate(cur.getDate() + 1);
-        count++;
-    }
-    return {
-        startDate: dates[0],
-        endDate: dates[dates.length - 1],
-        dates,
-    };
-}
-const INDO_DAYS = [
-    "Minggu",
-    "Senin",
-    "Selasa",
-    "Rabu",
-    "Kamis",
-    "Jumat",
-    "Sabtu",
-];
-const INDO_MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "Mei",
-    "Jun",
-    "Jul",
-    "Agu",
-    "Sep",
-    "Okt",
-    "Nov",
-    "Des",
-];
-function formatIndoDate(dateStr) {
-    try {
-        const parts = dateStr.split("-");
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10) - 1;
-        const d = parseInt(parts[2], 10);
-        return `${d} ${INDO_MONTHS[m]} ${y}`;
-    }
-    catch {
-        return dateStr;
-    }
-}
-function getIndoDayName(dateStr) {
-    try {
-        const parts = dateStr.split("-");
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10) - 1;
-        const d = parseInt(parts[2], 10);
-        const dt = new Date(y, m, d);
-        return INDO_DAYS[dt.getDay()];
-    }
-    catch {
-        return "";
-    }
-}
+const plantHelpers_1 = require("../lib/plantHelpers");
 exports.plantController = {
     // -------------------------------------------------------------
     // 1. MASTER UNITS
@@ -283,6 +169,7 @@ exports.plantController = {
             const settings = await prisma_1.prisma.plantSetting.findMany();
             const settingsMap = {
                 daily_pi_target: "9",
+                daily_pm_target: "4",
             };
             for (const s of settings) {
                 settingsMap[s.key] = s.value;
@@ -338,8 +225,8 @@ exports.plantController = {
             const jobSite = site || "MuaraPahu";
             // Calculate date range: if specific startDate & endDate are given, use them; otherwise use week of `date`
             const { startDate, endDate, dates } = qStartDate && qEndDate
-                ? getDateRange(qStartDate, qEndDate)
-                : getWeekRange(date);
+                ? (0, plantHelpers_1.getDateRange)(qStartDate, qEndDate)
+                : (0, plantHelpers_1.getWeekRange)(date);
             // Get global default daily target
             const globalTargetSetting = await prisma_1.prisma.plantSetting.findUnique({
                 where: { key: "daily_pi_target" },
@@ -412,8 +299,8 @@ exports.plantController = {
                 totalWeekCompleted += completedCount;
                 return {
                     date: dStr,
-                    dayName: getIndoDayName(dStr),
-                    dayDateFormatted: formatIndoDate(dStr),
+                    dayName: (0, plantHelpers_1.getIndoDayName)(dStr),
+                    dayDateFormatted: (0, plantHelpers_1.formatIndoDate)(dStr),
                     isToday: dStr === todayStr,
                     targetUnits,
                     hasCustomTarget: plan && plan.targetUnits !== undefined,
@@ -438,7 +325,7 @@ exports.plantController = {
                     weekRange: {
                         startDate,
                         endDate,
-                        formatted: `${formatIndoDate(startDate)} - ${formatIndoDate(endDate)}`,
+                        formatted: `${(0, plantHelpers_1.formatIndoDate)(startDate)} - ${(0, plantHelpers_1.formatIndoDate)(endDate)}`,
                     },
                     defaultDailyTarget,
                     selectedSite: jobSite,
@@ -503,7 +390,7 @@ exports.plantController = {
             });
             return res.json({
                 success: true,
-                message: `Plan target tanggal ${formatIndoDate(date)} diperbarui ke ${numTarget} unit`,
+                message: `Plan target tanggal ${(0, plantHelpers_1.formatIndoDate)(date)} diperbarui ke ${numTarget} unit`,
                 data: plan,
             });
         }
@@ -524,7 +411,7 @@ exports.plantController = {
                     message: "Tanggal dan Kode Unit wajib diisi",
                 });
             }
-            const normalizedUnitCode = normalizeHeadCode(unitCode);
+            const normalizedUnitCode = (0, plantHelpers_1.normalizeHeadCode)(unitCode);
             // Verify that this unit exists in MasterUnit (Kepala)
             const headUnit = await prisma_1.prisma.masterUnit.findUnique({
                 where: { unitCode: normalizedUnitCode },
@@ -589,7 +476,7 @@ exports.plantController = {
             });
             return res.json({
                 success: true,
-                message: `Unit ${normalizedUnitCode} berhasil dijadwalkan untuk ${formatIndoDate(date)}`,
+                message: `Unit ${normalizedUnitCode} berhasil dijadwalkan untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
                 data: item,
             });
         }
@@ -646,7 +533,7 @@ exports.plantController = {
             }
             const results = [];
             for (const rawCode of unitCodes) {
-                const code = normalizeHeadCode(rawCode);
+                const code = (0, plantHelpers_1.normalizeHeadCode)(rawCode);
                 const buntutSummary = trailerSummaryMap[code] || null;
                 const item = await prisma_1.prisma.periodicInspectionItem.upsert({
                     where: {
@@ -674,7 +561,7 @@ exports.plantController = {
             }
             return res.json({
                 success: true,
-                message: `${results.length} unit berhasil dijadwalkan untuk ${formatIndoDate(date)}`,
+                message: `${results.length} unit berhasil dijadwalkan untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
                 data: results,
             });
         }
@@ -759,7 +646,7 @@ exports.plantController = {
                     message: "Jadwal template standar 65 unit saat ini khusus untuk Site Muara Pahu.",
                 });
             }
-            const { startDate, endDate, dates } = getWeekRange(date);
+            const { startDate, endDate, dates } = (0, plantHelpers_1.getWeekRange)(date);
             const standardSchedule = {
                 0: ["PM456", "PM457", "PM458", "PM459", "PM460", "PM461", "PM462", "PM463", "PM464"], // Senin (9)
                 1: ["PM406", "PM413", "PM465", "PM466", "PM467", "PM468", "PM469", "PM470", "PM471"], // Selasa (9)
@@ -829,7 +716,7 @@ exports.plantController = {
             }
             return res.json({
                 success: true,
-                message: `Jadwal standar rutin mingguan (65 Unit Muara Pahu) berhasil diterapkan untuk minggu ${formatIndoDate(startDate)} s/d ${formatIndoDate(endDate)}. Total ${totalInserted} inspeksi unit terjadwal.`,
+                message: `Jadwal standar rutin mingguan (65 Unit Muara Pahu) berhasil diterapkan untuk minggu ${(0, plantHelpers_1.formatIndoDate)(startDate)} s/d ${(0, plantHelpers_1.formatIndoDate)(endDate)}. Total ${totalInserted} inspeksi unit terjadwal.`,
             });
         }
         catch (error) {
