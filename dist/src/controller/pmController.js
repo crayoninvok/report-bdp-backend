@@ -114,6 +114,35 @@ function evaluateUnitPmReadiness(params) {
         readinessStatus,
     };
 }
+/** Normalizes up to 5 mechanic names into both an array and a comma-joined display string. */
+function resolveMechanicsPayload(mechanicNames, mechanicName, inspectorName) {
+    if (Array.isArray(mechanicNames)) {
+        const cleaned = mechanicNames
+            .map((n) => String(n || "").trim())
+            .filter(Boolean)
+            .slice(0, 5);
+        return {
+            namesArray: cleaned,
+            joinedString: cleaned.length > 0 ? cleaned.join(", ") : null,
+        };
+    }
+    const raw = mechanicName !== undefined ? mechanicName : inspectorName;
+    if (raw !== undefined) {
+        const str = String(raw || "").trim();
+        const split = str
+            ? str
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .slice(0, 5)
+            : [];
+        return {
+            namesArray: split,
+            joinedString: split.length > 0 ? split.join(", ") : null,
+        };
+    }
+    return {};
+}
 exports.pmController = {
     // -------------------------------------------------------------
     // 1. WEEKLY PREVENTIVE MAINTENANCE SCHEDULE
@@ -263,7 +292,7 @@ exports.pmController = {
             });
             return res.json({
                 success: true,
-                message: `Plan PM tanggal ${(0, plantHelpers_1.formatIndoDate)(date)} berhasil diperbarui`,
+                message: `Plan Periodic Service tanggal ${(0, plantHelpers_1.formatIndoDate)(date)} berhasil diperbarui`,
                 data: plan,
             });
         }
@@ -273,11 +302,11 @@ exports.pmController = {
         }
     },
     // -------------------------------------------------------------
-    // 3. ADD / SCHEDULE UNIT FOR PM
+    // 3. ADD / SCHEDULE UNIT FOR PERIODIC SERVICE
     // -------------------------------------------------------------
     addPmItem: async (req, res) => {
         try {
-            const { date, unitCode, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", status = "Scheduled", mechanicName, inspectorName, currentKm, currentHm, nextDueKm, nextDueHm, notes, jobSite = "MuaraPahu", } = req.body;
+            const { date, unitCode, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", status = "Scheduled", category = "Scheduled PS", planStartTime, planLeadTime, planHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, currentKm, currentHm, nextDueKm, nextDueHm, notes, jobSite = "MuaraPahu", } = req.body;
             if (!date || !unitCode) {
                 return res.status(400).json({
                     success: false,
@@ -308,7 +337,7 @@ exports.pmController = {
             const resolvedNextHm = nextDueHm !== undefined && nextDueHm !== null && nextDueHm !== ""
                 ? Number(nextDueHm)
                 : autoTargets.nextDueHm;
-            const resolvedMechanic = mechanicName !== undefined ? mechanicName : inspectorName;
+            const mechResolved = resolveMechanicsPayload(mechanicNames, mechanicName, inspectorName);
             const plan = await prisma_1.prisma.preventiveMaintenancePlan.upsert({
                 where: { jobSite_date: { jobSite, date } },
                 update: {},
@@ -320,12 +349,22 @@ exports.pmController = {
                     serviceType,
                     shift,
                     status,
-                    mechanicName: resolvedMechanic || undefined,
+                    category: category || "Scheduled PS",
+                    planStartTime: planStartTime !== undefined ? planStartTime || null : undefined,
+                    planLeadTime: planLeadTime !== undefined ? planLeadTime || null : undefined,
+                    planHmServis: planHmServis !== undefined ? planHmServis || null : undefined,
+                    supervisorName: supervisorName !== undefined ? supervisorName || null : undefined,
+                    ...(mechResolved.joinedString !== undefined
+                        ? {
+                            mechanicName: mechResolved.joinedString,
+                            mechanicNames: mechResolved.namesArray || [],
+                        }
+                        : {}),
                     currentKm: resolvedKm ?? undefined,
                     currentHm: resolvedHm ?? undefined,
                     nextDueKm: resolvedNextKm ?? undefined,
                     nextDueHm: resolvedNextHm ?? undefined,
-                    notes: notes !== undefined ? notes : undefined,
+                    notes: notes !== undefined ? notes || null : undefined,
                     buntutSummary: buntutSummary || undefined,
                 },
                 create: {
@@ -335,7 +374,13 @@ exports.pmController = {
                     serviceType,
                     shift,
                     status,
-                    mechanicName: resolvedMechanic || null,
+                    category: category || "Scheduled PS",
+                    planStartTime: planStartTime || null,
+                    planLeadTime: planLeadTime || null,
+                    planHmServis: planHmServis || null,
+                    supervisorName: supervisorName || null,
+                    mechanicName: mechResolved.joinedString ?? null,
+                    mechanicNames: mechResolved.namesArray || [],
                     currentKm: resolvedKm,
                     currentHm: resolvedHm,
                     nextDueKm: resolvedNextKm,
@@ -347,7 +392,7 @@ exports.pmController = {
             });
             return res.json({
                 success: true,
-                message: `Unit ${normalizedUnitCode} berhasil dijadwalkan PM untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
+                message: `Unit ${normalizedUnitCode} berhasil dijadwalkan Periodic Service untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
                 data: {
                     ...item,
                     inspectorName: item.mechanicName || null,
@@ -423,7 +468,7 @@ exports.pmController = {
             }
             return res.json({
                 success: true,
-                message: `${results.length} unit berhasil dijadwalkan PM untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
+                message: `${results.length} unit berhasil dijadwalkan Periodic Service untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
                 data: results,
             });
         }
@@ -433,19 +478,19 @@ exports.pmController = {
         }
     },
     // -------------------------------------------------------------
-    // 5. UPDATE PM ITEM
+    // 5. UPDATE PERIODIC SERVICE ITEM
     // -------------------------------------------------------------
     updatePmItem: async (req, res) => {
         try {
             const id = String(req.params.id);
-            const { serviceType, shift, status, mechanicName, inspectorName, currentKm, currentHm, nextDueKm, nextDueHm, notes, } = req.body;
+            const { serviceType, shift, status, category, planStartTime, planLeadTime, planHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, currentKm, currentHm, nextDueKm, nextDueHm, notes, } = req.body;
             const existing = await prisma_1.prisma.preventiveMaintenanceItem.findUnique({ where: { id } });
             if (!existing) {
                 return res
                     .status(404)
-                    .json({ success: false, message: "Jadwal PM tidak ditemukan" });
+                    .json({ success: false, message: "Jadwal Periodic Service tidak ditemukan" });
             }
-            const resolvedMechanic = mechanicName !== undefined ? mechanicName : inspectorName;
+            const mechResolved = resolveMechanicsPayload(mechanicNames, mechanicName, inspectorName);
             const effectiveService = serviceType || existing.serviceType;
             let resolvedKm = currentKm !== undefined ? (currentKm === null || currentKm === "" ? null : Number(currentKm)) : existing.currentKm;
             let resolvedHm = currentHm !== undefined ? (currentHm === null || currentHm === "" ? null : Number(currentHm)) : existing.currentHm;
@@ -481,18 +526,28 @@ exports.pmController = {
                     serviceType: serviceType || undefined,
                     shift: shift || undefined,
                     status: status || undefined,
-                    mechanicName: resolvedMechanic !== undefined ? resolvedMechanic : undefined,
+                    category: category !== undefined ? category || "Scheduled PS" : undefined,
+                    planStartTime: planStartTime !== undefined ? planStartTime || null : undefined,
+                    planLeadTime: planLeadTime !== undefined ? planLeadTime || null : undefined,
+                    planHmServis: planHmServis !== undefined ? planHmServis || null : undefined,
+                    supervisorName: supervisorName !== undefined ? supervisorName || null : undefined,
+                    ...(mechResolved.joinedString !== undefined
+                        ? {
+                            mechanicName: mechResolved.joinedString,
+                            mechanicNames: mechResolved.namesArray || [],
+                        }
+                        : {}),
                     currentKm: resolvedKm,
                     currentHm: resolvedHm,
                     nextDueKm: resolvedNextKm,
                     nextDueHm: resolvedNextHm,
-                    notes: notes !== undefined ? notes : undefined,
+                    notes: notes !== undefined ? notes || null : undefined,
                 },
                 include: { unit: true },
             });
             return res.json({
                 success: true,
-                message: "Jadwal PM berhasil diperbarui",
+                message: "Jadwal Periodic Service berhasil diperbarui",
                 data: {
                     ...updated,
                     inspectorName: updated.mechanicName || null,
@@ -505,7 +560,7 @@ exports.pmController = {
         }
     },
     // -------------------------------------------------------------
-    // 6. DELETE PM ITEM
+    // 6. DELETE PERIODIC SERVICE ITEM
     // -------------------------------------------------------------
     deletePmItem: async (req, res) => {
         try {
@@ -514,12 +569,12 @@ exports.pmController = {
             if (!existing) {
                 return res
                     .status(404)
-                    .json({ success: false, message: "Jadwal PM tidak ditemukan" });
+                    .json({ success: false, message: "Jadwal Periodic Service tidak ditemukan" });
             }
             await prisma_1.prisma.preventiveMaintenanceItem.delete({ where: { id } });
             return res.json({
                 success: true,
-                message: `Unit ${existing.unitCode} dihapus dari jadwal PM`,
+                message: `Unit ${existing.unitCode} dihapus dari jadwal Periodic Service`,
             });
         }
         catch (error) {
@@ -847,6 +902,56 @@ exports.pmController = {
         }
         catch (error) {
             console.error("getPmRadar error:", error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+    },
+    // -------------------------------------------------------------
+    // 9. HR PLANT PERSONNEL (SPV PLANT & MECHANICS FOR DROPDOWNS)
+    // -------------------------------------------------------------
+    getPlantPersonnel: async (req, res) => {
+        try {
+            const siteParam = String(req.query.site || "MuaraPahu");
+            const targetBranch = siteParam === "Senyiur" ? "Senyiur" : "Muara Pahu";
+            const rows = await prisma_1.prisma.masterManpower.findMany({
+                where: {
+                    statusKeaktifan: "Exist",
+                    OR: [
+                        { organization: { contains: "Plant", mode: "insensitive" } },
+                        { jobPosition: { contains: "Mekanik", mode: "insensitive" } },
+                        { jobPosition: { contains: "Mechanic", mode: "insensitive" } },
+                    ],
+                },
+                select: {
+                    id: true,
+                    employeeId: true,
+                    fullName: true,
+                    jobPosition: true,
+                    jobLevel: true,
+                    branchName: true,
+                },
+                orderBy: [{ fullName: "asc" }],
+            });
+            const rankSiteAndRole = (list, primaryRegex) => [...list].sort((a, b) => {
+                const aSite = (a.branchName || "").toLowerCase() === targetBranch.toLowerCase() ? 0 : 1;
+                const bSite = (b.branchName || "").toLowerCase() === targetBranch.toLowerCase() ? 0 : 1;
+                if (aSite !== bSite)
+                    return aSite - bSite;
+                const aPri = primaryRegex.test(a.jobPosition || "") ? 0 : 1;
+                const bPri = primaryRegex.test(b.jobPosition || "") ? 0 : 1;
+                if (aPri !== bPri)
+                    return aPri - bPri;
+                return a.fullName.localeCompare(b.fullName);
+            });
+            const supervisors = rankSiteAndRole(rows.filter((r) => /spv|supervisor|superintendent/i.test(r.jobPosition || "")), /^spv\s+plant$/i);
+            const mechanics = rankSiteAndRole(rows.filter((r) => /mechanic|mekanik|electrician|welder/i.test(r.jobPosition || "")), /mechanic/i);
+            return res.json({
+                success: true,
+                targetBranch,
+                data: { supervisors, mechanics },
+            });
+        }
+        catch (error) {
+            console.error("getPlantPersonnel error:", error);
             return res.status(500).json({ success: false, error: error.message });
         }
     },

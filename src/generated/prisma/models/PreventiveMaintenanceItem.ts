@@ -48,6 +48,11 @@ export type PreventiveMaintenanceItemMinAggregateOutputType = {
   serviceType: string | null
   shift: string | null
   status: string | null
+  category: string | null
+  planStartTime: string | null
+  planLeadTime: string | null
+  planHmServis: string | null
+  supervisorName: string | null
   mechanicName: string | null
   currentKm: number | null
   currentHm: number | null
@@ -67,6 +72,11 @@ export type PreventiveMaintenanceItemMaxAggregateOutputType = {
   serviceType: string | null
   shift: string | null
   status: string | null
+  category: string | null
+  planStartTime: string | null
+  planLeadTime: string | null
+  planHmServis: string | null
+  supervisorName: string | null
   mechanicName: string | null
   currentKm: number | null
   currentHm: number | null
@@ -86,7 +96,13 @@ export type PreventiveMaintenanceItemCountAggregateOutputType = {
   serviceType: number
   shift: number
   status: number
+  category: number
+  planStartTime: number
+  planLeadTime: number
+  planHmServis: number
+  supervisorName: number
   mechanicName: number
+  mechanicNames: number
   currentKm: number
   currentHm: number
   nextDueKm: number
@@ -121,6 +137,11 @@ export type PreventiveMaintenanceItemMinAggregateInputType = {
   serviceType?: true
   shift?: true
   status?: true
+  category?: true
+  planStartTime?: true
+  planLeadTime?: true
+  planHmServis?: true
+  supervisorName?: true
   mechanicName?: true
   currentKm?: true
   currentHm?: true
@@ -140,6 +161,11 @@ export type PreventiveMaintenanceItemMaxAggregateInputType = {
   serviceType?: true
   shift?: true
   status?: true
+  category?: true
+  planStartTime?: true
+  planLeadTime?: true
+  planHmServis?: true
+  supervisorName?: true
   mechanicName?: true
   currentKm?: true
   currentHm?: true
@@ -159,7 +185,13 @@ export type PreventiveMaintenanceItemCountAggregateInputType = {
   serviceType?: true
   shift?: true
   status?: true
+  category?: true
+  planStartTime?: true
+  planLeadTime?: true
+  planHmServis?: true
+  supervisorName?: true
   mechanicName?: true
+  mechanicNames?: true
   currentKm?: true
   currentHm?: true
   nextDueKm?: true
@@ -265,7 +297,13 @@ export type PreventiveMaintenanceItemGroupByOutputType = {
   serviceType: string
   shift: string
   status: string
+  category: string | null
+  planStartTime: string | null
+  planLeadTime: string | null
+  planHmServis: string | null
+  supervisorName: string | null
   mechanicName: string | null
+  mechanicNames: string[]
   currentKm: number | null
   currentHm: number | null
   nextDueKm: number | null
@@ -307,7 +345,13 @@ export type PreventiveMaintenanceItemWhereInput = {
   serviceType?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
   shift?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
   status?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
+  category?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planStartTime?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planLeadTime?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planHmServis?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  supervisorName?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
   mechanicName?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  mechanicNames?: Prisma.StringNullableListFilter<"PreventiveMaintenanceItem">
   currentKm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
   currentHm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
   nextDueKm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
@@ -328,7 +372,13 @@ export type PreventiveMaintenanceItemOrderByWithRelationInput = {
   serviceType?: Prisma.SortOrder
   shift?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
+  planStartTime?: Prisma.SortOrderInput | Prisma.SortOrder
+  planLeadTime?: Prisma.SortOrderInput | Prisma.SortOrder
+  planHmServis?: Prisma.SortOrderInput | Prisma.SortOrder
+  supervisorName?: Prisma.SortOrderInput | Prisma.SortOrder
   mechanicName?: Prisma.SortOrderInput | Prisma.SortOrder
+  mechanicNames?: Prisma.SortOrder
   currentKm?: Prisma.SortOrderInput | Prisma.SortOrder
   currentHm?: Prisma.SortOrderInput | Prisma.SortOrder
   nextDueKm?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -353,7 +403,13 @@ export type PreventiveMaintenanceItemWhereUniqueInput = Prisma.AtLeast<{
   serviceType?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
   shift?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
   status?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
+  category?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planStartTime?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planLeadTime?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planHmServis?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  supervisorName?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
   mechanicName?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  mechanicNames?: Prisma.StringNullableListFilter<"PreventiveMaintenanceItem">
   currentKm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
   currentHm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
   nextDueKm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
@@ -374,7 +430,13 @@ export type PreventiveMaintenanceItemOrderByWithAggregationInput = {
   serviceType?: Prisma.SortOrder
   shift?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
+  planStartTime?: Prisma.SortOrderInput | Prisma.SortOrder
+  planLeadTime?: Prisma.SortOrderInput | Prisma.SortOrder
+  planHmServis?: Prisma.SortOrderInput | Prisma.SortOrder
+  supervisorName?: Prisma.SortOrderInput | Prisma.SortOrder
   mechanicName?: Prisma.SortOrderInput | Prisma.SortOrder
+  mechanicNames?: Prisma.SortOrder
   currentKm?: Prisma.SortOrderInput | Prisma.SortOrder
   currentHm?: Prisma.SortOrderInput | Prisma.SortOrder
   nextDueKm?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -401,7 +463,13 @@ export type PreventiveMaintenanceItemScalarWhereWithAggregatesInput = {
   serviceType?: Prisma.StringWithAggregatesFilter<"PreventiveMaintenanceItem"> | string
   shift?: Prisma.StringWithAggregatesFilter<"PreventiveMaintenanceItem"> | string
   status?: Prisma.StringWithAggregatesFilter<"PreventiveMaintenanceItem"> | string
+  category?: Prisma.StringNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | string | null
+  planStartTime?: Prisma.StringNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | string | null
+  planLeadTime?: Prisma.StringNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | string | null
+  planHmServis?: Prisma.StringNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | string | null
+  supervisorName?: Prisma.StringNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | string | null
   mechanicName?: Prisma.StringNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | string | null
+  mechanicNames?: Prisma.StringNullableListFilter<"PreventiveMaintenanceItem">
   currentKm?: Prisma.FloatNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | number | null
   currentHm?: Prisma.FloatNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | number | null
   nextDueKm?: Prisma.FloatNullableWithAggregatesFilter<"PreventiveMaintenanceItem"> | number | null
@@ -418,7 +486,13 @@ export type PreventiveMaintenanceItemCreateInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -439,7 +513,13 @@ export type PreventiveMaintenanceItemUncheckedCreateInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -456,7 +536,13 @@ export type PreventiveMaintenanceItemUpdateInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -477,7 +563,13 @@ export type PreventiveMaintenanceItemUncheckedUpdateInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -496,7 +588,13 @@ export type PreventiveMaintenanceItemCreateManyInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -513,7 +611,13 @@ export type PreventiveMaintenanceItemUpdateManyMutationInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -532,7 +636,13 @@ export type PreventiveMaintenanceItemUncheckedUpdateManyInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -553,6 +663,14 @@ export type PreventiveMaintenanceItemOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type PreventiveMaintenanceItemPlanIdUnitCodeCompoundUniqueInput = {
   planId: string
   unitCode: string
@@ -566,7 +684,13 @@ export type PreventiveMaintenanceItemCountOrderByAggregateInput = {
   serviceType?: Prisma.SortOrder
   shift?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  planStartTime?: Prisma.SortOrder
+  planLeadTime?: Prisma.SortOrder
+  planHmServis?: Prisma.SortOrder
+  supervisorName?: Prisma.SortOrder
   mechanicName?: Prisma.SortOrder
+  mechanicNames?: Prisma.SortOrder
   currentKm?: Prisma.SortOrder
   currentHm?: Prisma.SortOrder
   nextDueKm?: Prisma.SortOrder
@@ -592,6 +716,11 @@ export type PreventiveMaintenanceItemMaxOrderByAggregateInput = {
   serviceType?: Prisma.SortOrder
   shift?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  planStartTime?: Prisma.SortOrder
+  planLeadTime?: Prisma.SortOrder
+  planHmServis?: Prisma.SortOrder
+  supervisorName?: Prisma.SortOrder
   mechanicName?: Prisma.SortOrder
   currentKm?: Prisma.SortOrder
   currentHm?: Prisma.SortOrder
@@ -611,6 +740,11 @@ export type PreventiveMaintenanceItemMinOrderByAggregateInput = {
   serviceType?: Prisma.SortOrder
   shift?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  planStartTime?: Prisma.SortOrder
+  planLeadTime?: Prisma.SortOrder
+  planHmServis?: Prisma.SortOrder
+  supervisorName?: Prisma.SortOrder
   mechanicName?: Prisma.SortOrder
   currentKm?: Prisma.SortOrder
   currentHm?: Prisma.SortOrder
@@ -713,13 +847,28 @@ export type PreventiveMaintenanceItemUncheckedUpdateManyWithoutPlanNestedInput =
   deleteMany?: Prisma.PreventiveMaintenanceItemScalarWhereInput | Prisma.PreventiveMaintenanceItemScalarWhereInput[]
 }
 
+export type PreventiveMaintenanceItemCreatemechanicNamesInput = {
+  set: string[]
+}
+
+export type PreventiveMaintenanceItemUpdatemechanicNamesInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type PreventiveMaintenanceItemCreateWithoutUnitInput = {
   id?: string
   date: string
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -738,7 +887,13 @@ export type PreventiveMaintenanceItemUncheckedCreateWithoutUnitInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -786,7 +941,13 @@ export type PreventiveMaintenanceItemScalarWhereInput = {
   serviceType?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
   shift?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
   status?: Prisma.StringFilter<"PreventiveMaintenanceItem"> | string
+  category?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planStartTime?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planLeadTime?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  planHmServis?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  supervisorName?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
   mechanicName?: Prisma.StringNullableFilter<"PreventiveMaintenanceItem"> | string | null
+  mechanicNames?: Prisma.StringNullableListFilter<"PreventiveMaintenanceItem">
   currentKm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
   currentHm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
   nextDueKm?: Prisma.FloatNullableFilter<"PreventiveMaintenanceItem"> | number | null
@@ -803,7 +964,13 @@ export type PreventiveMaintenanceItemCreateWithoutPlanInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -822,7 +989,13 @@ export type PreventiveMaintenanceItemUncheckedCreateWithoutPlanInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -866,7 +1039,13 @@ export type PreventiveMaintenanceItemCreateManyUnitInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -883,7 +1062,13 @@ export type PreventiveMaintenanceItemUpdateWithoutUnitInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -902,7 +1087,13 @@ export type PreventiveMaintenanceItemUncheckedUpdateWithoutUnitInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -920,7 +1111,13 @@ export type PreventiveMaintenanceItemUncheckedUpdateManyWithoutUnitInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -938,7 +1135,13 @@ export type PreventiveMaintenanceItemCreateManyPlanInput = {
   serviceType?: string
   shift?: string
   status?: string
+  category?: string | null
+  planStartTime?: string | null
+  planLeadTime?: string | null
+  planHmServis?: string | null
+  supervisorName?: string | null
   mechanicName?: string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemCreatemechanicNamesInput | string[]
   currentKm?: number | null
   currentHm?: number | null
   nextDueKm?: number | null
@@ -955,7 +1158,13 @@ export type PreventiveMaintenanceItemUpdateWithoutPlanInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -974,7 +1183,13 @@ export type PreventiveMaintenanceItemUncheckedUpdateWithoutPlanInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -992,7 +1207,13 @@ export type PreventiveMaintenanceItemUncheckedUpdateManyWithoutPlanInput = {
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   shift?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planStartTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planLeadTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  planHmServis?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mechanicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mechanicNames?: Prisma.PreventiveMaintenanceItemUpdatemechanicNamesInput | string[]
   currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   nextDueKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1013,7 +1234,13 @@ export type PreventiveMaintenanceItemSelect<ExtArgs extends runtime.Types.Extens
   serviceType?: boolean
   shift?: boolean
   status?: boolean
+  category?: boolean
+  planStartTime?: boolean
+  planLeadTime?: boolean
+  planHmServis?: boolean
+  supervisorName?: boolean
   mechanicName?: boolean
+  mechanicNames?: boolean
   currentKm?: boolean
   currentHm?: boolean
   nextDueKm?: boolean
@@ -1034,7 +1261,13 @@ export type PreventiveMaintenanceItemSelectCreateManyAndReturn<ExtArgs extends r
   serviceType?: boolean
   shift?: boolean
   status?: boolean
+  category?: boolean
+  planStartTime?: boolean
+  planLeadTime?: boolean
+  planHmServis?: boolean
+  supervisorName?: boolean
   mechanicName?: boolean
+  mechanicNames?: boolean
   currentKm?: boolean
   currentHm?: boolean
   nextDueKm?: boolean
@@ -1055,7 +1288,13 @@ export type PreventiveMaintenanceItemSelectUpdateManyAndReturn<ExtArgs extends r
   serviceType?: boolean
   shift?: boolean
   status?: boolean
+  category?: boolean
+  planStartTime?: boolean
+  planLeadTime?: boolean
+  planHmServis?: boolean
+  supervisorName?: boolean
   mechanicName?: boolean
+  mechanicNames?: boolean
   currentKm?: boolean
   currentHm?: boolean
   nextDueKm?: boolean
@@ -1076,7 +1315,13 @@ export type PreventiveMaintenanceItemSelectScalar = {
   serviceType?: boolean
   shift?: boolean
   status?: boolean
+  category?: boolean
+  planStartTime?: boolean
+  planLeadTime?: boolean
+  planHmServis?: boolean
+  supervisorName?: boolean
   mechanicName?: boolean
+  mechanicNames?: boolean
   currentKm?: boolean
   currentHm?: boolean
   nextDueKm?: boolean
@@ -1087,7 +1332,7 @@ export type PreventiveMaintenanceItemSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PreventiveMaintenanceItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "planId" | "date" | "unitCode" | "serviceType" | "shift" | "status" | "mechanicName" | "currentKm" | "currentHm" | "nextDueKm" | "nextDueHm" | "notes" | "buntutSummary" | "createdAt" | "updatedAt", ExtArgs["result"]["preventiveMaintenanceItem"]>
+export type PreventiveMaintenanceItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "planId" | "date" | "unitCode" | "serviceType" | "shift" | "status" | "category" | "planStartTime" | "planLeadTime" | "planHmServis" | "supervisorName" | "mechanicName" | "mechanicNames" | "currentKm" | "currentHm" | "nextDueKm" | "nextDueHm" | "notes" | "buntutSummary" | "createdAt" | "updatedAt", ExtArgs["result"]["preventiveMaintenanceItem"]>
 export type PreventiveMaintenanceItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   plan?: boolean | Prisma.PreventiveMaintenancePlanDefaultArgs<ExtArgs>
   unit?: boolean | Prisma.PreventiveMaintenanceItem$unitArgs<ExtArgs>
@@ -1115,7 +1360,13 @@ export type $PreventiveMaintenanceItemPayload<ExtArgs extends runtime.Types.Exte
     serviceType: string
     shift: string
     status: string
+    category: string | null
+    planStartTime: string | null
+    planLeadTime: string | null
+    planHmServis: string | null
+    supervisorName: string | null
     mechanicName: string | null
+    mechanicNames: string[]
     currentKm: number | null
     currentHm: number | null
     nextDueKm: number | null
@@ -1556,7 +1807,13 @@ export interface PreventiveMaintenanceItemFieldRefs {
   readonly serviceType: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
   readonly shift: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
   readonly status: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
+  readonly category: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
+  readonly planStartTime: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
+  readonly planLeadTime: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
+  readonly planHmServis: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
+  readonly supervisorName: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
   readonly mechanicName: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String'>
+  readonly mechanicNames: Prisma.FieldRef<"PreventiveMaintenanceItem", 'String[]'>
   readonly currentKm: Prisma.FieldRef<"PreventiveMaintenanceItem", 'Float'>
   readonly currentHm: Prisma.FieldRef<"PreventiveMaintenanceItem", 'Float'>
   readonly nextDueKm: Prisma.FieldRef<"PreventiveMaintenanceItem", 'Float'>

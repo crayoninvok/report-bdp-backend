@@ -21,15 +21,18 @@ plantRouter.put("/periodic-inspection/item/:id", plantController.updateInspectio
 plantRouter.delete("/periodic-inspection/item/:id", plantController.deleteInspectionItem);
 plantRouter.post("/periodic-inspection/apply-standard-template", plantController.applyStandardWeeklySchedule);
 
-// 4. Weekly Schedule, Daily Items & Radar KM/HM (Preventive Maintenance)
-plantRouter.get("/preventive-maintenance/weekly", pmController.getPmWeeklySchedule);
-plantRouter.post("/preventive-maintenance/plan", pmController.upsertPmDailyPlan);
-plantRouter.post("/preventive-maintenance/item", pmController.addPmItem);
-plantRouter.post("/preventive-maintenance/bulk-add", pmController.bulkAddPmItems);
-plantRouter.put("/preventive-maintenance/item/:id", pmController.updatePmItem);
-plantRouter.delete("/preventive-maintenance/item/:id", pmController.deletePmItem);
-plantRouter.post("/preventive-maintenance/auto-schedule-due", pmController.autoScheduleDueUnits);
-plantRouter.get("/preventive-maintenance/radar", pmController.getPmRadar);
+// 4. Weekly Schedule, Daily Items & Radar KM/HM (Periodic Service / Preventive Maintenance)
+for (const psBase of ["/preventive-maintenance", "/periodic-service"]) {
+  plantRouter.get(`${psBase}/weekly`, pmController.getPmWeeklySchedule);
+  plantRouter.post(`${psBase}/plan`, pmController.upsertPmDailyPlan);
+  plantRouter.post(`${psBase}/item`, pmController.addPmItem);
+  plantRouter.post(`${psBase}/bulk-add`, pmController.bulkAddPmItems);
+  plantRouter.put(`${psBase}/item/:id`, pmController.updatePmItem);
+  plantRouter.delete(`${psBase}/item/:id`, pmController.deletePmItem);
+  plantRouter.post(`${psBase}/auto-schedule-due`, pmController.autoScheduleDueUnits);
+  plantRouter.get(`${psBase}/radar`, pmController.getPmRadar);
+  plantRouter.get(`${psBase}/personnel`, pmController.getPlantPersonnel);
+}
 
 // 5. Tyre & Rim Usage (from GL Beban Tyre 05110203)
 plantRouter.get("/tyre-rim-usage", plantController.getTyreRimUsage);

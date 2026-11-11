@@ -297,24 +297,30 @@ model PreventiveMaintenancePlan {
 }
 
 model PreventiveMaintenanceItem {
-  id            String                    @id @default(uuid())
-  planId        String
-  plan          PreventiveMaintenancePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  date          String                    // YYYY-MM-DD
-  unitCode      String                    // e.g. "PM401" (kepala)
-  unit          MasterUnit?               @relation(fields: [unitCode], references: [unitCode])
-  serviceType   String                    @default("PS1 (12.000 KM)") // "PS1 (12.000 KM)", "PS2 (24.000 KM)", "PS3 (48.000 KM)", "P1 (250 HM)", "P2 (500 HM)", "P3 (1000 HM)", "P4 (2000 HM)", "Greasing & PM"
-  shift         String                    @default("Shift 1") // "Shift 1", "Shift 2"
-  status        String                    @default("Scheduled") // "Scheduled", "In Progress", "Completed", "Pending"
-  mechanicName  String?
-  currentKm     Float?                    // Odometer (KM) tercatat saat PM
-  currentHm     Float?                    // Engine Hours (HM) tercatat saat PM
-  nextDueKm     Float?                    // Target KM servis berikutnya
-  nextDueHm     Float?                    // Target HM servis berikutnya
-  notes         String?
-  buntutSummary String?                   // e.g. "ST801, DL601, ST901"
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @updatedAt
+  id             String                    @id @default(uuid())
+  planId         String
+  plan           PreventiveMaintenancePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  date           String                    // YYYY-MM-DD
+  unitCode       String                    // e.g. "PM401" (kepala)
+  unit           MasterUnit?               @relation(fields: [unitCode], references: [unitCode])
+  serviceType    String                    @default("PS1 (12.000 KM)") // "PS1 (12.000 KM)", "PS2 (24.000 KM)", "PS3 (48.000 KM)", "P1 (250 HM)", "P2 (500 HM)", "P3 (1000 HM)", "P4 (2000 HM)", "Greasing & PS"
+  shift          String                    @default("Shift 1") // "Shift 1", "Shift 2"
+  status         String                    @default("Scheduled") // "Scheduled", "In Progress", "Completed", "Pending"
+  category       String?                   @default("Scheduled PS") // "Scheduled PS", "Back-Log / Follow-up", "Breakdown / Unscheduled", "Overhaul / Major", "Greasing & Routine"
+  planStartTime  String?                   // e.g. "08:00"
+  planLeadTime   String?                   // e.g. "4 Jam"
+  planHmServis   String?                   // e.g. "500 HM" atau target HM saat servis
+  supervisorName String?                   // Nama Pengawas (SPV Plant dari HR)
+  mechanicName   String?                   // Gabungan nama mekanik (maks 5)
+  mechanicNames  String[]                  @default([]) // Daftar nama mekanik dari HR (maks 5)
+  currentKm      Float?                    // Odometer (KM) tercatat saat Periodic Service
+  currentHm      Float?                    // Engine Hours (HM) tercatat saat Periodic Service
+  nextDueKm      Float?                    // Target KM servis berikutnya
+  nextDueHm      Float?                    // Target HM servis berikutnya
+  notes          String?
+  buntutSummary  String?                   // e.g. "ST801, DL601, ST901"
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
 
   @@unique([planId, unitCode])
   @@index([date])
