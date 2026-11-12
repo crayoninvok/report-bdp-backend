@@ -143,6 +143,23 @@ function resolveMechanicsPayload(mechanicNames, mechanicName, inspectorName) {
     }
     return {};
 }
+/**
+ * Resolves optional PS companion trailers (`buntutSummary`) only when explicitly selected.
+ * Unlike Periodic Inspection, Periodic Service on a Head does NOT auto-include Dolly & Vessel.
+ */
+function resolveOptionalBuntutSummary(buntutSummary, includedTrailers) {
+    if (Array.isArray(includedTrailers)) {
+        const cleaned = includedTrailers
+            .map((c) => String(c || "").trim().toUpperCase())
+            .filter(Boolean);
+        return cleaned.length > 0 ? cleaned.join(", ") : null;
+    }
+    if (buntutSummary !== undefined) {
+        const str = String(buntutSummary || "").trim();
+        return str.length > 0 ? str : null;
+    }
+    return undefined;
+}
 exports.pmController = {
     // -------------------------------------------------------------
     // 1. WEEKLY PREVENTIVE MAINTENANCE SCHEDULE
@@ -160,7 +177,7 @@ exports.pmController = {
             const defaultDailyTarget = globalTargetSetting
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
                 : DEFAULT_DAILY_PM_TARGET;
-            const [{ primeMoverPopulation, totalPopulationAllSites }, existingPlans, trailerSummaryMap, telemetry,] = await Promise.all([
+            const [{ primeMoverPopulation, totalPopulationAllSites }, existingPlans, telemetry,] = await Promise.all([
                 (0, plantHelpers_1.getSiteUnitPopulations)(jobSite),
                 prisma_1.prisma.preventiveMaintenancePlan.findMany({
                     where: { jobSite, date: { in: dates } },
@@ -171,7 +188,6 @@ exports.pmController = {
                         },
                     },
                 }),
-                (0, plantHelpers_1.getTrailerSummaryMap)(),
                 (0, volvoClient_1.getVolvoTelemetryMap)(),
             ]);
             const planByDate = {};
@@ -186,13 +202,14 @@ exports.pmController = {
                 const plan = planByDate[dStr];
                 const targetUnits = plan && plan.targetUnits !== undefined ? plan.targetUnits : defaultDailyTarget;
                 const items = (plan?.items || []).map((item) => {
-                    const tel = telemetry.map.get(item.unitCode);
+                    const isHead = !item.unit || item.unit.category === "Prime Mover";
+                    const tel = isHead ? telemetry.map.get(item.unitCode) : undefined;
                     return {
                         ...item,
                         inspectorName: item.mechanicName || null,
                         liveKm: tel?.km ?? null,
                         liveHm: tel?.hm ?? null,
-                        buntutSummary: item.buntutSummary || trailerSummaryMap[item.unitCode] || "",
+                        buntutSummary: item.buntutSummary || "",
                     };
                 });
                 const scheduledCount = items.length;
@@ -306,7 +323,7 @@ exports.pmController = {
     // -------------------------------------------------------------
     addPmItem: async (req, res) => {
         try {
-            const { date, unitCode, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", status = "Scheduled", category = "Scheduled PS", planStartTime, planLeadTime, planHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, currentKm, currentHm, nextDueKm, nextDueHm, notes, jobSite = "MuaraPahu", } = req.body;
+            const { date, unitCode, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", status = "Scheduled", category = "Scheduled PS", planStartTime, planLeadTime, planHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, buntutSummary: rawBuntutSummary, includedTrailers, currentKm, currentHm, nextDueKm, nextDueHm, notes, jobSite = "MuaraPahu", } = req.body;
             if (!date || !unitCode) {
                 return res.status(400).json({
                     success: false,
@@ -314,16 +331,19 @@ exports.pmController = {
                 });
             }
             const normalizedUnitCode = (0, plantHelpers_1.normalizeHeadCode)(unitCode);
-            const [trailerSummaryMap, globalTargetSetting, telemetry] = await Promise.all([
-                (0, plantHelpers_1.getTrailerSummaryMap)(),
+            const [masterUnit, globalTargetSetting, telemetry] = await Promise.all([
+                prisma_1.prisma.masterUnit.findUnique({ where: { unitCode: normalizedUnitCode } }),
                 prisma_1.prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
                 (0, volvoClient_1.getVolvoTelemetryMap)(),
             ]);
-            const buntutSummary = trailerSummaryMap[normalizedUnitCode] || "";
+            const isHead = !masterUnit || masterUnit.category === "Prime Mover";
+            const resolvedBuntut = isHead
+                ? resolveOptionalBuntutSummary(rawBuntutSummary, includedTrailers)
+                : null;
             const defaultTarget = globalTargetSetting
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
                 : DEFAULT_DAILY_PM_TARGET;
-            const tel = telemetry.map.get(normalizedUnitCode);
+            const tel = isHead ? telemetry.map.get(normalizedUnitCode) : undefined;
             const resolvedKm = currentKm !== undefined && currentKm !== null && currentKm !== ""
                 ? Number(currentKm)
                 : tel?.km ?? null;
@@ -365,7 +385,7 @@ exports.pmController = {
                     nextDueKm: resolvedNextKm ?? undefined,
                     nextDueHm: resolvedNextHm ?? undefined,
                     notes: notes !== undefined ? notes || null : undefined,
-                    buntutSummary: buntutSummary || undefined,
+                    ...(resolvedBuntut !== undefined ? { buntutSummary: resolvedBuntut } : {}),
                 },
                 create: {
                     planId: plan.id,
@@ -386,7 +406,7 @@ exports.pmController = {
                     nextDueKm: resolvedNextKm,
                     nextDueHm: resolvedNextHm,
                     notes: notes || null,
-                    buntutSummary: buntutSummary || null,
+                    buntutSummary: resolvedBuntut ?? null,
                 },
                 include: { unit: true },
             });
@@ -395,6 +415,7 @@ exports.pmController = {
                 message: `Unit ${normalizedUnitCode} berhasil dijadwalkan Periodic Service untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
                 data: {
                     ...item,
+                    buntutSummary: item.buntutSummary || "",
                     inspectorName: item.mechanicName || null,
                     liveKm: tel?.km ?? null,
                     liveHm: tel?.hm ?? null,
@@ -418,11 +439,16 @@ exports.pmController = {
                     message: "Tanggal dan daftar kode unit wajib diisi",
                 });
             }
-            const [trailerSummaryMap, globalTargetSetting, telemetry] = await Promise.all([
-                (0, plantHelpers_1.getTrailerSummaryMap)(),
+            const normalizedCodes = unitCodes.map((rawCode) => (0, plantHelpers_1.normalizeHeadCode)(rawCode));
+            const [matchedUnits, globalTargetSetting, telemetry] = await Promise.all([
+                prisma_1.prisma.masterUnit.findMany({
+                    where: { unitCode: { in: normalizedCodes } },
+                    select: { unitCode: true, category: true },
+                }),
                 prisma_1.prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
                 (0, volvoClient_1.getVolvoTelemetryMap)(),
             ]);
+            const categoryMap = new Map(matchedUnits.map((u) => [u.unitCode, u.category]));
             const defaultTarget = globalTargetSetting
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
                 : DEFAULT_DAILY_PM_TARGET;
@@ -432,10 +458,9 @@ exports.pmController = {
                 create: { jobSite, date, targetUnits: defaultTarget },
             });
             const results = [];
-            for (const rawCode of unitCodes) {
-                const code = (0, plantHelpers_1.normalizeHeadCode)(rawCode);
-                const buntutSummary = trailerSummaryMap[code] || null;
-                const tel = telemetry.map.get(code);
+            for (const code of normalizedCodes) {
+                const isHead = !categoryMap.has(code) || categoryMap.get(code) === "Prime Mover";
+                const tel = isHead ? telemetry.map.get(code) : undefined;
                 const currentKm = tel?.km ?? null;
                 const currentHm = tel?.hm ?? null;
                 const { nextDueKm, nextDueHm } = (0, plantHelpers_1.computePmTargets)(serviceType, currentKm, currentHm);
@@ -444,7 +469,6 @@ exports.pmController = {
                     update: {
                         serviceType,
                         shift,
-                        buntutSummary: buntutSummary || undefined,
                         ...(currentKm !== null ? { currentKm } : {}),
                         ...(currentHm !== null ? { currentHm } : {}),
                         ...(nextDueKm !== null ? { nextDueKm } : {}),
@@ -461,7 +485,7 @@ exports.pmController = {
                         currentHm,
                         nextDueKm,
                         nextDueHm,
-                        buntutSummary,
+                        buntutSummary: null,
                     },
                 });
                 results.push(item);
@@ -483,19 +507,26 @@ exports.pmController = {
     updatePmItem: async (req, res) => {
         try {
             const id = String(req.params.id);
-            const { serviceType, shift, status, category, planStartTime, planLeadTime, planHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, currentKm, currentHm, nextDueKm, nextDueHm, notes, } = req.body;
-            const existing = await prisma_1.prisma.preventiveMaintenanceItem.findUnique({ where: { id } });
+            const { serviceType, shift, status, category, planStartTime, planLeadTime, planHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, buntutSummary: rawBuntutSummary, includedTrailers, currentKm, currentHm, nextDueKm, nextDueHm, notes, } = req.body;
+            const existing = await prisma_1.prisma.preventiveMaintenanceItem.findUnique({
+                where: { id },
+                include: { unit: true },
+            });
             if (!existing) {
                 return res
                     .status(404)
                     .json({ success: false, message: "Jadwal Periodic Service tidak ditemukan" });
             }
+            const isHead = !existing.unit || existing.unit.category === "Prime Mover";
             const mechResolved = resolveMechanicsPayload(mechanicNames, mechanicName, inspectorName);
+            const resolvedBuntut = isHead
+                ? resolveOptionalBuntutSummary(rawBuntutSummary, includedTrailers)
+                : null;
             const effectiveService = serviceType || existing.serviceType;
             let resolvedKm = currentKm !== undefined ? (currentKm === null || currentKm === "" ? null : Number(currentKm)) : existing.currentKm;
             let resolvedHm = currentHm !== undefined ? (currentHm === null || currentHm === "" ? null : Number(currentHm)) : existing.currentHm;
-            // On completion, capture live Volvo KM/HM if still missing
-            if (status === "Completed" && (resolvedKm == null || resolvedHm == null)) {
+            // On completion of a Prime Mover, capture live Volvo KM/HM if still missing
+            if (isHead && status === "Completed" && (resolvedKm == null || resolvedHm == null)) {
                 const telemetry = await (0, volvoClient_1.getVolvoTelemetryMap)();
                 const tel = telemetry.map.get(existing.unitCode);
                 if (tel) {
@@ -537,6 +568,7 @@ exports.pmController = {
                             mechanicNames: mechResolved.namesArray || [],
                         }
                         : {}),
+                    ...(resolvedBuntut !== undefined ? { buntutSummary: resolvedBuntut } : {}),
                     currentKm: resolvedKm,
                     currentHm: resolvedHm,
                     nextDueKm: resolvedNextKm,
@@ -550,6 +582,7 @@ exports.pmController = {
                 message: "Jadwal Periodic Service berhasil diperbarui",
                 data: {
                     ...updated,
+                    buntutSummary: updated.buntutSummary || "",
                     inspectorName: updated.mechanicName || null,
                 },
             });
@@ -589,7 +622,7 @@ exports.pmController = {
         try {
             const { date, jobSite = "MuaraPahu" } = req.body;
             const { startDate, endDate, dates } = (0, plantHelpers_1.getWeekRange)(date);
-            const [units, telemetry, existingPlans, trailerSummaryMap, globalTargetSetting, completedItems] = await Promise.all([
+            const [units, telemetry, existingPlans, globalTargetSetting, completedItems] = await Promise.all([
                 prisma_1.prisma.masterUnit.findMany({
                     where: { category: "Prime Mover", status: "Active", jobSite },
                     orderBy: { unitNumber: "asc" },
@@ -599,7 +632,6 @@ exports.pmController = {
                     where: { jobSite, date: { in: dates } },
                     include: { items: true },
                 }),
-                (0, plantHelpers_1.getTrailerSummaryMap)(),
                 prisma_1.prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
                 prisma_1.prisma.preventiveMaintenanceItem.findMany({
                     where: { status: "Completed" },
@@ -685,7 +717,7 @@ exports.pmController = {
                         nextDueKm: entry.evalRes.targetKm,
                         nextDueHm: entry.evalRes.targetHm,
                         notes: `Auto-Radar Volvo (${entry.evalRes.readinessStatus}: sisa ${entry.evalRes.remainingKm.toLocaleString("id-ID")} KM)`,
-                        buntutSummary: trailerSummaryMap[entry.unit.unitCode] || null,
+                        buntutSummary: null,
                     },
                 });
                 inserted++;
