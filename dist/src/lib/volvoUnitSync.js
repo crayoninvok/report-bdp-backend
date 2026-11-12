@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SUPPORT_CATEGORY_NAMES = exports.SUPPORT_UNIT_TYPES = exports.TRAILER_CATEGORIES = exports.HAULING_CATEGORIES = void 0;
 exports.isHaulingCategory = isHaulingCategory;
 exports.resolveSupportUnitType = resolveSupportUnitType;
+exports.parseNonNegativeMeterInput = parseNonNegativeMeterInput;
 exports.buildHaulingSetForPm = buildHaulingSetForPm;
 exports.syncVolvoPrimeMoversToMasterUnits = syncVolvoPrimeMoversToMasterUnits;
 const prisma_1 = require("./prisma");
@@ -85,6 +86,24 @@ function resolveSupportUnitType(raw) {
     const norm = raw.trim().toLowerCase();
     return SUPPORT_ALIAS_MAP.get(norm) ?? null;
 }
+/** Parses an optional non-negative meter value (HM or KM) from request input. */
+function parseNonNegativeMeterInput(raw, label, decimals = 1) {
+    if (raw === undefined) {
+        return { value: undefined };
+    }
+    if (raw === null || String(raw).trim() === "") {
+        return { value: null };
+    }
+    const num = Number(raw);
+    if (!Number.isFinite(num) || num < 0) {
+        return {
+            value: undefined,
+            error: `Nilai ${label} harus berupa angka >= 0.`,
+        };
+    }
+    const factor = Math.pow(10, decimals);
+    return { value: Math.round(num * factor) / factor };
+}
 /**
  * Computes paired Vessel 1, Dolly (DL60), and Vessel 2 specs for a Volvo Prime Mover code.
  * Matches existing numbering (PM401..PM499 -> pairIndex 1..99 -> ST8xx/DL6xx/ST9xx)
@@ -155,8 +174,18 @@ async function syncVolvoPrimeMoversToMasterUnits(forceRefresh = false) {
     }
     inFlightSync = (async () => {
         try {
-            const payload = await (0, volvoClient_1.fetchFromVolvo)("/vehicle/vehicles", "application/x.volvogroup.com.vehicles.v1.0+json");
-            const vehicles = payload?.vehicleResponse?.vehicles || [];
+            const telemetryRes = await (0, volvoClient_1.getVolvoTelemetryMap)(forceRefresh);
+            if (telemetryRes.error && telemetryRes.map.size === 0) {
+                return {
+                    syncedAt: new Date().toISOString(),
+                    totalVolvoVehicles: 0,
+                    createdCount: 0,
+                    newPrimeMovers: [],
+                    newTrailers: [],
+                    error: telemetryRes.error,
+                };
+            }
+            const vehicles = Array.from(telemetryRes.map.values());
             const existingUnits = await prisma_1.prisma.masterUnit.findMany({
                 select: {
                     unitCode: true,
@@ -180,11 +209,8 @@ async function syncVolvoPrimeMoversToMasterUnits(forceRefresh = false) {
             const newPrimeMovers = [];
             const newTrailers = [];
             const queuedCodes = new Set();
-            for (const veh of vehicles) {
-                const fullName = veh.customerVehicleName || veh.vin || "";
-                const rawPm = fullName.split("/")[0]?.trim() || "";
-                const normalizedCode = rawPm.replace(/\s+/g, "").toUpperCase();
-                const pairing = buildHaulingSetForPm(normalizedCode, veh.model);
+            for (const tel of vehicles) {
+                const pairing = buildHaulingSetForPm(tel.unitCode, tel.model);
                 if (!pairing)
                     continue;
                 const existingPm = existingByCode.get(pairing.pmCode);
@@ -201,6 +227,8 @@ async function syncVolvoPrimeMoversToMasterUnits(forceRefresh = false) {
                         pairIndex: pairing.pairIndex,
                         jobSite: targetSite,
                         status: targetStatus,
+                        currentHm: tel.hm ?? null,
+                        currentKm: tel.km ?? null,
                     });
                     queuedCodes.add(pairing.pmCode);
                     newPrimeMovers.push(pairing.pmCode);
@@ -223,6 +251,8 @@ async function syncVolvoPrimeMoversToMasterUnits(forceRefresh = false) {
                         pairIndex: pairing.pairIndex,
                         jobSite: targetSite,
                         status: targetStatus,
+                        currentHm: null,
+                        currentKm: null,
                     });
                     queuedCodes.add(tr.unitCode);
                     newTrailers.push(tr.unitCode);

@@ -10,11 +10,13 @@ import {
 } from "../lib/plantHelpers";
 import {
   isHaulingCategory,
+  parseNonNegativeMeterInput,
   resolveSupportUnitType,
   SUPPORT_CATEGORY_NAMES,
   syncVolvoPrimeMoversToMasterUnits,
   TRAILER_CATEGORIES,
 } from "../lib/volvoUnitSync";
+import { getVolvoTelemetryMap } from "../lib/volvoClient";
 
 export const plantController = {
   // -------------------------------------------------------------
@@ -49,25 +51,36 @@ export const plantController = {
         ];
       }
 
-      const units = await prisma.masterUnit.findMany({
-        where,
-        orderBy: [{ category: "asc" }, { unitNumber: "asc" }],
-      });
+      const includeTrailers = withTrailers === "true" || category === "Prime Mover";
+      const [units, telemetry, allTrailers, counts] = await Promise.all([
+        prisma.masterUnit.findMany({
+          where,
+          orderBy: [{ category: "asc" }, { unitNumber: "asc" }],
+        }),
+        // Telemetry cache is already warmed when syncVolvoPrimeMoversToMasterUnits ran above
+        getVolvoTelemetryMap(false).catch(() => ({
+          map: new Map(),
+          onlineCount: 0,
+          fetchedAt: null,
+        })),
+        includeTrailers
+          ? prisma.masterUnit.findMany({
+              where: { category: { in: [...TRAILER_CATEGORIES] } },
+              orderBy: { unitNumber: "asc" },
+            })
+          : Promise.resolve([]),
+        prisma.masterUnit.groupBy({
+          by: ["category"],
+          _count: { id: true },
+        }),
+      ]);
 
-      // If requested or if fetching prime movers, attach trailer sets
-      let enrichedUnits: any[] = units;
-      if (withTrailers === "true" || category === "Prime Mover") {
-        // Fetch all hauling trailer units (Vessel 1, Dolly, Vessel 2)
-        const allTrailers = await prisma.masterUnit.findMany({
-          where: { category: { in: [...TRAILER_CATEGORIES] } },
-          orderBy: { unitNumber: "asc" },
-        });
+      const trailerMap: Record<
+        string,
+        { vessel1?: any; dolly?: any; vessel2?: any; summary: string }
+      > = {};
 
-        const trailerMap: Record<
-          string,
-          { vessel1?: any; dolly?: any; vessel2?: any; summary: string }
-        > = {};
-
+      if (includeTrailers) {
         for (const t of allTrailers) {
           if (!t.headUnitCode) continue;
           if (!trailerMap[t.headUnitCode]) {
@@ -85,24 +98,28 @@ export const plantController = {
           if (trailerMap[head].vessel2) parts.push(trailerMap[head].vessel2.unitCode);
           trailerMap[head].summary = parts.join(", ");
         }
-
-        enrichedUnits = units.map((u) => {
-          if (u.category === "Prime Mover") {
-            const trailers = trailerMap[u.unitCode] || { summary: "" };
-            return {
-              ...u,
-              trailers,
-              buntutSummary: trailers.summary,
-            };
-          }
-          return u;
-        });
       }
 
-      // Summary counts
-      const counts = await prisma.masterUnit.groupBy({
-        by: ["category"],
-        _count: { id: true },
+      const enrichedUnits: any[] = units.map((u) => {
+        const tel = u.category === "Prime Mover" ? telemetry.map.get(u.unitCode) : undefined;
+        const resolvedHm = tel ? tel.hm : u.currentHm ?? null;
+        const resolvedKm = tel ? tel.km : u.currentKm ?? null;
+        const trailers = includeTrailers && u.category === "Prime Mover"
+          ? trailerMap[u.unitCode] || { summary: "" }
+          : undefined;
+
+        return {
+          ...u,
+          currentHm: resolvedHm,
+          currentKm: resolvedKm,
+          isLiveTelemetry: Boolean(tel),
+          ...(trailers
+            ? {
+                trailers,
+                buntutSummary: trailers.summary,
+              }
+            : {}),
+        };
       });
 
       const summaryCounts: {
@@ -161,6 +178,10 @@ export const plantController = {
         model: rawModel,
         jobSite: rawJobSite,
         status: rawStatus,
+        currentHm: rawCurrentHm,
+        currentKm: rawCurrentKm,
+        hm: rawHmAlias,
+        km: rawKmAlias,
       } = req.body || {};
 
       if (isHaulingCategory(rawCategory)) {
@@ -209,6 +230,23 @@ export const plantController = {
         });
       }
 
+      const hmParsed = parseNonNegativeMeterInput(
+        rawCurrentHm !== undefined ? rawCurrentHm : rawHmAlias,
+        "HM",
+        1
+      );
+      if (hmParsed.error) {
+        return res.status(400).json({ success: false, message: hmParsed.error });
+      }
+      const kmParsed = parseNonNegativeMeterInput(
+        rawCurrentKm !== undefined ? rawCurrentKm : rawKmAlias,
+        "KM",
+        0
+      );
+      if (kmParsed.error) {
+        return res.status(400).json({ success: false, message: kmParsed.error });
+      }
+
       const requestedSite: JobSite =
         rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
       const jobSite: JobSite = isGlobalAdmin
@@ -241,6 +279,8 @@ export const plantController = {
           category: supportType.category,
           brand,
           model,
+          currentHm: hmParsed.value ?? null,
+          currentKm: kmParsed.value ?? null,
           headUnitCode: null,
           pairIndex: null,
           jobSite,
@@ -297,7 +337,7 @@ export const plantController = {
       }
 
       const unitCode = String(req.params.unitCode).toUpperCase();
-      const { status, jobSite, brand, model } = req.body;
+      const { status, jobSite, brand, model, currentHm, currentKm, hm, km } = req.body;
 
       const unit = await prisma.masterUnit.findUnique({
         where: { unitCode },
@@ -319,6 +359,28 @@ export const plantController = {
         }
         if (typeof model === "string" && model.trim()) {
           updateData.model = model.trim();
+        }
+        const hmParsed = parseNonNegativeMeterInput(
+          currentHm !== undefined ? currentHm : hm,
+          "HM",
+          1
+        );
+        if (hmParsed.error) {
+          return res.status(400).json({ success: false, message: hmParsed.error });
+        }
+        if (hmParsed.value !== undefined) {
+          updateData.currentHm = hmParsed.value;
+        }
+        const kmParsed = parseNonNegativeMeterInput(
+          currentKm !== undefined ? currentKm : km,
+          "KM",
+          0
+        );
+        if (kmParsed.error) {
+          return res.status(400).json({ success: false, message: kmParsed.error });
+        }
+        if (kmParsed.value !== undefined) {
+          updateData.currentKm = kmParsed.value;
         }
       }
 

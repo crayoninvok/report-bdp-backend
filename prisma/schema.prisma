@@ -234,6 +234,8 @@ model MasterUnit {
   pairIndex    Int?                     // 1..71
   jobSite      JobSite                  @default(MuaraPahu)
   status       String                   @default("Active") // "Active", "Maintenance", "Breakdown", "Standby"
+  currentHm    Float?                   // Engine Hours terakhir (live Volvo untuk PM, manual/PM untuk Support)
+  currentKm    Float?                   // Odometer terakhir (live Volvo untuk PM, manual/PM untuk Support)
   inspections  PeriodicInspectionItem[]
   preventiveMaintenances PreventiveMaintenanceItem[]
   createdAt    DateTime                 @default(now())

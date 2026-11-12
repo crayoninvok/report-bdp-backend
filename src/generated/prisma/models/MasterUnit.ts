@@ -29,11 +29,15 @@ export type AggregateMasterUnit = {
 export type MasterUnitAvgAggregateOutputType = {
   unitNumber: number | null
   pairIndex: number | null
+  currentHm: number | null
+  currentKm: number | null
 }
 
 export type MasterUnitSumAggregateOutputType = {
   unitNumber: number | null
   pairIndex: number | null
+  currentHm: number | null
+  currentKm: number | null
 }
 
 export type MasterUnitMinAggregateOutputType = {
@@ -47,6 +51,8 @@ export type MasterUnitMinAggregateOutputType = {
   pairIndex: number | null
   jobSite: $Enums.JobSite | null
   status: string | null
+  currentHm: number | null
+  currentKm: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -62,6 +68,8 @@ export type MasterUnitMaxAggregateOutputType = {
   pairIndex: number | null
   jobSite: $Enums.JobSite | null
   status: string | null
+  currentHm: number | null
+  currentKm: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -77,6 +85,8 @@ export type MasterUnitCountAggregateOutputType = {
   pairIndex: number
   jobSite: number
   status: number
+  currentHm: number
+  currentKm: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -86,11 +96,15 @@ export type MasterUnitCountAggregateOutputType = {
 export type MasterUnitAvgAggregateInputType = {
   unitNumber?: true
   pairIndex?: true
+  currentHm?: true
+  currentKm?: true
 }
 
 export type MasterUnitSumAggregateInputType = {
   unitNumber?: true
   pairIndex?: true
+  currentHm?: true
+  currentKm?: true
 }
 
 export type MasterUnitMinAggregateInputType = {
@@ -104,6 +118,8 @@ export type MasterUnitMinAggregateInputType = {
   pairIndex?: true
   jobSite?: true
   status?: true
+  currentHm?: true
+  currentKm?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -119,6 +135,8 @@ export type MasterUnitMaxAggregateInputType = {
   pairIndex?: true
   jobSite?: true
   status?: true
+  currentHm?: true
+  currentKm?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -134,6 +152,8 @@ export type MasterUnitCountAggregateInputType = {
   pairIndex?: true
   jobSite?: true
   status?: true
+  currentHm?: true
+  currentKm?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -236,6 +256,8 @@ export type MasterUnitGroupByOutputType = {
   pairIndex: number | null
   jobSite: $Enums.JobSite
   status: string
+  currentHm: number | null
+  currentKm: number | null
   createdAt: Date
   updatedAt: Date
   _count: MasterUnitCountAggregateOutputType | null
@@ -274,6 +296,8 @@ export type MasterUnitWhereInput = {
   pairIndex?: Prisma.IntNullableFilter<"MasterUnit"> | number | null
   jobSite?: Prisma.EnumJobSiteFilter<"MasterUnit"> | $Enums.JobSite
   status?: Prisma.StringFilter<"MasterUnit"> | string
+  currentHm?: Prisma.FloatNullableFilter<"MasterUnit"> | number | null
+  currentKm?: Prisma.FloatNullableFilter<"MasterUnit"> | number | null
   createdAt?: Prisma.DateTimeFilter<"MasterUnit"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"MasterUnit"> | Date | string
   inspections?: Prisma.PeriodicInspectionItemListRelationFilter
@@ -291,6 +315,8 @@ export type MasterUnitOrderByWithRelationInput = {
   pairIndex?: Prisma.SortOrderInput | Prisma.SortOrder
   jobSite?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrderInput | Prisma.SortOrder
+  currentKm?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   inspections?: Prisma.PeriodicInspectionItemOrderByRelationAggregateInput
@@ -311,6 +337,8 @@ export type MasterUnitWhereUniqueInput = Prisma.AtLeast<{
   pairIndex?: Prisma.IntNullableFilter<"MasterUnit"> | number | null
   jobSite?: Prisma.EnumJobSiteFilter<"MasterUnit"> | $Enums.JobSite
   status?: Prisma.StringFilter<"MasterUnit"> | string
+  currentHm?: Prisma.FloatNullableFilter<"MasterUnit"> | number | null
+  currentKm?: Prisma.FloatNullableFilter<"MasterUnit"> | number | null
   createdAt?: Prisma.DateTimeFilter<"MasterUnit"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"MasterUnit"> | Date | string
   inspections?: Prisma.PeriodicInspectionItemListRelationFilter
@@ -328,6 +356,8 @@ export type MasterUnitOrderByWithAggregationInput = {
   pairIndex?: Prisma.SortOrderInput | Prisma.SortOrder
   jobSite?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrderInput | Prisma.SortOrder
+  currentKm?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.MasterUnitCountOrderByAggregateInput
@@ -351,6 +381,8 @@ export type MasterUnitScalarWhereWithAggregatesInput = {
   pairIndex?: Prisma.IntNullableWithAggregatesFilter<"MasterUnit"> | number | null
   jobSite?: Prisma.EnumJobSiteWithAggregatesFilter<"MasterUnit"> | $Enums.JobSite
   status?: Prisma.StringWithAggregatesFilter<"MasterUnit"> | string
+  currentHm?: Prisma.FloatNullableWithAggregatesFilter<"MasterUnit"> | number | null
+  currentKm?: Prisma.FloatNullableWithAggregatesFilter<"MasterUnit"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"MasterUnit"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"MasterUnit"> | Date | string
 }
@@ -366,6 +398,8 @@ export type MasterUnitCreateInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemCreateNestedManyWithoutUnitInput
@@ -383,6 +417,8 @@ export type MasterUnitUncheckedCreateInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedCreateNestedManyWithoutUnitInput
@@ -400,6 +436,8 @@ export type MasterUnitUpdateInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUpdateManyWithoutUnitNestedInput
@@ -417,6 +455,8 @@ export type MasterUnitUncheckedUpdateInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedUpdateManyWithoutUnitNestedInput
@@ -434,6 +474,8 @@ export type MasterUnitCreateManyInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -449,6 +491,8 @@ export type MasterUnitUpdateManyMutationInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -464,6 +508,8 @@ export type MasterUnitUncheckedUpdateManyInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -479,6 +525,8 @@ export type MasterUnitCountOrderByAggregateInput = {
   pairIndex?: Prisma.SortOrder
   jobSite?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrder
+  currentKm?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -486,6 +534,8 @@ export type MasterUnitCountOrderByAggregateInput = {
 export type MasterUnitAvgOrderByAggregateInput = {
   unitNumber?: Prisma.SortOrder
   pairIndex?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrder
+  currentKm?: Prisma.SortOrder
 }
 
 export type MasterUnitMaxOrderByAggregateInput = {
@@ -499,6 +549,8 @@ export type MasterUnitMaxOrderByAggregateInput = {
   pairIndex?: Prisma.SortOrder
   jobSite?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrder
+  currentKm?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -514,6 +566,8 @@ export type MasterUnitMinOrderByAggregateInput = {
   pairIndex?: Prisma.SortOrder
   jobSite?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrder
+  currentKm?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -521,6 +575,8 @@ export type MasterUnitMinOrderByAggregateInput = {
 export type MasterUnitSumOrderByAggregateInput = {
   unitNumber?: Prisma.SortOrder
   pairIndex?: Prisma.SortOrder
+  currentHm?: Prisma.SortOrder
+  currentKm?: Prisma.SortOrder
 }
 
 export type MasterUnitNullableScalarRelationFilter = {
@@ -571,6 +627,8 @@ export type MasterUnitCreateWithoutInspectionsInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemCreateNestedManyWithoutUnitInput
@@ -587,6 +645,8 @@ export type MasterUnitUncheckedCreateWithoutInspectionsInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedCreateNestedManyWithoutUnitInput
@@ -619,6 +679,8 @@ export type MasterUnitUpdateWithoutInspectionsInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUpdateManyWithoutUnitNestedInput
@@ -635,6 +697,8 @@ export type MasterUnitUncheckedUpdateWithoutInspectionsInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedUpdateManyWithoutUnitNestedInput
@@ -651,6 +715,8 @@ export type MasterUnitCreateWithoutPreventiveMaintenancesInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemCreateNestedManyWithoutUnitInput
@@ -667,6 +733,8 @@ export type MasterUnitUncheckedCreateWithoutPreventiveMaintenancesInput = {
   pairIndex?: number | null
   jobSite?: $Enums.JobSite
   status?: string
+  currentHm?: number | null
+  currentKm?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedCreateNestedManyWithoutUnitInput
@@ -699,6 +767,8 @@ export type MasterUnitUpdateWithoutPreventiveMaintenancesInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUpdateManyWithoutUnitNestedInput
@@ -715,6 +785,8 @@ export type MasterUnitUncheckedUpdateWithoutPreventiveMaintenancesInput = {
   pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedUpdateManyWithoutUnitNestedInput
@@ -771,6 +843,8 @@ export type MasterUnitSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   pairIndex?: boolean
   jobSite?: boolean
   status?: boolean
+  currentHm?: boolean
+  currentKm?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   inspections?: boolean | Prisma.MasterUnit$inspectionsArgs<ExtArgs>
@@ -789,6 +863,8 @@ export type MasterUnitSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   pairIndex?: boolean
   jobSite?: boolean
   status?: boolean
+  currentHm?: boolean
+  currentKm?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["masterUnit"]>
@@ -804,6 +880,8 @@ export type MasterUnitSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   pairIndex?: boolean
   jobSite?: boolean
   status?: boolean
+  currentHm?: boolean
+  currentKm?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["masterUnit"]>
@@ -819,11 +897,13 @@ export type MasterUnitSelectScalar = {
   pairIndex?: boolean
   jobSite?: boolean
   status?: boolean
+  currentHm?: boolean
+  currentKm?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type MasterUnitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "unitCode" | "unitNumber" | "category" | "brand" | "model" | "headUnitCode" | "pairIndex" | "jobSite" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["masterUnit"]>
+export type MasterUnitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "unitCode" | "unitNumber" | "category" | "brand" | "model" | "headUnitCode" | "pairIndex" | "jobSite" | "status" | "currentHm" | "currentKm" | "createdAt" | "updatedAt", ExtArgs["result"]["masterUnit"]>
 export type MasterUnitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   inspections?: boolean | Prisma.MasterUnit$inspectionsArgs<ExtArgs>
   preventiveMaintenances?: boolean | Prisma.MasterUnit$preventiveMaintenancesArgs<ExtArgs>
@@ -849,6 +929,8 @@ export type $MasterUnitPayload<ExtArgs extends runtime.Types.Extensions.Internal
     pairIndex: number | null
     jobSite: $Enums.JobSite
     status: string
+    currentHm: number | null
+    currentKm: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["masterUnit"]>
@@ -1286,6 +1368,8 @@ export interface MasterUnitFieldRefs {
   readonly pairIndex: Prisma.FieldRef<"MasterUnit", 'Int'>
   readonly jobSite: Prisma.FieldRef<"MasterUnit", 'JobSite'>
   readonly status: Prisma.FieldRef<"MasterUnit", 'String'>
+  readonly currentHm: Prisma.FieldRef<"MasterUnit", 'Float'>
+  readonly currentKm: Prisma.FieldRef<"MasterUnit", 'Float'>
   readonly createdAt: Prisma.FieldRef<"MasterUnit", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"MasterUnit", 'DateTime'>
 }

@@ -3,8 +3,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.pmController = void 0;
 const prisma_1 = require("../lib/prisma");
 const volvoClient_1 = require("../lib/volvoClient");
+const volvoUnitSync_1 = require("../lib/volvoUnitSync");
 const plantHelpers_1 = require("../lib/plantHelpers");
 const DEFAULT_DAILY_PM_TARGET = 4;
+/** Keeps support unit MasterUnit KM/HM synced when a PM entry records newer readings. */
+async function syncSupportUnitMeters(unit, resolvedKm, resolvedHm) {
+    if (!unit || (0, volvoUnitSync_1.isHaulingCategory)(unit.category))
+        return;
+    const meterPatch = {};
+    if (resolvedKm != null &&
+        Number.isFinite(resolvedKm) &&
+        resolvedKm >= 0 &&
+        (unit.currentKm == null || resolvedKm > unit.currentKm)) {
+        meterPatch.currentKm = resolvedKm;
+    }
+    if (resolvedHm != null &&
+        Number.isFinite(resolvedHm) &&
+        resolvedHm >= 0 &&
+        (unit.currentHm == null || resolvedHm > unit.currentHm)) {
+        meterPatch.currentHm = resolvedHm;
+    }
+    if (Object.keys(meterPatch).length > 0) {
+        await prisma_1.prisma.masterUnit.update({
+            where: { unitCode: unit.unitCode },
+            data: meterPatch,
+        });
+    }
+}
 /**
  * Evaluates a single unit's live KM & HM readiness against standard PM intervals
  * (12,000 / 24,000 / 48,000 KM & 250 / 500 / 1,000 / 2,000 HM)
@@ -314,12 +339,13 @@ exports.pmController = {
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
                 : DEFAULT_DAILY_PM_TARGET;
             const tel = isHead ? telemetry.map.get(normalizedUnitCode) : undefined;
+            const isSupport = Boolean(masterUnit && !(0, volvoUnitSync_1.isHaulingCategory)(masterUnit.category));
             const resolvedKm = currentKm !== undefined && currentKm !== null && currentKm !== ""
                 ? Number(currentKm)
-                : tel?.km ?? null;
+                : tel?.km ?? (isSupport ? masterUnit?.currentKm ?? null : null);
             const resolvedHm = currentHm !== undefined && currentHm !== null && currentHm !== ""
                 ? Number(currentHm)
-                : tel?.hm ?? null;
+                : tel?.hm ?? (isSupport ? masterUnit?.currentHm ?? null : null);
             const autoTargets = (0, plantHelpers_1.computePmTargets)(serviceType, resolvedKm, resolvedHm);
             const resolvedNextKm = nextDueKm !== undefined && nextDueKm !== null && nextDueKm !== ""
                 ? Number(nextDueKm)
@@ -389,6 +415,7 @@ exports.pmController = {
                 },
                 include: { unit: true },
             });
+            await syncSupportUnitMeters(masterUnit, resolvedKm, resolvedHm);
             return res.json({
                 success: true,
                 message: `Unit ${normalizedUnitCode} berhasil dijadwalkan Periodic Service untuk ${(0, plantHelpers_1.formatIndoDate)(date)}`,
@@ -562,6 +589,7 @@ exports.pmController = {
                 },
                 include: { unit: true },
             });
+            await syncSupportUnitMeters(existing.unit, resolvedKm, resolvedHm);
             return res.json({
                 success: true,
                 message: "Jadwal Periodic Service berhasil diperbarui",

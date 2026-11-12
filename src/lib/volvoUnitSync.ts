@@ -1,6 +1,6 @@
 import { JobSite } from "../generated/prisma/client";
 import { prisma } from "./prisma";
-import { fetchFromVolvo } from "./volvoClient";
+import { getVolvoTelemetryMap } from "./volvoClient";
 
 export const HAULING_CATEGORIES = [
   "Prime Mover",
@@ -86,6 +86,29 @@ export function resolveSupportUnitType(
   if (!raw) return null;
   const norm = raw.trim().toLowerCase();
   return SUPPORT_ALIAS_MAP.get(norm) ?? null;
+}
+
+/** Parses an optional non-negative meter value (HM or KM) from request input. */
+export function parseNonNegativeMeterInput(
+  raw: unknown,
+  label: string,
+  decimals = 1
+): { value: number | null | undefined; error?: string } {
+  if (raw === undefined) {
+    return { value: undefined };
+  }
+  if (raw === null || String(raw).trim() === "") {
+    return { value: null };
+  }
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num < 0) {
+    return {
+      value: undefined,
+      error: `Nilai ${label} harus berupa angka >= 0.`,
+    };
+  }
+  const factor = Math.pow(10, decimals);
+  return { value: Math.round(num * factor) / factor };
 }
 
 /**
@@ -179,11 +202,18 @@ export async function syncVolvoPrimeMoversToMasterUnits(
 
   inFlightSync = (async () => {
     try {
-      const payload = await fetchFromVolvo(
-        "/vehicle/vehicles",
-        "application/x.volvogroup.com.vehicles.v1.0+json"
-      );
-      const vehicles: any[] = payload?.vehicleResponse?.vehicles || [];
+      const telemetryRes = await getVolvoTelemetryMap(forceRefresh);
+      if (telemetryRes.error && telemetryRes.map.size === 0) {
+        return {
+          syncedAt: new Date().toISOString(),
+          totalVolvoVehicles: 0,
+          createdCount: 0,
+          newPrimeMovers: [],
+          newTrailers: [],
+          error: telemetryRes.error,
+        };
+      }
+      const vehicles = Array.from(telemetryRes.map.values());
 
       const existingUnits = await prisma.masterUnit.findMany({
         select: {
@@ -215,16 +245,15 @@ export async function syncVolvoPrimeMoversToMasterUnits(
         pairIndex: number;
         jobSite: JobSite;
         status: string;
+        currentHm: number | null;
+        currentKm: number | null;
       }> = [];
       const newPrimeMovers: string[] = [];
       const newTrailers: string[] = [];
       const queuedCodes = new Set<string>();
 
-      for (const veh of vehicles) {
-        const fullName: string = veh.customerVehicleName || veh.vin || "";
-        const rawPm = fullName.split("/")[0]?.trim() || "";
-        const normalizedCode = rawPm.replace(/\s+/g, "").toUpperCase();
-        const pairing = buildHaulingSetForPm(normalizedCode, veh.model);
+      for (const tel of vehicles) {
+        const pairing = buildHaulingSetForPm(tel.unitCode, tel.model);
         if (!pairing) continue;
 
         const existingPm = existingByCode.get(pairing.pmCode);
@@ -242,6 +271,8 @@ export async function syncVolvoPrimeMoversToMasterUnits(
             pairIndex: pairing.pairIndex,
             jobSite: targetSite,
             status: targetStatus,
+            currentHm: tel.hm ?? null,
+            currentKm: tel.km ?? null,
           });
           queuedCodes.add(pairing.pmCode);
           newPrimeMovers.push(pairing.pmCode);
@@ -267,6 +298,8 @@ export async function syncVolvoPrimeMoversToMasterUnits(
             pairIndex: pairing.pairIndex,
             jobSite: targetSite,
             status: targetStatus,
+            currentHm: null,
+            currentKm: null,
           });
           queuedCodes.add(tr.unitCode);
           newTrailers.push(tr.unitCode);
@@ -307,3 +340,4 @@ export async function syncVolvoPrimeMoversToMasterUnits(
 
   return inFlightSync;
 }
+

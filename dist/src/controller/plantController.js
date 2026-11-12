@@ -4,6 +4,7 @@ exports.plantController = void 0;
 const prisma_1 = require("../lib/prisma");
 const plantHelpers_1 = require("../lib/plantHelpers");
 const volvoUnitSync_1 = require("../lib/volvoUnitSync");
+const volvoClient_1 = require("../lib/volvoClient");
 exports.plantController = {
     // -------------------------------------------------------------
     // 1. MASTER UNITS
@@ -35,19 +36,31 @@ exports.plantController = {
                     { brand: { contains: q, mode: "insensitive" } },
                 ];
             }
-            const units = await prisma_1.prisma.masterUnit.findMany({
-                where,
-                orderBy: [{ category: "asc" }, { unitNumber: "asc" }],
-            });
-            // If requested or if fetching prime movers, attach trailer sets
-            let enrichedUnits = units;
-            if (withTrailers === "true" || category === "Prime Mover") {
-                // Fetch all hauling trailer units (Vessel 1, Dolly, Vessel 2)
-                const allTrailers = await prisma_1.prisma.masterUnit.findMany({
-                    where: { category: { in: [...volvoUnitSync_1.TRAILER_CATEGORIES] } },
-                    orderBy: { unitNumber: "asc" },
-                });
-                const trailerMap = {};
+            const includeTrailers = withTrailers === "true" || category === "Prime Mover";
+            const [units, telemetry, allTrailers, counts] = await Promise.all([
+                prisma_1.prisma.masterUnit.findMany({
+                    where,
+                    orderBy: [{ category: "asc" }, { unitNumber: "asc" }],
+                }),
+                // Telemetry cache is already warmed when syncVolvoPrimeMoversToMasterUnits ran above
+                (0, volvoClient_1.getVolvoTelemetryMap)(false).catch(() => ({
+                    map: new Map(),
+                    onlineCount: 0,
+                    fetchedAt: null,
+                })),
+                includeTrailers
+                    ? prisma_1.prisma.masterUnit.findMany({
+                        where: { category: { in: [...volvoUnitSync_1.TRAILER_CATEGORIES] } },
+                        orderBy: { unitNumber: "asc" },
+                    })
+                    : Promise.resolve([]),
+                prisma_1.prisma.masterUnit.groupBy({
+                    by: ["category"],
+                    _count: { id: true },
+                }),
+            ]);
+            const trailerMap = {};
+            if (includeTrailers) {
                 for (const t of allTrailers) {
                     if (!t.headUnitCode)
                         continue;
@@ -71,22 +84,26 @@ exports.plantController = {
                         parts.push(trailerMap[head].vessel2.unitCode);
                     trailerMap[head].summary = parts.join(", ");
                 }
-                enrichedUnits = units.map((u) => {
-                    if (u.category === "Prime Mover") {
-                        const trailers = trailerMap[u.unitCode] || { summary: "" };
-                        return {
-                            ...u,
+            }
+            const enrichedUnits = units.map((u) => {
+                const tel = u.category === "Prime Mover" ? telemetry.map.get(u.unitCode) : undefined;
+                const resolvedHm = tel ? tel.hm : u.currentHm ?? null;
+                const resolvedKm = tel ? tel.km : u.currentKm ?? null;
+                const trailers = includeTrailers && u.category === "Prime Mover"
+                    ? trailerMap[u.unitCode] || { summary: "" }
+                    : undefined;
+                return {
+                    ...u,
+                    currentHm: resolvedHm,
+                    currentKm: resolvedKm,
+                    isLiveTelemetry: Boolean(tel),
+                    ...(trailers
+                        ? {
                             trailers,
                             buntutSummary: trailers.summary,
-                        };
-                    }
-                    return u;
-                });
-            }
-            // Summary counts
-            const counts = await prisma_1.prisma.masterUnit.groupBy({
-                by: ["category"],
-                _count: { id: true },
+                        }
+                        : {}),
+                };
             });
             const summaryCounts = {
                 total: 0,
@@ -129,7 +146,7 @@ exports.plantController = {
             const userRole = String(req.headers["x-user-role"] || "");
             const userJobSite = String(req.headers["x-user-jobsite"] || "");
             const isGlobalAdmin = userRole === "SuperAdmin" || userJobSite === "HeadOffice";
-            const { unitCode: rawUnitCode, category: rawCategory, brand: rawBrand, model: rawModel, jobSite: rawJobSite, status: rawStatus, } = req.body || {};
+            const { unitCode: rawUnitCode, category: rawCategory, brand: rawBrand, model: rawModel, jobSite: rawJobSite, status: rawStatus, currentHm: rawCurrentHm, currentKm: rawCurrentKm, hm: rawHmAlias, km: rawKmAlias, } = req.body || {};
             if ((0, volvoUnitSync_1.isHaulingCategory)(rawCategory)) {
                 return res.status(400).json({
                     success: false,
@@ -167,6 +184,14 @@ exports.plantController = {
                     message: "Brand / Merk dan Model unit support wajib diisi.",
                 });
             }
+            const hmParsed = (0, volvoUnitSync_1.parseNonNegativeMeterInput)(rawCurrentHm !== undefined ? rawCurrentHm : rawHmAlias, "HM", 1);
+            if (hmParsed.error) {
+                return res.status(400).json({ success: false, message: hmParsed.error });
+            }
+            const kmParsed = (0, volvoUnitSync_1.parseNonNegativeMeterInput)(rawCurrentKm !== undefined ? rawCurrentKm : rawKmAlias, "KM", 0);
+            if (kmParsed.error) {
+                return res.status(400).json({ success: false, message: kmParsed.error });
+            }
             const requestedSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             const jobSite = isGlobalAdmin
                 ? requestedSite
@@ -193,6 +218,8 @@ exports.plantController = {
                     category: supportType.category,
                     brand,
                     model,
+                    currentHm: hmParsed.value ?? null,
+                    currentKm: kmParsed.value ?? null,
                     headUnitCode: null,
                     pairIndex: null,
                     jobSite,
@@ -244,7 +271,7 @@ exports.plantController = {
                 });
             }
             const unitCode = String(req.params.unitCode).toUpperCase();
-            const { status, jobSite, brand, model } = req.body;
+            const { status, jobSite, brand, model, currentHm, currentKm, hm, km } = req.body;
             const unit = await prisma_1.prisma.masterUnit.findUnique({
                 where: { unitCode },
             });
@@ -264,6 +291,20 @@ exports.plantController = {
                 }
                 if (typeof model === "string" && model.trim()) {
                     updateData.model = model.trim();
+                }
+                const hmParsed = (0, volvoUnitSync_1.parseNonNegativeMeterInput)(currentHm !== undefined ? currentHm : hm, "HM", 1);
+                if (hmParsed.error) {
+                    return res.status(400).json({ success: false, message: hmParsed.error });
+                }
+                if (hmParsed.value !== undefined) {
+                    updateData.currentHm = hmParsed.value;
+                }
+                const kmParsed = (0, volvoUnitSync_1.parseNonNegativeMeterInput)(currentKm !== undefined ? currentKm : km, "KM", 0);
+                if (kmParsed.error) {
+                    return res.status(400).json({ success: false, message: kmParsed.error });
+                }
+                if (kmParsed.value !== undefined) {
+                    updateData.currentKm = kmParsed.value;
                 }
             }
             // If unit is Prime Mover (kepala), cascade jobsite and status to all its trailers/buntut

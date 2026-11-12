@@ -270,6 +270,8 @@ exports.MasterUnitScalarFieldEnum = {
     pairIndex: 'pairIndex',
     jobSite: 'jobSite',
     status: 'status',
+    currentHm: 'currentHm',
+    currentKm: 'currentKm',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

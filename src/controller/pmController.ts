@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { JobSite } from "../generated/prisma/client";
 import { getVolvoTelemetryMap } from "../lib/volvoClient";
+import { isHaulingCategory } from "../lib/volvoUnitSync";
 import {
   normalizeHeadCode,
   getWeekRange,
@@ -14,6 +15,38 @@ import {
 } from "../lib/plantHelpers";
 
 const DEFAULT_DAILY_PM_TARGET = 4;
+
+/** Keeps support unit MasterUnit KM/HM synced when a PM entry records newer readings. */
+async function syncSupportUnitMeters(
+  unit: { unitCode: string; category: string; currentKm: number | null; currentHm: number | null } | null | undefined,
+  resolvedKm: number | null | undefined,
+  resolvedHm: number | null | undefined
+) {
+  if (!unit || isHaulingCategory(unit.category)) return;
+  const meterPatch: { currentKm?: number; currentHm?: number } = {};
+  if (
+    resolvedKm != null &&
+    Number.isFinite(resolvedKm) &&
+    resolvedKm >= 0 &&
+    (unit.currentKm == null || resolvedKm > unit.currentKm)
+  ) {
+    meterPatch.currentKm = resolvedKm;
+  }
+  if (
+    resolvedHm != null &&
+    Number.isFinite(resolvedHm) &&
+    resolvedHm >= 0 &&
+    (unit.currentHm == null || resolvedHm > unit.currentHm)
+  ) {
+    meterPatch.currentHm = resolvedHm;
+  }
+  if (Object.keys(meterPatch).length > 0) {
+    await prisma.masterUnit.update({
+      where: { unitCode: unit.unitCode },
+      data: meterPatch,
+    });
+  }
+}
 
 /**
  * Evaluates a single unit's live KM & HM readiness against standard PM intervals
@@ -416,14 +449,15 @@ export const pmController = {
         : DEFAULT_DAILY_PM_TARGET;
 
       const tel = isHead ? telemetry.map.get(normalizedUnitCode) : undefined;
+      const isSupport = Boolean(masterUnit && !isHaulingCategory(masterUnit.category));
       const resolvedKm =
         currentKm !== undefined && currentKm !== null && currentKm !== ""
           ? Number(currentKm)
-          : tel?.km ?? null;
+          : tel?.km ?? (isSupport ? masterUnit?.currentKm ?? null : null);
       const resolvedHm =
         currentHm !== undefined && currentHm !== null && currentHm !== ""
           ? Number(currentHm)
-          : tel?.hm ?? null;
+          : tel?.hm ?? (isSupport ? masterUnit?.currentHm ?? null : null);
 
       const autoTargets = computePmTargets(serviceType, resolvedKm, resolvedHm);
       const resolvedNextKm =
@@ -505,6 +539,8 @@ export const pmController = {
         },
         include: { unit: true },
       });
+
+      await syncSupportUnitMeters(masterUnit, resolvedKm, resolvedHm);
 
       return res.json({
         success: true,
@@ -738,6 +774,8 @@ export const pmController = {
         },
         include: { unit: true },
       });
+
+      await syncSupportUnitMeters(existing.unit, resolvedKm, resolvedHm);
 
       return res.json({
         success: true,
