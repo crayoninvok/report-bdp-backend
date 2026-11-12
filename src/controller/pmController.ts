@@ -154,6 +154,22 @@ function resolveOptionalBuntutSummary(
   return undefined;
 }
 
+/** Parses optional string payload preserving `undefined` for omitted fields and `null` for blanks. */
+function parseOptionalTrimmedString(val: unknown): string | null | undefined {
+  if (val === undefined) return undefined;
+  const trimmed = String(val ?? "").trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/** Parses optional float payload supporting comma decimals; returns `null` for blank inputs. */
+function parseOptionalFloat(val: unknown): number | null | undefined {
+  if (val === undefined) return undefined;
+  if (val === null || val === "") return null;
+  const normalized = String(val).trim().replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export const pmController = {
   // -------------------------------------------------------------
   // 1. WEEKLY PREVENTIVE MAINTENANCE SCHEDULE
@@ -359,6 +375,9 @@ export const pmController = {
         planStartTime,
         planLeadTime,
         planHmServis,
+        actualStartTime,
+        actualLeadTime,
+        actualHmServis,
         supervisorName,
         mechanicNames,
         mechanicName,
@@ -428,6 +447,10 @@ export const pmController = {
         create: { jobSite, date, targetUnits: defaultTarget },
       });
 
+      const parsedActualStart = parseOptionalTrimmedString(actualStartTime);
+      const parsedActualLead = parseOptionalTrimmedString(actualLeadTime);
+      const parsedActualHm = parseOptionalFloat(actualHmServis);
+
       const item = await prisma.preventiveMaintenanceItem.upsert({
         where: { planId_unitCode: { planId: plan.id, unitCode: normalizedUnitCode } },
         update: {
@@ -438,6 +461,9 @@ export const pmController = {
           planStartTime: planStartTime !== undefined ? planStartTime || null : undefined,
           planLeadTime: planLeadTime !== undefined ? planLeadTime || null : undefined,
           planHmServis: planHmServis !== undefined ? planHmServis || null : undefined,
+          ...(parsedActualStart !== undefined ? { actualStartTime: parsedActualStart } : {}),
+          ...(parsedActualLead !== undefined ? { actualLeadTime: parsedActualLead } : {}),
+          ...(parsedActualHm !== undefined ? { actualHmServis: parsedActualHm } : {}),
           supervisorName:
             supervisorName !== undefined ? supervisorName || null : undefined,
           ...(mechResolved.joinedString !== undefined
@@ -464,6 +490,9 @@ export const pmController = {
           planStartTime: planStartTime || null,
           planLeadTime: planLeadTime || null,
           planHmServis: planHmServis || null,
+          actualStartTime: parsedActualStart ?? null,
+          actualLeadTime: parsedActualLead ?? null,
+          actualHmServis: parsedActualHm ?? null,
           supervisorName: supervisorName || null,
           mechanicName: mechResolved.joinedString ?? null,
           mechanicNames: mechResolved.namesArray || [],
@@ -605,6 +634,9 @@ export const pmController = {
         planStartTime,
         planLeadTime,
         planHmServis,
+        actualStartTime,
+        actualLeadTime,
+        actualHmServis,
         supervisorName,
         mechanicNames,
         mechanicName,
@@ -672,6 +704,10 @@ export const pmController = {
           ? computed.nextDueHm
           : existing.nextDueHm;
 
+      const parsedActualStart = parseOptionalTrimmedString(actualStartTime);
+      const parsedActualLead = parseOptionalTrimmedString(actualLeadTime);
+      const parsedActualHm = parseOptionalFloat(actualHmServis);
+
       const updated = await prisma.preventiveMaintenanceItem.update({
         where: { id },
         data: {
@@ -682,6 +718,9 @@ export const pmController = {
           planStartTime: planStartTime !== undefined ? planStartTime || null : undefined,
           planLeadTime: planLeadTime !== undefined ? planLeadTime || null : undefined,
           planHmServis: planHmServis !== undefined ? planHmServis || null : undefined,
+          ...(parsedActualStart !== undefined ? { actualStartTime: parsedActualStart } : {}),
+          ...(parsedActualLead !== undefined ? { actualLeadTime: parsedActualLead } : {}),
+          ...(parsedActualHm !== undefined ? { actualHmServis: parsedActualHm } : {}),
           supervisorName:
             supervisorName !== undefined ? supervisorName || null : undefined,
           ...(mechResolved.joinedString !== undefined

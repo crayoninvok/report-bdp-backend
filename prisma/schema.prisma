@@ -310,6 +310,9 @@ model PreventiveMaintenanceItem {
   planStartTime  String?                   // e.g. "08:00"
   planLeadTime   String?                   // e.g. "4 Jam"
   planHmServis   String?                   // e.g. "500 HM" atau target HM saat servis
+  actualStartTime String?                  // Realisasi jam mulai aktual, e.g. "08:00"
+  actualLeadTime String?                   // Realisasi lead time aktual, e.g. "9 Jam"
+  actualHmServis Float?                    // Realisasi HM aktual saat servis (KPI Akurasi HM)
   supervisorName String?                   // Nama Pengawas (SPV Plant dari HR)
   mechanicName   String?                   // Gabungan nama mekanik (maks 5)
   mechanicNames  String[]                  @default([]) // Daftar nama mekanik dari HR (maks 5)
