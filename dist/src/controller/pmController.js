@@ -197,8 +197,10 @@ exports.pmController = {
                 const plan = planByDate[dStr];
                 const targetUnits = plan && plan.targetUnits !== undefined ? plan.targetUnits : defaultDailyTarget;
                 const items = (plan?.items || []).map((item) => {
-                    const isHead = !item.unit || item.unit.category === "Prime Mover";
-                    const tel = isHead ? telemetry.map.get(item.unitCode) : undefined;
+                    const telCode = item.unit
+                        ? (0, volvoUnitSync_1.resolveHaulingTelemetryCode)(item.unit)
+                        : item.unitCode;
+                    const tel = telCode ? telemetry.map.get(telCode) : undefined;
                     return {
                         ...item,
                         inspectorName: item.mechanicName || null,
@@ -338,7 +340,10 @@ exports.pmController = {
             const defaultTarget = globalTargetSetting
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
                 : DEFAULT_DAILY_PM_TARGET;
-            const tel = isHead ? telemetry.map.get(normalizedUnitCode) : undefined;
+            const telCode = masterUnit
+                ? (0, volvoUnitSync_1.resolveHaulingTelemetryCode)(masterUnit)
+                : normalizedUnitCode;
+            const tel = telCode ? telemetry.map.get(telCode) : undefined;
             const isSupport = Boolean(masterUnit && !(0, volvoUnitSync_1.isHaulingCategory)(masterUnit.category));
             const resolvedKm = currentKm !== undefined && currentKm !== null && currentKm !== ""
                 ? Number(currentKm)
@@ -449,12 +454,12 @@ exports.pmController = {
             const [matchedUnits, globalTargetSetting, telemetry] = await Promise.all([
                 prisma_1.prisma.masterUnit.findMany({
                     where: { unitCode: { in: normalizedCodes } },
-                    select: { unitCode: true, category: true },
+                    select: { unitCode: true, category: true, headUnitCode: true },
                 }),
                 prisma_1.prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
                 (0, volvoClient_1.getVolvoTelemetryMap)(),
             ]);
-            const categoryMap = new Map(matchedUnits.map((u) => [u.unitCode, u.category]));
+            const unitMetaMap = new Map(matchedUnits.map((u) => [u.unitCode, u]));
             const defaultTarget = globalTargetSetting
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
                 : DEFAULT_DAILY_PM_TARGET;
@@ -465,8 +470,9 @@ exports.pmController = {
             });
             const results = [];
             for (const code of normalizedCodes) {
-                const isHead = !categoryMap.has(code) || categoryMap.get(code) === "Prime Mover";
-                const tel = isHead ? telemetry.map.get(code) : undefined;
+                const unitMeta = unitMetaMap.get(code);
+                const telCode = unitMeta ? (0, volvoUnitSync_1.resolveHaulingTelemetryCode)(unitMeta) : code;
+                const tel = telCode ? telemetry.map.get(telCode) : undefined;
                 const currentKm = tel?.km ?? null;
                 const currentHm = tel?.hm ?? null;
                 const { nextDueKm, nextDueHm } = (0, plantHelpers_1.computePmTargets)(serviceType, currentKm, currentHm);
@@ -531,10 +537,13 @@ exports.pmController = {
             const effectiveService = serviceType || existing.serviceType;
             let resolvedKm = currentKm !== undefined ? (currentKm === null || currentKm === "" ? null : Number(currentKm)) : existing.currentKm;
             let resolvedHm = currentHm !== undefined ? (currentHm === null || currentHm === "" ? null : Number(currentHm)) : existing.currentHm;
-            // On completion of a Prime Mover, capture live Volvo KM/HM if still missing
-            if (isHead && status === "Completed" && (resolvedKm == null || resolvedHm == null)) {
+            // On completion of a Prime Mover or paired Vessel/Dolly, capture live Volvo KM/HM if still missing
+            const telCode = existing.unit
+                ? (0, volvoUnitSync_1.resolveHaulingTelemetryCode)(existing.unit)
+                : existing.unitCode;
+            if (telCode && status === "Completed" && (resolvedKm == null || resolvedHm == null)) {
                 const telemetry = await (0, volvoClient_1.getVolvoTelemetryMap)();
-                const tel = telemetry.map.get(existing.unitCode);
+                const tel = telemetry.map.get(telCode);
                 if (tel) {
                     if (resolvedKm == null)
                         resolvedKm = tel.km;

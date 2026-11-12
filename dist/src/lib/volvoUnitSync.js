@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SUPPORT_CATEGORY_NAMES = exports.SUPPORT_UNIT_TYPES = exports.TRAILER_CATEGORIES = exports.HAULING_CATEGORIES = void 0;
 exports.isHaulingCategory = isHaulingCategory;
+exports.resolveHaulingTelemetryCode = resolveHaulingTelemetryCode;
 exports.resolveSupportUnitType = resolveSupportUnitType;
 exports.parseNonNegativeMeterInput = parseNonNegativeMeterInput;
 exports.buildHaulingSetForPm = buildHaulingSetForPm;
@@ -78,6 +79,17 @@ const SUPPORT_ALIAS_MAP = new Map([
 function isHaulingCategory(category) {
     const norm = (category || "").trim().toLowerCase();
     return exports.HAULING_CATEGORIES.some((c) => c.toLowerCase() === norm);
+}
+/** Resolves the Prime Mover unitCode supplying Volvo HM/KM for a hauling unit. */
+function resolveHaulingTelemetryCode(unit) {
+    if (!unit)
+        return null;
+    if (unit.category === "Prime Mover")
+        return unit.unitCode;
+    if (isHaulingCategory(unit.category) && unit.headUnitCode) {
+        return unit.headUnitCode;
+    }
+    return null;
 }
 /** Resolves a user-supplied support category/prefix/alias to canonical entry. */
 function resolveSupportUnitType(raw) {
@@ -251,8 +263,8 @@ async function syncVolvoPrimeMoversToMasterUnits(forceRefresh = false) {
                         pairIndex: pairing.pairIndex,
                         jobSite: targetSite,
                         status: targetStatus,
-                        currentHm: null,
-                        currentKm: null,
+                        currentHm: tel.hm ?? null,
+                        currentKm: tel.km ?? null,
                     });
                     queuedCodes.add(tr.unitCode);
                     newTrailers.push(tr.unitCode);

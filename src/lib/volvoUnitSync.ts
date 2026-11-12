@@ -79,6 +79,20 @@ export function isHaulingCategory(category?: string | null): boolean {
   return HAULING_CATEGORIES.some((c) => c.toLowerCase() === norm);
 }
 
+/** Resolves the Prime Mover unitCode supplying Volvo HM/KM for a hauling unit. */
+export function resolveHaulingTelemetryCode(unit?: {
+  unitCode: string;
+  category?: string | null;
+  headUnitCode?: string | null;
+} | null): string | null {
+  if (!unit) return null;
+  if (unit.category === "Prime Mover") return unit.unitCode;
+  if (isHaulingCategory(unit.category) && unit.headUnitCode) {
+    return unit.headUnitCode;
+  }
+  return null;
+}
+
 /** Resolves a user-supplied support category/prefix/alias to canonical entry. */
 export function resolveSupportUnitType(
   raw?: string | null
@@ -298,8 +312,8 @@ export async function syncVolvoPrimeMoversToMasterUnits(
             pairIndex: pairing.pairIndex,
             jobSite: targetSite,
             status: targetStatus,
-            currentHm: null,
-            currentKm: null,
+            currentHm: tel.hm ?? null,
+            currentKm: tel.km ?? null,
           });
           queuedCodes.add(tr.unitCode);
           newTrailers.push(tr.unitCode);

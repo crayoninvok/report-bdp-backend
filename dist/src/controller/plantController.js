@@ -37,7 +37,7 @@ exports.plantController = {
                 ];
             }
             const includeTrailers = withTrailers === "true" || category === "Prime Mover";
-            const [units, telemetry, allTrailers, counts] = await Promise.all([
+            const [units, telemetry, allTrailers, headMeterRows, counts] = await Promise.all([
                 prisma_1.prisma.masterUnit.findMany({
                     where,
                     orderBy: [{ category: "asc" }, { unitNumber: "asc" }],
@@ -54,11 +54,16 @@ exports.plantController = {
                         orderBy: { unitNumber: "asc" },
                     })
                     : Promise.resolve([]),
+                prisma_1.prisma.masterUnit.findMany({
+                    where: { category: "Prime Mover" },
+                    select: { unitCode: true, currentHm: true, currentKm: true },
+                }),
                 prisma_1.prisma.masterUnit.groupBy({
                     by: ["category"],
                     _count: { id: true },
                 }),
             ]);
+            const headDbMap = new Map(headMeterRows.map((h) => [h.unitCode, h]));
             const trailerMap = {};
             if (includeTrailers) {
                 for (const t of allTrailers) {
@@ -86,9 +91,20 @@ exports.plantController = {
                 }
             }
             const enrichedUnits = units.map((u) => {
-                const tel = u.category === "Prime Mover" ? telemetry.map.get(u.unitCode) : undefined;
-                const resolvedHm = tel ? tel.hm : u.currentHm ?? null;
-                const resolvedKm = tel ? tel.km : u.currentKm ?? null;
+                const telHeadCode = (0, volvoUnitSync_1.resolveHaulingTelemetryCode)(u);
+                const tel = telHeadCode ? telemetry.map.get(telHeadCode) : undefined;
+                const headDb = telHeadCode ? headDbMap.get(telHeadCode) : undefined;
+                const isTrailerInherited = Boolean(telHeadCode && u.category !== "Prime Mover");
+                const resolvedHm = tel
+                    ? tel.hm
+                    : isTrailerInherited
+                        ? headDb?.currentHm ?? u.currentHm ?? null
+                        : u.currentHm ?? null;
+                const resolvedKm = tel
+                    ? tel.km
+                    : isTrailerInherited
+                        ? headDb?.currentKm ?? u.currentKm ?? null
+                        : u.currentKm ?? null;
                 const trailers = includeTrailers && u.category === "Prime Mover"
                     ? trailerMap[u.unitCode] || { summary: "" }
                     : undefined;
