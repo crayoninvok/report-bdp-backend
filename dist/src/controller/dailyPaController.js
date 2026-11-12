@@ -4,7 +4,6 @@ exports.dailyPaController = void 0;
 exports.parseDurationHours = parseDurationHours;
 const prisma_1 = require("../lib/prisma");
 const plantHelpers_1 = require("../lib/plantHelpers");
-const volvoUnitSync_1 = require("../lib/volvoUnitSync");
 const DEFAULT_CALENDAR_HOURS = 24;
 const DEFAULT_TARGET_PA = 93;
 /** Normalizes user-supplied job site strings into Prisma JobSite enum values. */
@@ -493,7 +492,7 @@ exports.dailyPaController = {
             const validMasterUnits = await prisma_1.prisma.masterUnit.findMany({
                 where: {
                     unitCode: { in: normalizedCodes },
-                    category: { in: [...volvoUnitSync_1.HAULING_CATEGORIES] },
+                    category: "Prime Mover",
                 },
                 select: { unitCode: true },
             });

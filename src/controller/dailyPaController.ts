@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { JobSite } from "../generated/prisma/client";
 import { normalizeHeadCode } from "../lib/plantHelpers";
-import { HAULING_CATEGORIES } from "../lib/volvoUnitSync";
 
 const DEFAULT_CALENDAR_HOURS = 24;
 const DEFAULT_TARGET_PA = 93;
@@ -575,7 +574,7 @@ export const dailyPaController = {
       const validMasterUnits = await prisma.masterUnit.findMany({
         where: {
           unitCode: { in: normalizedCodes },
-          category: { in: [...HAULING_CATEGORIES] },
+          category: "Prime Mover",
         },
         select: { unitCode: true },
       });
