@@ -3,7 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const plantController_1 = require("../controller/plantController");
 const pmController_1 = require("../controller/pmController");
+const plantDashboardController_1 = require("../controller/plantDashboardController");
 const plantRouter = (0, express_1.Router)();
+// 0. Dashboard Plant Analytics (GL Plant Cost + Preventive Maintenance PI/PS)
+plantRouter.get("/dashboard", plantDashboardController_1.plantDashboardController.getPlantDashboard);
 // 1. Master Units
 plantRouter.get("/units", plantController_1.plantController.getMasterUnits);
 plantRouter.put("/units/:unitCode", plantController_1.plantController.updateUnit);

@@ -1,8 +1,12 @@
 import { Router } from "express";
 import { plantController } from "../controller/plantController";
 import { pmController } from "../controller/pmController";
+import { plantDashboardController } from "../controller/plantDashboardController";
 
 const plantRouter = Router();
+
+// 0. Dashboard Plant Analytics (GL Plant Cost + Preventive Maintenance PI/PS)
+plantRouter.get("/dashboard", plantDashboardController.getPlantDashboard);
 
 // 1. Master Units
 plantRouter.get("/units", plantController.getMasterUnits);
