@@ -215,7 +215,7 @@ export const plantController = {
         return res.status(400).json({
           success: false,
           message:
-            "Kategori unit support tidak valid. Pilih salah satu dari 12 kategori unit support yang tersedia.",
+            `Kategori unit support tidak valid. Pilih salah satu dari ${SUPPORT_CATEGORY_NAMES.length} kategori unit support yang tersedia.`,
         });
       }
 

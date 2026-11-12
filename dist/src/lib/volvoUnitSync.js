@@ -29,6 +29,8 @@ exports.SUPPORT_UNIT_TYPES = [
     { prefix: "CP", category: "Compactor", label: "Compactor (CP)" },
     { prefix: "DZ", category: "Dozer", label: "Dozer (DZ)" },
     { prefix: "GS", category: "Genset", label: "Genset (GS)" },
+    { prefix: "AC", category: "Air Compressor", label: "Air Compressor (AC)" },
+    { prefix: "WP", category: "Water Pump", label: "Water Pump (WP)" },
 ];
 exports.SUPPORT_CATEGORY_NAMES = exports.SUPPORT_UNIT_TYPES.map((t) => t.category);
 const SUPPORT_ALIAS_MAP = new Map([
@@ -74,6 +76,12 @@ const SUPPORT_ALIAS_MAP = new Map([
     ["gs", exports.SUPPORT_UNIT_TYPES[11]],
     ["genset", exports.SUPPORT_UNIT_TYPES[11]],
     ["genset (gs)", exports.SUPPORT_UNIT_TYPES[11]],
+    ["ac", exports.SUPPORT_UNIT_TYPES[12]],
+    ["air compressor", exports.SUPPORT_UNIT_TYPES[12]],
+    ["air compressor (ac)", exports.SUPPORT_UNIT_TYPES[12]],
+    ["wp", exports.SUPPORT_UNIT_TYPES[13]],
+    ["water pump", exports.SUPPORT_UNIT_TYPES[13]],
+    ["water pump (wp)", exports.SUPPORT_UNIT_TYPES[13]],
 ]);
 /** Checks if category belongs to hauling fleet managed via Volvo Connect. */
 function isHaulingCategory(category) {

@@ -173,7 +173,7 @@ exports.plantController = {
             if (!supportType) {
                 return res.status(400).json({
                     success: false,
-                    message: "Kategori unit support tidak valid. Pilih salah satu dari 12 kategori unit support yang tersedia.",
+                    message: `Kategori unit support tidak valid. Pilih salah satu dari ${volvoUnitSync_1.SUPPORT_CATEGORY_NAMES.length} kategori unit support yang tersedia.`,
                 });
             }
             const unitCode = String(rawUnitCode || "")
