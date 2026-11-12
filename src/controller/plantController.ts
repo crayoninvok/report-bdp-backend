@@ -8,6 +8,13 @@ import {
   formatIndoDate,
   getIndoDayName,
 } from "../lib/plantHelpers";
+import {
+  isHaulingCategory,
+  resolveSupportUnitType,
+  SUPPORT_CATEGORY_NAMES,
+  syncVolvoPrimeMoversToMasterUnits,
+  TRAILER_CATEGORIES,
+} from "../lib/volvoUnitSync";
 
 export const plantController = {
   // -------------------------------------------------------------
@@ -15,11 +22,18 @@ export const plantController = {
   // -------------------------------------------------------------
   getMasterUnits: async (req: Request, res: Response) => {
     try {
-      const { category, search, withTrailers, site } = req.query;
+      const { category, search, withTrailers, site, syncVolvo } = req.query;
+
+      // Auto-sync Prime Mover + paired Vessel 1, Dolly (DL60), and Vessel 2 from Volvo Connect
+      const syncMeta = await syncVolvoPrimeMoversToMasterUnits(syncVolvo === "true");
 
       const where: any = {};
       if (category && typeof category === "string" && category !== "ALL") {
-        where.category = category;
+        if (category === "SUPPORT" || category === "Unit Support") {
+          where.category = { in: SUPPORT_CATEGORY_NAMES };
+        } else {
+          where.category = category;
+        }
       }
       if (site && typeof site === "string" && site !== "ALL") {
         where.jobSite = site as JobSite;
@@ -29,6 +43,7 @@ export const plantController = {
         where.OR = [
           { unitCode: { contains: q, mode: "insensitive" } },
           { headUnitCode: { contains: q, mode: "insensitive" } },
+          { category: { contains: q, mode: "insensitive" } },
           { model: { contains: q, mode: "insensitive" } },
           { brand: { contains: q, mode: "insensitive" } },
         ];
@@ -42,9 +57,9 @@ export const plantController = {
       // If requested or if fetching prime movers, attach trailer sets
       let enrichedUnits: any[] = units;
       if (withTrailers === "true" || category === "Prime Mover") {
-        // Fetch all trailer units
+        // Fetch all hauling trailer units (Vessel 1, Dolly, Vessel 2)
         const allTrailers = await prisma.masterUnit.findMany({
-          where: { category: { not: "Prime Mover" } },
+          where: { category: { in: [...TRAILER_CATEGORIES] } },
           orderBy: { unitNumber: "asc" },
         });
 
@@ -90,29 +105,183 @@ export const plantController = {
         _count: { id: true },
       });
 
-      const summaryCounts: Record<string, number> = {
+      const summaryCounts: {
+        total: number;
+        primeMover: number;
+        vessel1: number;
+        dolly: number;
+        vessel2: number;
+        support: number;
+        supportByCategory: Record<string, number>;
+      } = {
         total: 0,
         primeMover: 0,
         vessel1: 0,
         dolly: 0,
         vessel2: 0,
+        support: 0,
+        supportByCategory: {},
       };
 
       for (const c of counts) {
         summaryCounts.total += c._count.id;
         if (c.category === "Prime Mover") summaryCounts.primeMover = c._count.id;
-        if (c.category === "Vessel 1") summaryCounts.vessel1 = c._count.id;
-        if (c.category === "Dolly") summaryCounts.dolly = c._count.id;
-        if (c.category === "Vessel 2") summaryCounts.vessel2 = c._count.id;
+        else if (c.category === "Vessel 1") summaryCounts.vessel1 = c._count.id;
+        else if (c.category === "Dolly") summaryCounts.dolly = c._count.id;
+        else if (c.category === "Vessel 2") summaryCounts.vessel2 = c._count.id;
+        else {
+          summaryCounts.support += c._count.id;
+          summaryCounts.supportByCategory[c.category] = c._count.id;
+        }
       }
 
       return res.json({
         success: true,
         data: enrichedUnits,
         summary: summaryCounts,
+        syncMeta,
       });
     } catch (error: any) {
       console.error("getMasterUnits error:", error);
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  createUnit: async (req: Request, res: Response) => {
+    try {
+      const userRole = String(req.headers["x-user-role"] || "");
+      const userJobSite = String(req.headers["x-user-jobsite"] || "");
+      const isGlobalAdmin =
+        userRole === "SuperAdmin" || userJobSite === "HeadOffice";
+
+      const {
+        unitCode: rawUnitCode,
+        category: rawCategory,
+        brand: rawBrand,
+        model: rawModel,
+        jobSite: rawJobSite,
+        status: rawStatus,
+      } = req.body || {};
+
+      if (isHaulingCategory(rawCategory)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Unit Prime Mover, Vessel 1, Dolly, dan Vessel 2 didaftarkan otomatis dari integrasi Volvo Connect, bukan input manual.",
+        });
+      }
+
+      const supportType = resolveSupportUnitType(rawCategory);
+      if (!supportType) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Kategori unit support tidak valid. Pilih salah satu dari 12 kategori unit support yang tersedia.",
+        });
+      }
+
+      const unitCode = String(rawUnitCode || "")
+        .trim()
+        .replace(/\s+/g, "")
+        .toUpperCase();
+      if (!unitCode || !/^[A-Z0-9-]{2,30}$/.test(unitCode)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Kode unit wajib diisi (2-30 karakter huruf, angka, atau tanda hubung).",
+        });
+      }
+
+      if (supportType.prefix === "ST" && /^ST[89]\d{2}$/.test(unitCode)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Kode ST8xx dan ST9xx dicadangkan untuk Vessel 1 / Vessel 2. Gunakan kode lain untuk Storing Truck (misal ST01 atau ST101).",
+        });
+      }
+
+      const brand = String(rawBrand || "").trim();
+      const model = String(rawModel || "").trim();
+      if (!brand || !model) {
+        return res.status(400).json({
+          success: false,
+          message: "Brand / Merk dan Model unit support wajib diisi.",
+        });
+      }
+
+      const requestedSite: JobSite =
+        rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
+      const jobSite: JobSite = isGlobalAdmin
+        ? requestedSite
+        : userJobSite === "Senyiur"
+        ? "Senyiur"
+        : "MuaraPahu";
+
+      const status = rawStatus === "Inactive" ? "Inactive" : "Active";
+
+      const existing = await prisma.masterUnit.findUnique({
+        where: { unitCode },
+      });
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          message: `Kode unit ${unitCode} sudah terdaftar (${existing.category}).`,
+        });
+      }
+
+      const digits = unitCode.replace(/\D/g, "");
+      const parsedNum = digits ? parseInt(digits, 10) : 0;
+      const unitNumber =
+        Number.isFinite(parsedNum) && parsedNum <= 2147483647 ? parsedNum : 0;
+
+      const created = await prisma.masterUnit.create({
+        data: {
+          unitCode,
+          unitNumber,
+          category: supportType.category,
+          brand,
+          model,
+          headUnitCode: null,
+          pairIndex: null,
+          jobSite,
+          status,
+        },
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: `Unit support ${created.unitCode} (${created.category}) berhasil ditambahkan ke Master Data Unit.`,
+        data: created,
+      });
+    } catch (error: any) {
+      console.error("createUnit error:", error);
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  syncVolvoUnits: async (_req: Request, res: Response) => {
+    try {
+      const syncResult = await syncVolvoPrimeMoversToMasterUnits(true);
+      if (syncResult.error && syncResult.totalVolvoVehicles === 0) {
+        return res.status(502).json({
+          success: false,
+          message: syncResult.error,
+          data: syncResult,
+        });
+      }
+
+      const msg =
+        syncResult.createdCount > 0
+          ? `Sinkronisasi Volvo Connect berhasil: ${syncResult.newPrimeMovers.length} Prime Mover baru beserta ${syncResult.newTrailers.length} unit Vessel/Dolly otomatis didaftarkan.`
+          : `Sinkronisasi Volvo Connect selesai: seluruh ${syncResult.totalVolvoVehicles} unit Volvo Connect sudah terdaftar lengkap beserta Vessel & Dolly-nya.`;
+
+      return res.json({
+        success: true,
+        message: msg,
+        data: syncResult,
+      });
+    } catch (error: any) {
+      console.error("syncVolvoUnits error:", error);
       return res.status(500).json({ success: false, error: error.message });
     }
   },
@@ -128,7 +297,7 @@ export const plantController = {
       }
 
       const unitCode = String(req.params.unitCode).toUpperCase();
-      const { status, jobSite } = req.body;
+      const { status, jobSite, brand, model } = req.body;
 
       const unit = await prisma.masterUnit.findUnique({
         where: { unitCode },
@@ -143,6 +312,14 @@ export const plantController = {
       }
       if (jobSite && (jobSite === "MuaraPahu" || jobSite === "Senyiur")) {
         updateData.jobSite = jobSite as JobSite;
+      }
+      if (!isHaulingCategory(unit.category)) {
+        if (typeof brand === "string" && brand.trim()) {
+          updateData.brand = brand.trim();
+        }
+        if (typeof model === "string" && model.trim()) {
+          updateData.model = model.trim();
+        }
       }
 
       // If unit is Prime Mover (kepala), cascade jobsite and status to all its trailers/buntut
@@ -287,7 +464,7 @@ export const plantController = {
 
       // Pre-fetch trailers map for automatic trailer buntut display
       const allTrailers = await prisma.masterUnit.findMany({
-        where: { category: { not: "Prime Mover" } },
+        where: { category: { in: [...TRAILER_CATEGORIES] } },
         orderBy: { unitNumber: "asc" },
       });
       const trailerSummaryMap: Record<string, string> = {};
@@ -474,7 +651,7 @@ export const plantController = {
 
       // Find trailer buntut for this head
       const trailers = await prisma.masterUnit.findMany({
-        where: { headUnitCode: normalizedUnitCode, category: { not: "Prime Mover" } },
+        where: { headUnitCode: normalizedUnitCode, category: { in: [...TRAILER_CATEGORIES] } },
         orderBy: { unitNumber: "asc" },
       });
       const buntutSummary = trailers.map((t) => t.unitCode).join(", ");
@@ -590,7 +767,7 @@ export const plantController = {
 
       // Preload all trailers
       const allTrailers = await prisma.masterUnit.findMany({
-        where: { category: { not: "Prime Mover" } },
+        where: { category: { in: [...TRAILER_CATEGORIES] } },
       });
       const trailerSummaryMap: Record<string, string> = {};
       for (const t of allTrailers) {
@@ -739,7 +916,7 @@ export const plantController = {
 
       // Pre-fetch trailers
       const allTrailers = await prisma.masterUnit.findMany({
-        where: { category: { not: "Prime Mover" } },
+        where: { category: { in: [...TRAILER_CATEGORIES] } },
         orderBy: { unitNumber: "asc" },
       });
       const trailerSummaryMap: Record<string, string> = {};

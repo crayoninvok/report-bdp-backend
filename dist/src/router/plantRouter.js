@@ -9,6 +9,8 @@ const plantRouter = (0, express_1.Router)();
 plantRouter.get("/dashboard", plantDashboardController_1.plantDashboardController.getPlantDashboard);
 // 1. Master Units
 plantRouter.get("/units", plantController_1.plantController.getMasterUnits);
+plantRouter.post("/units", plantController_1.plantController.createUnit);
+plantRouter.post("/units/sync-volvo", plantController_1.plantController.syncVolvoUnits);
 plantRouter.put("/units/:unitCode", plantController_1.plantController.updateUnit);
 // 2. Settings (daily_pi_target, daily_pm_target)
 plantRouter.get("/settings", plantController_1.plantController.getPlantSettings);

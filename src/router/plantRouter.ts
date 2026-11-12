@@ -10,6 +10,8 @@ plantRouter.get("/dashboard", plantDashboardController.getPlantDashboard);
 
 // 1. Master Units
 plantRouter.get("/units", plantController.getMasterUnits);
+plantRouter.post("/units", plantController.createUnit);
+plantRouter.post("/units/sync-volvo", plantController.syncVolvoUnits);
 plantRouter.put("/units/:unitCode", plantController.updateUnit);
 
 // 2. Settings (daily_pi_target, daily_pm_target)

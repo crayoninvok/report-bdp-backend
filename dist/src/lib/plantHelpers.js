@@ -129,7 +129,7 @@ function getDateRange(startDateStr, endDateStr) {
  */
 async function getTrailerSummaryMap() {
     const allTrailers = await prisma_1.prisma.masterUnit.findMany({
-        where: { category: { not: "Prime Mover" } },
+        where: { category: { in: ["Vessel 1", "Dolly", "Vessel 2"] } },
         orderBy: { unitNumber: "asc" },
     });
     const trailerSummaryMap = {};

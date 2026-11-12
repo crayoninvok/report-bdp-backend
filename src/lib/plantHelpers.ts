@@ -139,7 +139,7 @@ export function getDateRange(startDateStr: string, endDateStr: string): {
  */
 export async function getTrailerSummaryMap(): Promise<Record<string, string>> {
   const allTrailers = await prisma.masterUnit.findMany({
-    where: { category: { not: "Prime Mover" } },
+    where: { category: { in: ["Vessel 1", "Dolly", "Vessel 2"] } },
     orderBy: { unitNumber: "asc" },
   });
 
