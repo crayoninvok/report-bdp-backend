@@ -5,53 +5,6 @@ const prisma_1 = require("../lib/prisma");
 const volvoClient_1 = require("../lib/volvoClient");
 const plantHelpers_1 = require("../lib/plantHelpers");
 const DEFAULT_DAILY_PM_TARGET = 4;
-const PM_GL_ACCOUNT_CODES = [
-    "05110204", // BEBAN OLI
-    "05110205", // BEBAN GREASE
-    "05110301", // BEBAN SPAREPART
-    "05110305", // BEBAN EKSTERNAL SERVICES
-];
-/**
- * Helper to fetch latest non-overlapping monthly GLPeriod IDs
- */
-async function getLatestMonthlyPeriodIds() {
-    const periods = await prisma_1.prisma.gLPeriod.findMany({
-        orderBy: [{ year: "desc" }, { month: "desc" }, { endDate: "desc" }, { createdAt: "desc" }],
-        select: { id: true, year: true, month: true },
-    });
-    const latestByMonth = new Map();
-    for (const p of periods) {
-        const key = `${p.year}-${p.month}`;
-        if (!latestByMonth.has(key)) {
-            latestByMonth.set(key, p.id);
-        }
-    }
-    return Array.from(latestByMonth.values());
-}
-/**
- * Resolves a GL transaction's target Prime Mover unitCode (e.g. "PM454")
- * from costCenter or remark (supports PM/ST/DL codes mapped to their Prime Mover).
- */
-function extractHeadUnitCodes(costCenter, remark, trailerToHeadMap) {
-    const matchedHeads = new Set();
-    const sources = [costCenter || "", remark || ""];
-    for (const src of sources) {
-        const matches = src.matchAll(/\b(PM|ST|DL)\s*-?\s*(\d{3})\b/gi);
-        for (const m of matches) {
-            const prefix = m[1].toUpperCase();
-            const num = m[2];
-            const fullCode = `${prefix}${num}`;
-            if (prefix === "PM") {
-                matchedHeads.add(fullCode);
-            }
-            else {
-                const mappedHead = trailerToHeadMap.get(fullCode);
-                matchedHeads.add(mappedHead || `PM${num}`);
-            }
-        }
-    }
-    return Array.from(matchedHeads);
-}
 /**
  * Evaluates a single unit's live KM & HM readiness against standard PM intervals
  * (12,000 / 24,000 / 48,000 KM & 250 / 500 / 1,000 / 2,000 HM)
@@ -734,7 +687,7 @@ exports.pmController = {
         }
     },
     // -------------------------------------------------------------
-    // 8. PM READINESS RADAR & GL SERVICE HISTORY PER UNIT
+    // 8. PM READINESS RADAR PER UNIT (LIVE VOLVO KM/HM)
     // -------------------------------------------------------------
     getPmRadar: async (req, res) => {
         try {
@@ -744,38 +697,17 @@ exports.pmController = {
             if (siteParam && siteParam !== "ALL") {
                 unitWhere.jobSite = siteParam;
             }
-            const [primeMovers, allTrailers, trailerSummaryMap, telemetry, allPmItems, periodIds,] = await Promise.all([
+            const [primeMovers, trailerSummaryMap, telemetry, allPmItems,] = await Promise.all([
                 prisma_1.prisma.masterUnit.findMany({
                     where: unitWhere,
                     orderBy: { unitNumber: "asc" },
-                }),
-                prisma_1.prisma.masterUnit.findMany({
-                    where: { category: { not: "Prime Mover" }, headUnitCode: { not: null } },
-                    select: { unitCode: true, headUnitCode: true },
                 }),
                 (0, plantHelpers_1.getTrailerSummaryMap)(),
                 (0, volvoClient_1.getVolvoTelemetryMap)(forceRefresh),
                 prisma_1.prisma.preventiveMaintenanceItem.findMany({
                     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
                 }),
-                getLatestMonthlyPeriodIds(),
             ]);
-            const trailerToHeadMap = new Map();
-            for (const t of allTrailers) {
-                if (t.headUnitCode) {
-                    trailerToHeadMap.set(t.unitCode.toUpperCase(), t.headUnitCode.toUpperCase());
-                }
-            }
-            // Query PM-related GL transactions from deduplicated monthly periods
-            const glRows = periodIds.length > 0
-                ? await prisma_1.prisma.gLTransaction.findMany({
-                    where: {
-                        periodId: { in: periodIds },
-                        accountCode: { in: PM_GL_ACCOUNT_CODES },
-                    },
-                    orderBy: [{ date: "desc" }],
-                })
-                : [];
             // Group PM items by unitCode
             const lastCompletedByUnit = new Map();
             const activeScheduleByUnit = new Map();
@@ -788,77 +720,11 @@ exports.pmController = {
                     activeScheduleByUnit.set(item.unitCode, item);
                 }
             }
-            // Group GL PM/Maintenance transactions per Prime Mover unitCode
-            const glByUnit = new Map();
-            const isScheduledPmRemark = (remark) => Boolean(remark &&
-                /(schedule|schdule|scjedule|ps\s*\d|12000|24000|48000|250\s*hm|500\s*hm|1000\s*hm|greasing|ganti\s*oli|service)/i.test(remark));
-            for (const r of glRows) {
-                const heads = extractHeadUnitCodes(r.costCenter, r.remark, trailerToHeadMap);
-                if (heads.length === 0)
-                    continue;
-                const isPmTagged = isScheduledPmRemark(r.remark);
-                for (const unitCode of heads) {
-                    if (!glByUnit.has(unitCode)) {
-                        glByUnit.set(unitCode, {
-                            oilCost: 0,
-                            greaseCost: 0,
-                            sparepartCost: 0,
-                            externalCost: 0,
-                            totalCost: 0,
-                            txCount: 0,
-                            lastServiceDate: null,
-                            lastServiceRemark: null,
-                            history: [],
-                        });
-                    }
-                    const agg = glByUnit.get(unitCode);
-                    const shareAmount = (r.debet || 0) / heads.length;
-                    if (r.accountCode === "05110204")
-                        agg.oilCost += shareAmount;
-                    else if (r.accountCode === "05110205")
-                        agg.greaseCost += shareAmount;
-                    else if (r.accountCode === "05110301")
-                        agg.sparepartCost += shareAmount;
-                    else if (r.accountCode === "05110305")
-                        agg.externalCost += shareAmount;
-                    agg.totalCost += shareAmount;
-                    agg.txCount++;
-                    if (isPmTagged && !agg.lastServiceDate) {
-                        agg.lastServiceDate = r.date;
-                        agg.lastServiceRemark = r.remark;
-                    }
-                    if (agg.history.length < 30) {
-                        agg.history.push({
-                            id: r.id,
-                            date: r.date,
-                            regNo: r.regNo || "-",
-                            accountCode: r.accountCode,
-                            accountName: r.accountName,
-                            specification: r.specification || "-",
-                            qty: r.qty || 0,
-                            debet: shareAmount,
-                            remark: r.remark || "-",
-                            isScheduledPm: isPmTagged,
-                        });
-                    }
-                }
-            }
             // Build unified Radar rows
             const radarUnits = primeMovers.map((u) => {
                 const tel = telemetry.map.get(u.unitCode);
                 const lastCompleted = lastCompletedByUnit.get(u.unitCode) || null;
                 const activeSchedule = activeScheduleByUnit.get(u.unitCode) || null;
-                const glStats = glByUnit.get(u.unitCode) || {
-                    oilCost: 0,
-                    greaseCost: 0,
-                    sparepartCost: 0,
-                    externalCost: 0,
-                    totalCost: 0,
-                    txCount: 0,
-                    lastServiceDate: null,
-                    lastServiceRemark: null,
-                    history: [],
-                };
                 const readiness = evaluateUnitPmReadiness({
                     liveKm: tel?.km ?? 0,
                     liveHm: tel?.hm ?? 0,
@@ -897,17 +763,6 @@ exports.pmController = {
                             shift: activeSchedule.shift,
                         }
                         : null,
-                    glSummary: {
-                        oilCost: Math.round(glStats.oilCost),
-                        greaseCost: Math.round(glStats.greaseCost),
-                        sparepartCost: Math.round(glStats.sparepartCost),
-                        externalCost: Math.round(glStats.externalCost),
-                        totalCost: Math.round(glStats.totalCost),
-                        txCount: glStats.txCount,
-                        lastServiceDate: glStats.lastServiceDate,
-                        lastServiceRemark: glStats.lastServiceRemark,
-                    },
-                    glHistory: glStats.history,
                 };
             });
             const activeUnits = radarUnits.filter((r) => r.status === "Active");
@@ -919,7 +774,6 @@ exports.pmController = {
                 dueSoonCount: radarUnits.filter((r) => r.readinessStatus === "Due Soon").length,
                 safeCount: radarUnits.filter((r) => r.readinessStatus === "Safe").length,
                 scheduledCount: radarUnits.filter((r) => !!r.activeSchedule).length,
-                totalGlPmCost: radarUnits.reduce((acc, r) => acc + r.glSummary.totalCost, 0),
             };
             return res.json({
                 success: true,
