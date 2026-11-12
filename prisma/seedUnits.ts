@@ -92,12 +92,14 @@ async function seedMasterUnits() {
       jobSite: unitSite,
     });
 
+    const trailerBrand = i === 51 ? "CIMC" : "Korindo";
+
     // 2. Vessel 1
     unitsToUpsert.push({
-      unitCode: `ST${800 + i}`, // ST801 - ST871
+      unitCode: `ST${800 + i}`, // ST801 - ST871 (ST851 = CIMC)
       unitNumber: 800 + i,
       category: "Vessel 1",
-      brand: "Korindo",
+      brand: trailerBrand,
       model: "SDT110",
       headUnitCode: headCode,
       pairIndex: i,
@@ -106,11 +108,11 @@ async function seedMasterUnits() {
 
     // 3. Dolly
     unitsToUpsert.push({
-      unitCode: `DL${600 + i}`, // DL601 - DL671
+      unitCode: `DL${600 + i}`, // DL601 - DL671 (Model DL60, DL651 = CIMC)
       unitNumber: 600 + i,
       category: "Dolly",
-      brand: "Korindo",
-      model: "DL",
+      brand: trailerBrand,
+      model: "DL60",
       headUnitCode: headCode,
       pairIndex: i,
       jobSite: unitSite,
@@ -118,10 +120,10 @@ async function seedMasterUnits() {
 
     // 4. Vessel 2
     unitsToUpsert.push({
-      unitCode: `ST${900 + i}`, // ST901 - ST971
+      unitCode: `ST${900 + i}`, // ST901 - ST971 (ST951 = CIMC)
       unitNumber: 900 + i,
       category: "Vessel 2",
-      brand: "Korindo",
+      brand: trailerBrand,
       model: "SDT125",
       headUnitCode: headCode,
       pairIndex: i,

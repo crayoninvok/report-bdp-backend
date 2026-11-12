@@ -228,8 +228,8 @@ model MasterUnit {
   unitCode     String                   @unique // e.g. "PM401", "ST801", "DL601", "ST901"
   unitNumber   Int                      // e.g. 401, 801, 601, 901
   category     String                   // "Prime Mover", "Vessel 1", "Dolly", "Vessel 2"
-  brand        String                   // "Volvo", "Korindo"
-  model        String                   // "FH16", "SDT110", "DL", "SDT125"
+  brand        String                   // "Volvo", "Korindo", "CIMC"
+  model        String                   // "FH16", "SDT110", "DL60", "SDT125"
   headUnitCode String?                  // e.g. "PM401"
   pairIndex    Int?                     // 1..71
   jobSite      JobSite                  @default(MuaraPahu)
