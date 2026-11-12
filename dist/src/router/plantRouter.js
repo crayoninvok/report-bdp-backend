@@ -4,6 +4,7 @@ const express_1 = require("express");
 const plantController_1 = require("../controller/plantController");
 const pmController_1 = require("../controller/pmController");
 const plantDashboardController_1 = require("../controller/plantDashboardController");
+const dailyPaController_1 = require("../controller/dailyPaController");
 const plantRouter = (0, express_1.Router)();
 // 0. Dashboard Plant Analytics (GL Plant Cost + Preventive Maintenance PI/PS)
 plantRouter.get("/dashboard", plantDashboardController_1.plantDashboardController.getPlantDashboard);
@@ -37,4 +38,14 @@ for (const psBase of ["/preventive-maintenance", "/periodic-service"]) {
 }
 // 5. Tyre & Rim Usage (from GL Beban Tyre 05110203)
 plantRouter.get("/tyre-rim-usage", plantController_1.plantController.getTyreRimUsage);
+// 6. Daily Physical Availability (Daily PA Report)
+plantRouter.get("/daily-pa", dailyPaController_1.dailyPaController.getDailyPaReport);
+plantRouter.get("/daily-pa/monthly-summary", dailyPaController_1.dailyPaController.getMonthlyCalendarSummary);
+plantRouter.put("/daily-pa/settings", dailyPaController_1.dailyPaController.updateDailyPaSettings);
+plantRouter.post("/daily-pa/units", dailyPaController_1.dailyPaController.addUnitsToDailyPa);
+plantRouter.delete("/daily-pa/units/:entryId", dailyPaController_1.dailyPaController.removeUnitFromDailyPa);
+plantRouter.post("/daily-pa/sync-pi-ps", dailyPaController_1.dailyPaController.syncPiPsToDailyPa);
+plantRouter.post("/daily-pa/activities", dailyPaController_1.dailyPaController.addActivity);
+plantRouter.put("/daily-pa/activities/:activityId", dailyPaController_1.dailyPaController.updateActivity);
+plantRouter.delete("/daily-pa/activities/:activityId", dailyPaController_1.dailyPaController.deleteActivity);
 exports.default = plantRouter;

@@ -238,6 +238,7 @@ model MasterUnit {
   currentKm    Float?                   // Odometer terakhir (live Volvo untuk PM, manual/PM untuk Support)
   inspections  PeriodicInspectionItem[]
   preventiveMaintenances PreventiveMaintenanceItem[]
+  dailyPaEntries         DailyPaUnitEntry[]
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime                 @updatedAt
 
@@ -343,6 +344,53 @@ model PlantSetting {
   updatedAt   DateTime @updatedAt
 }
 
+
+model DailyPaReport {
+  id            String             @id @default(uuid())
+  jobSite       JobSite            @default(MuaraPahu)
+  date          String             // YYYY-MM-DD
+  calendarHours Float              @default(24)
+  targetPa      Float              @default(93)
+  notes         String?
+  units         DailyPaUnitEntry[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([jobSite, date])
+  @@index([date])
+}
+
+model DailyPaUnitEntry {
+  id               String            @id @default(uuid())
+  reportId         String
+  report           DailyPaReport     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  unitCode         String
+  unit             MasterUnit        @relation(fields: [unitCode], references: [unitCode], onDelete: Cascade)
+  dismissedSources String[]          @default([])
+  activities       DailyPaActivity[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([reportId, unitCode])
+  @@index([unitCode])
+}
+
+model DailyPaActivity {
+  id            String           @id @default(uuid())
+  unitEntryId   String
+  unitEntry     DailyPaUnitEntry @relation(fields: [unitEntryId], references: [id], onDelete: Cascade)
+  sourceType    String           @default("MANUAL") // "PI", "PS", "MANUAL"
+  sourceItemId  String?
+  activityText  String
+  breakdownTime String?          // e.g. "08:30"
+  durationHours Float            @default(0)
+  sortOrder     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([unitEntryId])
+  @@index([sourceType, sourceItemId])
+}
 
 model MasterManpower {
   id                  String   @id @default(uuid())

@@ -302,6 +302,7 @@ export type MasterUnitWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"MasterUnit"> | Date | string
   inspections?: Prisma.PeriodicInspectionItemListRelationFilter
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemListRelationFilter
+  dailyPaEntries?: Prisma.DailyPaUnitEntryListRelationFilter
 }
 
 export type MasterUnitOrderByWithRelationInput = {
@@ -321,6 +322,7 @@ export type MasterUnitOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   inspections?: Prisma.PeriodicInspectionItemOrderByRelationAggregateInput
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemOrderByRelationAggregateInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryOrderByRelationAggregateInput
 }
 
 export type MasterUnitWhereUniqueInput = Prisma.AtLeast<{
@@ -343,6 +345,7 @@ export type MasterUnitWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"MasterUnit"> | Date | string
   inspections?: Prisma.PeriodicInspectionItemListRelationFilter
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemListRelationFilter
+  dailyPaEntries?: Prisma.DailyPaUnitEntryListRelationFilter
 }, "id" | "unitCode">
 
 export type MasterUnitOrderByWithAggregationInput = {
@@ -404,6 +407,7 @@ export type MasterUnitCreateInput = {
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemCreateNestedManyWithoutUnitInput
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemCreateNestedManyWithoutUnitInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryCreateNestedManyWithoutUnitInput
 }
 
 export type MasterUnitUncheckedCreateInput = {
@@ -423,6 +427,7 @@ export type MasterUnitUncheckedCreateInput = {
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedCreateNestedManyWithoutUnitInput
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedCreateNestedManyWithoutUnitInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type MasterUnitUpdateInput = {
@@ -442,6 +447,7 @@ export type MasterUnitUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUpdateManyWithoutUnitNestedInput
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUpdateManyWithoutUnitNestedInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUpdateManyWithoutUnitNestedInput
 }
 
 export type MasterUnitUncheckedUpdateInput = {
@@ -461,6 +467,7 @@ export type MasterUnitUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedUpdateManyWithoutUnitNestedInput
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedUpdateManyWithoutUnitNestedInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type MasterUnitCreateManyInput = {
@@ -584,6 +591,11 @@ export type MasterUnitNullableScalarRelationFilter = {
   isNot?: Prisma.MasterUnitWhereInput | null
 }
 
+export type MasterUnitScalarRelationFilter = {
+  is?: Prisma.MasterUnitWhereInput
+  isNot?: Prisma.MasterUnitWhereInput
+}
+
 export type MasterUnitCreateNestedOneWithoutInspectionsInput = {
   create?: Prisma.XOR<Prisma.MasterUnitCreateWithoutInspectionsInput, Prisma.MasterUnitUncheckedCreateWithoutInspectionsInput>
   connectOrCreate?: Prisma.MasterUnitCreateOrConnectWithoutInspectionsInput
@@ -616,6 +628,20 @@ export type MasterUnitUpdateOneWithoutPreventiveMaintenancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MasterUnitUpdateToOneWithWhereWithoutPreventiveMaintenancesInput, Prisma.MasterUnitUpdateWithoutPreventiveMaintenancesInput>, Prisma.MasterUnitUncheckedUpdateWithoutPreventiveMaintenancesInput>
 }
 
+export type MasterUnitCreateNestedOneWithoutDailyPaEntriesInput = {
+  create?: Prisma.XOR<Prisma.MasterUnitCreateWithoutDailyPaEntriesInput, Prisma.MasterUnitUncheckedCreateWithoutDailyPaEntriesInput>
+  connectOrCreate?: Prisma.MasterUnitCreateOrConnectWithoutDailyPaEntriesInput
+  connect?: Prisma.MasterUnitWhereUniqueInput
+}
+
+export type MasterUnitUpdateOneRequiredWithoutDailyPaEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.MasterUnitCreateWithoutDailyPaEntriesInput, Prisma.MasterUnitUncheckedCreateWithoutDailyPaEntriesInput>
+  connectOrCreate?: Prisma.MasterUnitCreateOrConnectWithoutDailyPaEntriesInput
+  upsert?: Prisma.MasterUnitUpsertWithoutDailyPaEntriesInput
+  connect?: Prisma.MasterUnitWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MasterUnitUpdateToOneWithWhereWithoutDailyPaEntriesInput, Prisma.MasterUnitUpdateWithoutDailyPaEntriesInput>, Prisma.MasterUnitUncheckedUpdateWithoutDailyPaEntriesInput>
+}
+
 export type MasterUnitCreateWithoutInspectionsInput = {
   id?: string
   unitCode: string
@@ -632,6 +658,7 @@ export type MasterUnitCreateWithoutInspectionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemCreateNestedManyWithoutUnitInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryCreateNestedManyWithoutUnitInput
 }
 
 export type MasterUnitUncheckedCreateWithoutInspectionsInput = {
@@ -650,6 +677,7 @@ export type MasterUnitUncheckedCreateWithoutInspectionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedCreateNestedManyWithoutUnitInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type MasterUnitCreateOrConnectWithoutInspectionsInput = {
@@ -684,6 +712,7 @@ export type MasterUnitUpdateWithoutInspectionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUpdateManyWithoutUnitNestedInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUpdateManyWithoutUnitNestedInput
 }
 
 export type MasterUnitUncheckedUpdateWithoutInspectionsInput = {
@@ -702,6 +731,7 @@ export type MasterUnitUncheckedUpdateWithoutInspectionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedUpdateManyWithoutUnitNestedInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 export type MasterUnitCreateWithoutPreventiveMaintenancesInput = {
@@ -720,6 +750,7 @@ export type MasterUnitCreateWithoutPreventiveMaintenancesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemCreateNestedManyWithoutUnitInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryCreateNestedManyWithoutUnitInput
 }
 
 export type MasterUnitUncheckedCreateWithoutPreventiveMaintenancesInput = {
@@ -738,6 +769,7 @@ export type MasterUnitUncheckedCreateWithoutPreventiveMaintenancesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedCreateNestedManyWithoutUnitInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUncheckedCreateNestedManyWithoutUnitInput
 }
 
 export type MasterUnitCreateOrConnectWithoutPreventiveMaintenancesInput = {
@@ -772,6 +804,7 @@ export type MasterUnitUpdateWithoutPreventiveMaintenancesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUpdateManyWithoutUnitNestedInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUpdateManyWithoutUnitNestedInput
 }
 
 export type MasterUnitUncheckedUpdateWithoutPreventiveMaintenancesInput = {
@@ -790,6 +823,99 @@ export type MasterUnitUncheckedUpdateWithoutPreventiveMaintenancesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inspections?: Prisma.PeriodicInspectionItemUncheckedUpdateManyWithoutUnitNestedInput
+  dailyPaEntries?: Prisma.DailyPaUnitEntryUncheckedUpdateManyWithoutUnitNestedInput
+}
+
+export type MasterUnitCreateWithoutDailyPaEntriesInput = {
+  id?: string
+  unitCode: string
+  unitNumber: number
+  category: string
+  brand: string
+  model: string
+  headUnitCode?: string | null
+  pairIndex?: number | null
+  jobSite?: $Enums.JobSite
+  status?: string
+  currentHm?: number | null
+  currentKm?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  inspections?: Prisma.PeriodicInspectionItemCreateNestedManyWithoutUnitInput
+  preventiveMaintenances?: Prisma.PreventiveMaintenanceItemCreateNestedManyWithoutUnitInput
+}
+
+export type MasterUnitUncheckedCreateWithoutDailyPaEntriesInput = {
+  id?: string
+  unitCode: string
+  unitNumber: number
+  category: string
+  brand: string
+  model: string
+  headUnitCode?: string | null
+  pairIndex?: number | null
+  jobSite?: $Enums.JobSite
+  status?: string
+  currentHm?: number | null
+  currentKm?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  inspections?: Prisma.PeriodicInspectionItemUncheckedCreateNestedManyWithoutUnitInput
+  preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedCreateNestedManyWithoutUnitInput
+}
+
+export type MasterUnitCreateOrConnectWithoutDailyPaEntriesInput = {
+  where: Prisma.MasterUnitWhereUniqueInput
+  create: Prisma.XOR<Prisma.MasterUnitCreateWithoutDailyPaEntriesInput, Prisma.MasterUnitUncheckedCreateWithoutDailyPaEntriesInput>
+}
+
+export type MasterUnitUpsertWithoutDailyPaEntriesInput = {
+  update: Prisma.XOR<Prisma.MasterUnitUpdateWithoutDailyPaEntriesInput, Prisma.MasterUnitUncheckedUpdateWithoutDailyPaEntriesInput>
+  create: Prisma.XOR<Prisma.MasterUnitCreateWithoutDailyPaEntriesInput, Prisma.MasterUnitUncheckedCreateWithoutDailyPaEntriesInput>
+  where?: Prisma.MasterUnitWhereInput
+}
+
+export type MasterUnitUpdateToOneWithWhereWithoutDailyPaEntriesInput = {
+  where?: Prisma.MasterUnitWhereInput
+  data: Prisma.XOR<Prisma.MasterUnitUpdateWithoutDailyPaEntriesInput, Prisma.MasterUnitUncheckedUpdateWithoutDailyPaEntriesInput>
+}
+
+export type MasterUnitUpdateWithoutDailyPaEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  unitCode?: Prisma.StringFieldUpdateOperationsInput | string
+  unitNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.StringFieldUpdateOperationsInput | string
+  model?: Prisma.StringFieldUpdateOperationsInput | string
+  headUnitCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  inspections?: Prisma.PeriodicInspectionItemUpdateManyWithoutUnitNestedInput
+  preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUpdateManyWithoutUnitNestedInput
+}
+
+export type MasterUnitUncheckedUpdateWithoutDailyPaEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  unitCode?: Prisma.StringFieldUpdateOperationsInput | string
+  unitNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.StringFieldUpdateOperationsInput | string
+  model?: Prisma.StringFieldUpdateOperationsInput | string
+  headUnitCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pairIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  jobSite?: Prisma.EnumJobSiteFieldUpdateOperationsInput | $Enums.JobSite
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentHm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currentKm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  inspections?: Prisma.PeriodicInspectionItemUncheckedUpdateManyWithoutUnitNestedInput
+  preventiveMaintenances?: Prisma.PreventiveMaintenanceItemUncheckedUpdateManyWithoutUnitNestedInput
 }
 
 
@@ -800,11 +926,13 @@ export type MasterUnitUncheckedUpdateWithoutPreventiveMaintenancesInput = {
 export type MasterUnitCountOutputType = {
   inspections: number
   preventiveMaintenances: number
+  dailyPaEntries: number
 }
 
 export type MasterUnitCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   inspections?: boolean | MasterUnitCountOutputTypeCountInspectionsArgs
   preventiveMaintenances?: boolean | MasterUnitCountOutputTypeCountPreventiveMaintenancesArgs
+  dailyPaEntries?: boolean | MasterUnitCountOutputTypeCountDailyPaEntriesArgs
 }
 
 /**
@@ -831,6 +959,13 @@ export type MasterUnitCountOutputTypeCountPreventiveMaintenancesArgs<ExtArgs ext
   where?: Prisma.PreventiveMaintenanceItemWhereInput
 }
 
+/**
+ * MasterUnitCountOutputType without action
+ */
+export type MasterUnitCountOutputTypeCountDailyPaEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DailyPaUnitEntryWhereInput
+}
+
 
 export type MasterUnitSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -849,6 +984,7 @@ export type MasterUnitSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   updatedAt?: boolean
   inspections?: boolean | Prisma.MasterUnit$inspectionsArgs<ExtArgs>
   preventiveMaintenances?: boolean | Prisma.MasterUnit$preventiveMaintenancesArgs<ExtArgs>
+  dailyPaEntries?: boolean | Prisma.MasterUnit$dailyPaEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.MasterUnitCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["masterUnit"]>
 
@@ -907,6 +1043,7 @@ export type MasterUnitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type MasterUnitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   inspections?: boolean | Prisma.MasterUnit$inspectionsArgs<ExtArgs>
   preventiveMaintenances?: boolean | Prisma.MasterUnit$preventiveMaintenancesArgs<ExtArgs>
+  dailyPaEntries?: boolean | Prisma.MasterUnit$dailyPaEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.MasterUnitCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MasterUnitIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -917,6 +1054,7 @@ export type $MasterUnitPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     inspections: Prisma.$PeriodicInspectionItemPayload<ExtArgs>[]
     preventiveMaintenances: Prisma.$PreventiveMaintenanceItemPayload<ExtArgs>[]
+    dailyPaEntries: Prisma.$DailyPaUnitEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1329,6 +1467,7 @@ export interface Prisma__MasterUnitClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   inspections<T extends Prisma.MasterUnit$inspectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MasterUnit$inspectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PeriodicInspectionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   preventiveMaintenances<T extends Prisma.MasterUnit$preventiveMaintenancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MasterUnit$preventiveMaintenancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PreventiveMaintenanceItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  dailyPaEntries<T extends Prisma.MasterUnit$dailyPaEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MasterUnit$dailyPaEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyPaUnitEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1810,6 +1949,30 @@ export type MasterUnit$preventiveMaintenancesArgs<ExtArgs extends runtime.Types.
   take?: number
   skip?: number
   distinct?: Prisma.PreventiveMaintenanceItemScalarFieldEnum | Prisma.PreventiveMaintenanceItemScalarFieldEnum[]
+}
+
+/**
+ * MasterUnit.dailyPaEntries
+ */
+export type MasterUnit$dailyPaEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DailyPaUnitEntry
+   */
+  select?: Prisma.DailyPaUnitEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DailyPaUnitEntry
+   */
+  omit?: Prisma.DailyPaUnitEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DailyPaUnitEntryInclude<ExtArgs> | null
+  where?: Prisma.DailyPaUnitEntryWhereInput
+  orderBy?: Prisma.DailyPaUnitEntryOrderByWithRelationInput | Prisma.DailyPaUnitEntryOrderByWithRelationInput[]
+  cursor?: Prisma.DailyPaUnitEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DailyPaUnitEntryScalarFieldEnum | Prisma.DailyPaUnitEntryScalarFieldEnum[]
 }
 
 /**

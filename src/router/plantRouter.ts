@@ -2,6 +2,7 @@ import { Router } from "express";
 import { plantController } from "../controller/plantController";
 import { pmController } from "../controller/pmController";
 import { plantDashboardController } from "../controller/plantDashboardController";
+import { dailyPaController } from "../controller/dailyPaController";
 
 const plantRouter = Router();
 
@@ -42,5 +43,16 @@ for (const psBase of ["/preventive-maintenance", "/periodic-service"]) {
 
 // 5. Tyre & Rim Usage (from GL Beban Tyre 05110203)
 plantRouter.get("/tyre-rim-usage", plantController.getTyreRimUsage);
+
+// 6. Daily Physical Availability (Daily PA Report)
+plantRouter.get("/daily-pa", dailyPaController.getDailyPaReport);
+plantRouter.get("/daily-pa/monthly-summary", dailyPaController.getMonthlyCalendarSummary);
+plantRouter.put("/daily-pa/settings", dailyPaController.updateDailyPaSettings);
+plantRouter.post("/daily-pa/units", dailyPaController.addUnitsToDailyPa);
+plantRouter.delete("/daily-pa/units/:entryId", dailyPaController.removeUnitFromDailyPa);
+plantRouter.post("/daily-pa/sync-pi-ps", dailyPaController.syncPiPsToDailyPa);
+plantRouter.post("/daily-pa/activities", dailyPaController.addActivity);
+plantRouter.put("/daily-pa/activities/:activityId", dailyPaController.updateActivity);
+plantRouter.delete("/daily-pa/activities/:activityId", dailyPaController.deleteActivity);
 
 export default plantRouter;

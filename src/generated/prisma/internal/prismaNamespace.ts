@@ -413,6 +413,9 @@ export const ModelName = {
   PreventiveMaintenancePlan: 'PreventiveMaintenancePlan',
   PreventiveMaintenanceItem: 'PreventiveMaintenanceItem',
   PlantSetting: 'PlantSetting',
+  DailyPaReport: 'DailyPaReport',
+  DailyPaUnitEntry: 'DailyPaUnitEntry',
+  DailyPaActivity: 'DailyPaActivity',
   MasterManpower: 'MasterManpower'
 } as const
 
@@ -429,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "masterManpower"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "masterManpower"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1617,6 +1620,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DailyPaReport: {
+      payload: Prisma.$DailyPaReportPayload<ExtArgs>
+      fields: Prisma.DailyPaReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyPaReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyPaReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyPaReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyPaReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>
+        }
+        findMany: {
+          args: Prisma.DailyPaReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>[]
+        }
+        create: {
+          args: Prisma.DailyPaReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>
+        }
+        createMany: {
+          args: Prisma.DailyPaReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyPaReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyPaReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>
+        }
+        update: {
+          args: Prisma.DailyPaReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyPaReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyPaReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyPaReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyPaReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaReportPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyPaReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyPaReport>
+        }
+        groupBy: {
+          args: Prisma.DailyPaReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyPaReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyPaReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyPaReportCountAggregateOutputType> | number
+        }
+      }
+    }
+    DailyPaUnitEntry: {
+      payload: Prisma.$DailyPaUnitEntryPayload<ExtArgs>
+      fields: Prisma.DailyPaUnitEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyPaUnitEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyPaUnitEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyPaUnitEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyPaUnitEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>
+        }
+        findMany: {
+          args: Prisma.DailyPaUnitEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>[]
+        }
+        create: {
+          args: Prisma.DailyPaUnitEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>
+        }
+        createMany: {
+          args: Prisma.DailyPaUnitEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyPaUnitEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyPaUnitEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>
+        }
+        update: {
+          args: Prisma.DailyPaUnitEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyPaUnitEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyPaUnitEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyPaUnitEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyPaUnitEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaUnitEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyPaUnitEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyPaUnitEntry>
+        }
+        groupBy: {
+          args: Prisma.DailyPaUnitEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyPaUnitEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyPaUnitEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyPaUnitEntryCountAggregateOutputType> | number
+        }
+      }
+    }
+    DailyPaActivity: {
+      payload: Prisma.$DailyPaActivityPayload<ExtArgs>
+      fields: Prisma.DailyPaActivityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyPaActivityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyPaActivityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyPaActivityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyPaActivityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>
+        }
+        findMany: {
+          args: Prisma.DailyPaActivityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>[]
+        }
+        create: {
+          args: Prisma.DailyPaActivityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>
+        }
+        createMany: {
+          args: Prisma.DailyPaActivityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyPaActivityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyPaActivityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>
+        }
+        update: {
+          args: Prisma.DailyPaActivityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyPaActivityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyPaActivityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyPaActivityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyPaActivityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyPaActivityPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyPaActivityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyPaActivity>
+        }
+        groupBy: {
+          args: Prisma.DailyPaActivityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyPaActivityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyPaActivityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyPaActivityCountAggregateOutputType> | number
+        }
+      }
+    }
     MasterManpower: {
       payload: Prisma.$MasterManpowerPayload<ExtArgs>
       fields: Prisma.MasterManpowerFieldRefs
@@ -2037,6 +2262,48 @@ export const PlantSettingScalarFieldEnum = {
 export type PlantSettingScalarFieldEnum = (typeof PlantSettingScalarFieldEnum)[keyof typeof PlantSettingScalarFieldEnum]
 
 
+export const DailyPaReportScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  calendarHours: 'calendarHours',
+  targetPa: 'targetPa',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyPaReportScalarFieldEnum = (typeof DailyPaReportScalarFieldEnum)[keyof typeof DailyPaReportScalarFieldEnum]
+
+
+export const DailyPaUnitEntryScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  unitCode: 'unitCode',
+  dismissedSources: 'dismissedSources',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyPaUnitEntryScalarFieldEnum = (typeof DailyPaUnitEntryScalarFieldEnum)[keyof typeof DailyPaUnitEntryScalarFieldEnum]
+
+
+export const DailyPaActivityScalarFieldEnum = {
+  id: 'id',
+  unitEntryId: 'unitEntryId',
+  sourceType: 'sourceType',
+  sourceItemId: 'sourceItemId',
+  activityText: 'activityText',
+  breakdownTime: 'breakdownTime',
+  durationHours: 'durationHours',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyPaActivityScalarFieldEnum = (typeof DailyPaActivityScalarFieldEnum)[keyof typeof DailyPaActivityScalarFieldEnum]
+
+
 export const MasterManpowerScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -2399,6 +2666,9 @@ export type GlobalOmitConfig = {
   preventiveMaintenancePlan?: Prisma.PreventiveMaintenancePlanOmit
   preventiveMaintenanceItem?: Prisma.PreventiveMaintenanceItemOmit
   plantSetting?: Prisma.PlantSettingOmit
+  dailyPaReport?: Prisma.DailyPaReportOmit
+  dailyPaUnitEntry?: Prisma.DailyPaUnitEntryOmit
+  dailyPaActivity?: Prisma.DailyPaActivityOmit
   masterManpower?: Prisma.MasterManpowerOmit
 }
 

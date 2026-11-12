@@ -98,6 +98,21 @@ export type PreventiveMaintenanceItem = Prisma.PreventiveMaintenanceItemModel
  */
 export type PlantSetting = Prisma.PlantSettingModel
 /**
+ * Model DailyPaReport
+ * 
+ */
+export type DailyPaReport = Prisma.DailyPaReportModel
+/**
+ * Model DailyPaUnitEntry
+ * 
+ */
+export type DailyPaUnitEntry = Prisma.DailyPaUnitEntryModel
+/**
+ * Model DailyPaActivity
+ * 
+ */
+export type DailyPaActivity = Prisma.DailyPaActivityModel
+/**
  * Model MasterManpower
  * 
  */

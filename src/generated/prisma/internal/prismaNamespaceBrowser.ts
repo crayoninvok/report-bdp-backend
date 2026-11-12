@@ -67,6 +67,9 @@ export const ModelName = {
   PreventiveMaintenancePlan: 'PreventiveMaintenancePlan',
   PreventiveMaintenanceItem: 'PreventiveMaintenanceItem',
   PlantSetting: 'PlantSetting',
+  DailyPaReport: 'DailyPaReport',
+  DailyPaUnitEntry: 'DailyPaUnitEntry',
+  DailyPaActivity: 'DailyPaActivity',
   MasterManpower: 'MasterManpower'
 } as const
 
@@ -391,6 +394,48 @@ export const PlantSettingScalarFieldEnum = {
 } as const
 
 export type PlantSettingScalarFieldEnum = (typeof PlantSettingScalarFieldEnum)[keyof typeof PlantSettingScalarFieldEnum]
+
+
+export const DailyPaReportScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  calendarHours: 'calendarHours',
+  targetPa: 'targetPa',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyPaReportScalarFieldEnum = (typeof DailyPaReportScalarFieldEnum)[keyof typeof DailyPaReportScalarFieldEnum]
+
+
+export const DailyPaUnitEntryScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  unitCode: 'unitCode',
+  dismissedSources: 'dismissedSources',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyPaUnitEntryScalarFieldEnum = (typeof DailyPaUnitEntryScalarFieldEnum)[keyof typeof DailyPaUnitEntryScalarFieldEnum]
+
+
+export const DailyPaActivityScalarFieldEnum = {
+  id: 'id',
+  unitEntryId: 'unitEntryId',
+  sourceType: 'sourceType',
+  sourceItemId: 'sourceItemId',
+  activityText: 'activityText',
+  breakdownTime: 'breakdownTime',
+  durationHours: 'durationHours',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyPaActivityScalarFieldEnum = (typeof DailyPaActivityScalarFieldEnum)[keyof typeof DailyPaActivityScalarFieldEnum]
 
 
 export const MasterManpowerScalarFieldEnum = {
