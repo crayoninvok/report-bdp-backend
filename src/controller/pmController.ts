@@ -1090,15 +1090,12 @@ export const pmController = {
           statusKeaktifan: "Exist",
           OR: [
             { organization: { contains: "Plant", mode: "insensitive" } },
+            { jobPosition: { contains: "Plant", mode: "insensitive" } },
             { jobPosition: { contains: "Mekanik", mode: "insensitive" } },
             { jobPosition: { contains: "Mechanic", mode: "insensitive" } },
             { jobPosition: { contains: "Tyre", mode: "insensitive" } },
             { jobPosition: { contains: "Electric", mode: "insensitive" } },
             { jobPosition: { contains: "Welder", mode: "insensitive" } },
-            { jobPosition: { contains: "Spv", mode: "insensitive" } },
-            { jobPosition: { contains: "Supervisor", mode: "insensitive" } },
-            { jobPosition: { contains: "Foreman", mode: "insensitive" } },
-            { jobPosition: { contains: "Group Leader", mode: "insensitive" } },
           ],
         },
         select: {
@@ -1107,6 +1104,7 @@ export const pmController = {
           fullName: true,
           jobPosition: true,
           jobLevel: true,
+          organization: true,
           branchName: true,
         },
         orderBy: [{ fullName: "asc" }],
@@ -1129,9 +1127,13 @@ export const pmController = {
         });
 
       const supervisors = rankSiteAndRole(
-        rows.filter((r) =>
-          /spv|supervisor|superintendent|foreman|group leader|gl/i.test(r.jobPosition || "")
-        ),
+        rows.filter((r) => {
+          const isPlant = /plant/i.test(r.organization || "") || /plant/i.test(r.jobPosition || "");
+          const isSpv =
+            /spv|supervisor|superintendent|foreman|group leader|gl/i.test(r.jobPosition || "") ||
+            ["Supervisor", "Junior Supervisor", "Superintendent"].includes(r.jobLevel || "");
+          return isPlant && isSpv;
+        }),
         /^spv\s+plant$/i
       );
 
