@@ -48,6 +48,7 @@ plantRouter.get("/tyre-rim-usage", plantController.getTyreRimUsage);
 // 6. Daily Physical Availability (Daily PA Report)
 plantRouter.get("/daily-pa", dailyPaController.getDailyPaReport);
 plantRouter.get("/daily-pa/monthly-summary", dailyPaController.getMonthlyCalendarSummary);
+plantRouter.get("/daily-pa/range-summary", dailyPaController.getRangeSummary);
 plantRouter.put("/daily-pa/settings", dailyPaController.updateDailyPaSettings);
 plantRouter.post("/daily-pa/units", dailyPaController.addUnitsToDailyPa);
 plantRouter.delete("/daily-pa/units/:entryId", dailyPaController.removeUnitFromDailyPa);

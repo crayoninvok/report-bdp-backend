@@ -13,6 +13,16 @@ function parseJobSite(raw?: string | null): JobSite {
   return "MuaraPahu";
 }
 
+/** Parses optional job site string into Prisma JobSite or null if all sites. */
+function parseOptionalJobSite(raw?: string | null): JobSite | null {
+  if (!raw) return null;
+  const clean = raw.trim().toLowerCase();
+  if (!clean || clean === "all" || clean === "semua") return null;
+  if (clean === "senyiur" || clean === "sny") return "Senyiur";
+  if (clean === "muarapahu" || clean === "muara_pahu" || clean === "mph") return "MuaraPahu";
+  return null;
+}
+
 /** Validates strict YYYY-MM-DD calendar format to reject invalid dates. */
 function isValidIsoDate(raw?: string | null): raw is string {
   if (!raw) return false;
@@ -477,6 +487,142 @@ export const dailyPaController = {
       });
     } catch (error: any) {
       console.error("getMonthlyCalendarSummary error:", error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // 2b. RANGE SUMMARY FOR ASSETFINDR DASHBOARD / ANALYTICS
+  getRangeSummary: async (req: Request, res: Response) => {
+    try {
+      const startDate = String(req.query.startDate || "").trim();
+      const endDate = String(req.query.endDate || "").trim();
+      const jobSite = parseOptionalJobSite(req.query.jobSite ? String(req.query.jobSite) : null);
+
+      if (!isValidIsoDate(startDate) || !isValidIsoDate(endDate)) {
+        return res.status(400).json({
+          success: false,
+          message: "Parameter startDate dan endDate harus format YYYY-MM-DD",
+        });
+      }
+
+      const reports = await prisma.dailyPaReport.findMany({
+        where: {
+          ...(jobSite ? { jobSite } : {}),
+          date: { gte: startDate, lte: endDate },
+        },
+        include: {
+          units: {
+            include: { activities: true },
+          },
+        },
+        orderBy: [{ date: "asc" }, { jobSite: "asc" }],
+      });
+
+      // Group reports by date cleanly
+      const groupedByDate = new Map<string, typeof reports>();
+      for (const r of reports) {
+        const list = groupedByDate.get(r.date) || [];
+        list.push(r);
+        groupedByDate.set(r.date, list);
+      }
+
+      const days: Array<{
+        date: string;
+        totalUnits: number;
+        totalBd: number;
+        breakdownUnitCount: number;
+        belowTargetUnitCount: number;
+        overallPaPercent: number;
+        targetPa: number;
+        calendarHours: number;
+      }> = [];
+
+      let totalAvailAll = 0;
+      let totalCalAll = 0;
+      let totalBdAll = 0;
+      let sumTargetPa = 0;
+
+      for (const [dateStr, dateReports] of groupedByDate.entries()) {
+        let dateUnits = 0;
+        let dateBd = 0;
+        let dateBreakdownUnits = 0;
+        let dateBelowTargetUnits = 0;
+        let sumAvail = 0;
+        let sumCal = 0;
+        const targetPa = dateReports[0]?.targetPa ?? DEFAULT_TARGET_PA;
+        sumTargetPa += targetPa;
+
+        for (const r of dateReports) {
+          const calHours = r.calendarHours || DEFAULT_CALENDAR_HOURS;
+          for (const entry of r.units) {
+            dateUnits++;
+            const bd = entry.activities.length;
+            const downtime = entry.activities.reduce(
+              (acc, a) => acc + (Number(a.durationHours) || 0),
+              0
+            );
+            const avail = Math.max(0, calHours - downtime);
+            const unitPa = calHours > 0 ? round1((avail / calHours) * 100) : 100;
+
+            dateBd += bd;
+            if (bd > 0) dateBreakdownUnits++;
+            if (unitPa < targetPa) dateBelowTargetUnits++;
+            sumAvail += avail;
+            sumCal += calHours;
+          }
+        }
+
+        if (dateUnits > 0) {
+          totalAvailAll += sumAvail;
+          totalCalAll += sumCal;
+          totalBdAll += dateBd;
+
+          days.push({
+            date: dateStr,
+            totalUnits: dateUnits,
+            totalBd: dateBd,
+            breakdownUnitCount: dateBreakdownUnits,
+            belowTargetUnitCount: dateBelowTargetUnits,
+            overallPaPercent: sumCal > 0 ? round1((sumAvail / sumCal) * 100) : 100,
+            targetPa,
+            calendarHours: dateReports[0]?.calendarHours || DEFAULT_CALENDAR_HOURS,
+          });
+        }
+      }
+
+      // "Jika data PA tidak ada biarkan 0 saja tapi jika data PA ada ketika kita filter date pada AssetFindr Dashboard hitung PA yg ada saja"
+      const recordedDaysCount = days.length;
+      const overallPaPercent =
+        recordedDaysCount > 0 && totalCalAll > 0
+          ? round1((totalAvailAll / totalCalAll) * 100)
+          : 0;
+      const targetPa =
+        recordedDaysCount > 0
+          ? round1(sumTargetPa / recordedDaysCount)
+          : DEFAULT_TARGET_PA;
+      const averageUnitsCount =
+        recordedDaysCount > 0
+          ? Math.round(
+              days.reduce((acc, d) => acc + d.totalUnits, 0) / recordedDaysCount
+            )
+          : 0;
+
+      return res.json({
+        success: true,
+        data: {
+          startDate,
+          endDate,
+          jobSite: jobSite || "ALL",
+          recordedDaysCount,
+          overallPaPercent,
+          targetPa,
+          averageUnitsCount,
+          totalBreakdownCount: totalBdAll,
+          days,
+        },
+      });
+    } catch (error: any) {
+      console.error("getRangeSummary error:", error);
       return res.status(500).json({ success: false, message: error.message });
     }
   },
