@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MasterManpowerScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -94,6 +94,7 @@ exports.ModelName = {
     DailyPaReport: 'DailyPaReport',
     DailyPaUnitEntry: 'DailyPaUnitEntry',
     DailyPaActivity: 'DailyPaActivity',
+    DailyBreakdownReport: 'DailyBreakdownReport',
     MasterManpower: 'MasterManpower'
 };
 /*
@@ -375,6 +376,30 @@ exports.DailyPaActivityScalarFieldEnum = {
     breakdownTime: 'breakdownTime',
     durationHours: 'durationHours',
     sortOrder: 'sortOrder',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.DailyBreakdownReportScalarFieldEnum = {
+    id: 'id',
+    jobSite: 'jobSite',
+    date: 'date',
+    unitCode: 'unitCode',
+    unitType: 'unitType',
+    woNumber: 'woNumber',
+    hm: 'hm',
+    km: 'km',
+    category: 'category',
+    startTime: 'startTime',
+    finishTime: 'finishTime',
+    durationHours: 'durationHours',
+    breakdownDescription: 'breakdownDescription',
+    detailActivity: 'detailActivity',
+    component: 'component',
+    mechanic: 'mechanic',
+    supervisor: 'supervisor',
+    location: 'location',
+    status: 'status',
+    notes: 'notes',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

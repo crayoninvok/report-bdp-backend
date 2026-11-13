@@ -113,6 +113,11 @@ export type DailyPaUnitEntry = Prisma.DailyPaUnitEntryModel
  */
 export type DailyPaActivity = Prisma.DailyPaActivityModel
 /**
+ * Model DailyBreakdownReport
+ * 
+ */
+export type DailyBreakdownReport = Prisma.DailyBreakdownReportModel
+/**
  * Model MasterManpower
  * 
  */

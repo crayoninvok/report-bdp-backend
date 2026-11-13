@@ -70,6 +70,7 @@ export const ModelName = {
   DailyPaReport: 'DailyPaReport',
   DailyPaUnitEntry: 'DailyPaUnitEntry',
   DailyPaActivity: 'DailyPaActivity',
+  DailyBreakdownReport: 'DailyBreakdownReport',
   MasterManpower: 'MasterManpower'
 } as const
 
@@ -436,6 +437,34 @@ export const DailyPaActivityScalarFieldEnum = {
 } as const
 
 export type DailyPaActivityScalarFieldEnum = (typeof DailyPaActivityScalarFieldEnum)[keyof typeof DailyPaActivityScalarFieldEnum]
+
+
+export const DailyBreakdownReportScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  unitCode: 'unitCode',
+  unitType: 'unitType',
+  woNumber: 'woNumber',
+  hm: 'hm',
+  km: 'km',
+  category: 'category',
+  startTime: 'startTime',
+  finishTime: 'finishTime',
+  durationHours: 'durationHours',
+  breakdownDescription: 'breakdownDescription',
+  detailActivity: 'detailActivity',
+  component: 'component',
+  mechanic: 'mechanic',
+  supervisor: 'supervisor',
+  location: 'location',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyBreakdownReportScalarFieldEnum = (typeof DailyBreakdownReportScalarFieldEnum)[keyof typeof DailyBreakdownReportScalarFieldEnum]
 
 
 export const MasterManpowerScalarFieldEnum = {

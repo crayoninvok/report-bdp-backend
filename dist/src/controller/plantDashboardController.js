@@ -185,8 +185,10 @@ function extractIntervalBucket(serviceType) {
         return "PS1 (12K KM)";
     if (upper.includes("PS2") || upper.includes("24.000") || upper.includes("24000"))
         return "PS2 (24K KM)";
-    if (upper.includes("PS3") || upper.includes("48.000") || upper.includes("48000"))
-        return "PS3 (48K KM)";
+    if (upper.includes("PS3") || upper.includes("36.000") || upper.includes("36000"))
+        return "PS3 (36K KM)";
+    if (upper.includes("PS4") || upper.includes("48.000") || upper.includes("48000"))
+        return "PS4 (48K KM)";
     if (upper.includes("P4") || upper.includes("2000"))
         return "P4 (2000 HM)";
     if (upper.includes("P3") || upper.includes("1000"))
@@ -768,7 +770,7 @@ exports.plantDashboardController = {
             };
             const piAggregated = buildPlanSeries(piPlans, defaultPiTarget);
             const psAggregated = buildPlanSeries(psPlans, defaultPsTarget);
-            // Extra PS analytics: Interval breakdown (PS1/PS2/PS3/P1-P4) & Asset category breakdown + KPI items
+            // Extra PS analytics: Interval breakdown (PS1/PS2/PS3/PS4/P1-P4) & Asset category breakdown + KPI items
             const intervalMap = new Map();
             const assetCategoryMap = new Map();
             const psKpiItems = psPlans.flatMap((p) => p.items.map((it) => {
@@ -821,7 +823,8 @@ exports.plantDashboardController = {
             const intervalOrder = [
                 "PS1 (12K KM)",
                 "PS2 (24K KM)",
-                "PS3 (48K KM)",
+                "PS3 (36K KM)",
+                "PS4 (48K KM)",
                 "P1 (250 HM)",
                 "P2 (500 HM)",
                 "P3 (1000 HM)",

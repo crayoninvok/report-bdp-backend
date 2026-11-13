@@ -5,6 +5,7 @@ const plantController_1 = require("../controller/plantController");
 const pmController_1 = require("../controller/pmController");
 const plantDashboardController_1 = require("../controller/plantDashboardController");
 const dailyPaController_1 = require("../controller/dailyPaController");
+const dailyBreakdownController_1 = require("../controller/dailyBreakdownController");
 const plantRouter = (0, express_1.Router)();
 // 0. Dashboard Plant Analytics (GL Plant Cost + Preventive Maintenance PI/PS)
 plantRouter.get("/dashboard", plantDashboardController_1.plantDashboardController.getPlantDashboard);
@@ -48,4 +49,9 @@ plantRouter.post("/daily-pa/sync-pi-ps", dailyPaController_1.dailyPaController.s
 plantRouter.post("/daily-pa/activities", dailyPaController_1.dailyPaController.addActivity);
 plantRouter.put("/daily-pa/activities/:activityId", dailyPaController_1.dailyPaController.updateActivity);
 plantRouter.delete("/daily-pa/activities/:activityId", dailyPaController_1.dailyPaController.deleteActivity);
+// 7. Daily Breakdown Report
+plantRouter.get("/daily-breakdown", dailyBreakdownController_1.dailyBreakdownController.getDailyBreakdownList);
+plantRouter.post("/daily-breakdown", dailyBreakdownController_1.dailyBreakdownController.createDailyBreakdown);
+plantRouter.put("/daily-breakdown/:id", dailyBreakdownController_1.dailyBreakdownController.updateDailyBreakdown);
+plantRouter.delete("/daily-breakdown/:id", dailyBreakdownController_1.dailyBreakdownController.deleteDailyBreakdown);
 exports.default = plantRouter;

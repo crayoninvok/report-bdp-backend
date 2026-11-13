@@ -32,7 +32,7 @@ async function syncSupportUnitMeters(unit, resolvedKm, resolvedHm) {
 }
 /**
  * Evaluates a single unit's live KM & HM readiness against standard PM intervals
- * (12,000 / 24,000 / 48,000 KM & 250 / 500 / 1,000 / 2,000 HM)
+ * (12,000 / 24,000 / 36,000 / 48,000 KM & 250 / 500 / 1,000 / 2,000 HM)
  */
 function evaluateUnitPmReadiness(params) {
     const { liveKm, liveHm, hasTelemetry, lastCompletedPm } = params;
@@ -48,8 +48,10 @@ function evaluateUnitPmReadiness(params) {
     const remainingHm = Math.round((targetHm - liveHm) * 10) / 10;
     const getKmLabel = (kmTarget) => {
         if (kmTarget > 0 && kmTarget % 48000 === 0)
-            return "PS3 (48.000 KM)";
-        if (kmTarget > 0 && kmTarget % 24000 === 0)
+            return "PS4 (48.000 KM)";
+        if (kmTarget > 0 && kmTarget % 48000 === 36000)
+            return "PS3 (36.000 KM)";
+        if (kmTarget > 0 && kmTarget % 48000 === 24000)
             return "PS2 (24.000 KM)";
         return "PS1 (12.000 KM)";
     };

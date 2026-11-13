@@ -3,6 +3,7 @@ import { plantController } from "../controller/plantController";
 import { pmController } from "../controller/pmController";
 import { plantDashboardController } from "../controller/plantDashboardController";
 import { dailyPaController } from "../controller/dailyPaController";
+import { dailyBreakdownController } from "../controller/dailyBreakdownController";
 
 const plantRouter = Router();
 
@@ -54,5 +55,11 @@ plantRouter.post("/daily-pa/sync-pi-ps", dailyPaController.syncPiPsToDailyPa);
 plantRouter.post("/daily-pa/activities", dailyPaController.addActivity);
 plantRouter.put("/daily-pa/activities/:activityId", dailyPaController.updateActivity);
 plantRouter.delete("/daily-pa/activities/:activityId", dailyPaController.deleteActivity);
+
+// 7. Daily Breakdown Report
+plantRouter.get("/daily-breakdown", dailyBreakdownController.getDailyBreakdownList);
+plantRouter.post("/daily-breakdown", dailyBreakdownController.createDailyBreakdown);
+plantRouter.put("/daily-breakdown/:id", dailyBreakdownController.updateDailyBreakdown);
+plantRouter.delete("/daily-breakdown/:id", dailyBreakdownController.deleteDailyBreakdown);
 
 export default plantRouter;

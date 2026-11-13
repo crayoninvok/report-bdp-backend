@@ -239,6 +239,7 @@ model MasterUnit {
   inspections  PeriodicInspectionItem[]
   preventiveMaintenances PreventiveMaintenanceItem[]
   dailyPaEntries         DailyPaUnitEntry[]
+  dailyBreakdowns        DailyBreakdownReport[]
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime                 @updatedAt
 
@@ -390,6 +391,38 @@ model DailyPaActivity {
 
   @@index([unitEntryId])
   @@index([sourceType, sourceItemId])
+}
+
+model DailyBreakdownReport {
+  id                   String      @id @default(uuid())
+  jobSite              JobSite     @default(MuaraPahu)
+  date                 String      // YYYY-MM-DD
+  unitCode             String      // e.g. "PM401"
+  unit                 MasterUnit? @relation(fields: [unitCode], references: [unitCode], onDelete: SetNull)
+  unitType             String?     // e.g. "FH16", "SDT110"
+  woNumber             String?     // e.g. "WO-001"
+  hm                   Float?
+  km                   Float?
+  category             String      @default("SCM") // SCM, USM, TSM, TUM, ICM
+  startTime            String?     // HH:mm, e.g. "07:00"
+  finishTime           String?     // HH:mm, e.g. "10:00"
+  durationHours        Float       @default(0)
+  breakdownDescription String
+  detailActivity       String?
+  component            String?     // Engine, Transmission, Suspension, etc.
+  mechanic             String?
+  supervisor           String?
+  location             String?     // Muara Pahu, Senyiur, etc.
+  status               String      @default("Open") // "Open", "Close"
+  notes                String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([date])
+  @@index([unitCode])
+  @@index([jobSite])
+  @@index([status])
+  @@index([category])
 }
 
 model MasterManpower {

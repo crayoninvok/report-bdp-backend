@@ -416,6 +416,7 @@ export const ModelName = {
   DailyPaReport: 'DailyPaReport',
   DailyPaUnitEntry: 'DailyPaUnitEntry',
   DailyPaActivity: 'DailyPaActivity',
+  DailyBreakdownReport: 'DailyBreakdownReport',
   MasterManpower: 'MasterManpower'
 } as const
 
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "masterManpower"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1842,6 +1843,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DailyBreakdownReport: {
+      payload: Prisma.$DailyBreakdownReportPayload<ExtArgs>
+      fields: Prisma.DailyBreakdownReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyBreakdownReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyBreakdownReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyBreakdownReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyBreakdownReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>
+        }
+        findMany: {
+          args: Prisma.DailyBreakdownReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>[]
+        }
+        create: {
+          args: Prisma.DailyBreakdownReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>
+        }
+        createMany: {
+          args: Prisma.DailyBreakdownReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyBreakdownReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyBreakdownReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>
+        }
+        update: {
+          args: Prisma.DailyBreakdownReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyBreakdownReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyBreakdownReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyBreakdownReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyBreakdownReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyBreakdownReportPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyBreakdownReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyBreakdownReport>
+        }
+        groupBy: {
+          args: Prisma.DailyBreakdownReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyBreakdownReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyBreakdownReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyBreakdownReportCountAggregateOutputType> | number
+        }
+      }
+    }
     MasterManpower: {
       payload: Prisma.$MasterManpowerPayload<ExtArgs>
       fields: Prisma.MasterManpowerFieldRefs
@@ -2304,6 +2379,34 @@ export const DailyPaActivityScalarFieldEnum = {
 export type DailyPaActivityScalarFieldEnum = (typeof DailyPaActivityScalarFieldEnum)[keyof typeof DailyPaActivityScalarFieldEnum]
 
 
+export const DailyBreakdownReportScalarFieldEnum = {
+  id: 'id',
+  jobSite: 'jobSite',
+  date: 'date',
+  unitCode: 'unitCode',
+  unitType: 'unitType',
+  woNumber: 'woNumber',
+  hm: 'hm',
+  km: 'km',
+  category: 'category',
+  startTime: 'startTime',
+  finishTime: 'finishTime',
+  durationHours: 'durationHours',
+  breakdownDescription: 'breakdownDescription',
+  detailActivity: 'detailActivity',
+  component: 'component',
+  mechanic: 'mechanic',
+  supervisor: 'supervisor',
+  location: 'location',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyBreakdownReportScalarFieldEnum = (typeof DailyBreakdownReportScalarFieldEnum)[keyof typeof DailyBreakdownReportScalarFieldEnum]
+
+
 export const MasterManpowerScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -2669,6 +2772,7 @@ export type GlobalOmitConfig = {
   dailyPaReport?: Prisma.DailyPaReportOmit
   dailyPaUnitEntry?: Prisma.DailyPaUnitEntryOmit
   dailyPaActivity?: Prisma.DailyPaActivityOmit
+  dailyBreakdownReport?: Prisma.DailyBreakdownReportOmit
   masterManpower?: Prisma.MasterManpowerOmit
 }
 
