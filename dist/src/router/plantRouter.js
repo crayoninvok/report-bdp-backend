@@ -50,6 +50,7 @@ plantRouter.post("/daily-pa/activities", dailyPaController_1.dailyPaController.a
 plantRouter.put("/daily-pa/activities/:activityId", dailyPaController_1.dailyPaController.updateActivity);
 plantRouter.delete("/daily-pa/activities/:activityId", dailyPaController_1.dailyPaController.deleteActivity);
 // 7. Daily Breakdown Report
+plantRouter.get("/daily-breakdown/personnel", pmController_1.pmController.getPlantPersonnel);
 plantRouter.get("/daily-breakdown", dailyBreakdownController_1.dailyBreakdownController.getDailyBreakdownList);
 plantRouter.post("/daily-breakdown", dailyBreakdownController_1.dailyBreakdownController.createDailyBreakdown);
 plantRouter.put("/daily-breakdown/:id", dailyBreakdownController_1.dailyBreakdownController.updateDailyBreakdown);

@@ -1092,6 +1092,13 @@ export const pmController = {
             { organization: { contains: "Plant", mode: "insensitive" } },
             { jobPosition: { contains: "Mekanik", mode: "insensitive" } },
             { jobPosition: { contains: "Mechanic", mode: "insensitive" } },
+            { jobPosition: { contains: "Tyre", mode: "insensitive" } },
+            { jobPosition: { contains: "Electric", mode: "insensitive" } },
+            { jobPosition: { contains: "Welder", mode: "insensitive" } },
+            { jobPosition: { contains: "Spv", mode: "insensitive" } },
+            { jobPosition: { contains: "Supervisor", mode: "insensitive" } },
+            { jobPosition: { contains: "Foreman", mode: "insensitive" } },
+            { jobPosition: { contains: "Group Leader", mode: "insensitive" } },
           ],
         },
         select: {
@@ -1122,13 +1129,15 @@ export const pmController = {
         });
 
       const supervisors = rankSiteAndRole(
-        rows.filter((r) => /spv|supervisor|superintendent/i.test(r.jobPosition || "")),
+        rows.filter((r) =>
+          /spv|supervisor|superintendent|foreman|group leader|gl/i.test(r.jobPosition || "")
+        ),
         /^spv\s+plant$/i
       );
 
       const mechanics = rankSiteAndRole(
         rows.filter((r) =>
-          /mechanic|mekanik|electrician|welder/i.test(r.jobPosition || "")
+          /mechanic|mekanik|tyre|electrician|welder/i.test(r.jobPosition || "")
         ),
         /mechanic/i
       );
