@@ -177,8 +177,10 @@ export function computePmTargets(
   let nextDueHm: number | null = null;
 
   if (currentKm != null && !isNaN(currentKm)) {
-    if (sUpper.includes("48.000") || sUpper.includes("48000") || sUpper.includes("PS3")) {
+    if (sUpper.includes("48.000") || sUpper.includes("48000") || sUpper.includes("PS4")) {
       nextDueKm = Math.round(currentKm + 48000);
+    } else if (sUpper.includes("36.000") || sUpper.includes("36000") || sUpper.includes("PS3")) {
+      nextDueKm = Math.round(currentKm + 36000);
     } else if (sUpper.includes("24.000") || sUpper.includes("24000") || sUpper.includes("PS2")) {
       nextDueKm = Math.round(currentKm + 24000);
     } else if (sUpper.includes("12.000") || sUpper.includes("12000") || sUpper.includes("PS1")) {
