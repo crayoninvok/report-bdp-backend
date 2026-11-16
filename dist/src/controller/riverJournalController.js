@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRiverJournal = exports.updateRiverJournal = exports.createRiverJournal = exports.getRiverJournalStats = exports.getRiverJournals = void 0;
+exports.updatePairedRiverJournal = exports.deleteRiverJournal = exports.updateRiverJournal = exports.createRiverJournal = exports.getRiverJournalStats = exports.getRiverJournals = void 0;
 exports.calculateAutoDescription = calculateAutoDescription;
 exports.calculateDefaultConclusion = calculateDefaultConclusion;
 const prisma_1 = require("../lib/prisma");
+const client_1 = require("../generated/prisma/client");
 /**
  * Helper to compute auto-description based on depth and threshold
  */
@@ -302,3 +303,142 @@ const deleteRiverJournal = async (req, res) => {
     }
 };
 exports.deleteRiverJournal = deleteRiverJournal;
+/**
+ * PUT /api/river-journal/pair
+ * Update or upsert paired depth measurements for a specific date (Muara Pahu & Senyiur)
+ */
+const updatePairedRiverJournal = async (req, res) => {
+    try {
+        const user = req.user;
+        const { date, muaraPahuDepth, senyiurDepth, muaraPahuId, senyiurId, inputTime, userInput, } = req.body;
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: "Field date wajib diisi!",
+            });
+        }
+        const defaultUserInput = userInput && userInput.trim() !== ""
+            ? userInput
+            : user?.email?.split("@")[0] || "Petugas Lapangan";
+        const defaultTime = inputTime || "08:00";
+        const updatedRecords = [];
+        // 1. Process Muara Pahu if depth provided
+        if (muaraPahuDepth !== undefined && muaraPahuDepth !== null && muaraPahuDepth !== "") {
+            const parsedDepth = parseFloat(String(muaraPahuDepth).replace(",", "."));
+            if (!isNaN(parsedDepth)) {
+                let existingMP = null;
+                if (muaraPahuId) {
+                    existingMP = await prisma_1.prisma.riverJournal.findUnique({ where: { id: String(muaraPahuId) } });
+                }
+                if (!existingMP) {
+                    existingMP = await prisma_1.prisma.riverJournal.findFirst({
+                        where: { site: client_1.JobSite.MuaraPahu, date: String(date) },
+                        orderBy: { inputTime: "desc" },
+                    });
+                }
+                const autoDesc = calculateAutoDescription(parsedDepth, 4.0);
+                const conclusion = calculateDefaultConclusion(parsedDepth, 4.0);
+                if (existingMP) {
+                    const updated = await prisma_1.prisma.riverJournal.update({
+                        where: { id: existingMP.id },
+                        data: {
+                            waterDepth: parsedDepth,
+                            autoDescription: autoDesc,
+                            conclusion: conclusion,
+                            userInput: defaultUserInput,
+                        },
+                    });
+                    updatedRecords.push(updated);
+                }
+                else {
+                    const highestExternal = await prisma_1.prisma.riverJournal.findFirst({
+                        where: { site: client_1.JobSite.MuaraPahu },
+                        orderBy: { externalId: "desc" },
+                        select: { externalId: true },
+                    });
+                    const created = await prisma_1.prisma.riverJournal.create({
+                        data: {
+                            externalId: (highestExternal?.externalId || 0) + 1,
+                            date: String(date),
+                            inputTime: defaultTime,
+                            location: "Jetty Muara Pahu",
+                            site: client_1.JobSite.MuaraPahu,
+                            waterDepth: parsedDepth,
+                            minThreshold: 4.0,
+                            autoDescription: autoDesc,
+                            userInput: defaultUserInput,
+                            conclusion: conclusion,
+                        },
+                    });
+                    updatedRecords.push(created);
+                }
+            }
+        }
+        // 2. Process Senyiur if depth provided
+        if (senyiurDepth !== undefined && senyiurDepth !== null && senyiurDepth !== "") {
+            const parsedDepth = parseFloat(String(senyiurDepth).replace(",", "."));
+            if (!isNaN(parsedDepth)) {
+                let existingSny = null;
+                if (senyiurId) {
+                    existingSny = await prisma_1.prisma.riverJournal.findUnique({ where: { id: String(senyiurId) } });
+                }
+                if (!existingSny) {
+                    existingSny = await prisma_1.prisma.riverJournal.findFirst({
+                        where: { site: client_1.JobSite.Senyiur, date: String(date) },
+                        orderBy: { inputTime: "desc" },
+                    });
+                }
+                const autoDesc = calculateAutoDescription(parsedDepth, 4.0);
+                const conclusion = calculateDefaultConclusion(parsedDepth, 4.0);
+                if (existingSny) {
+                    const updated = await prisma_1.prisma.riverJournal.update({
+                        where: { id: existingSny.id },
+                        data: {
+                            waterDepth: parsedDepth,
+                            autoDescription: autoDesc,
+                            conclusion: conclusion,
+                            userInput: defaultUserInput,
+                        },
+                    });
+                    updatedRecords.push(updated);
+                }
+                else {
+                    const highestExternal = await prisma_1.prisma.riverJournal.findFirst({
+                        where: { site: client_1.JobSite.Senyiur },
+                        orderBy: { externalId: "desc" },
+                        select: { externalId: true },
+                    });
+                    const created = await prisma_1.prisma.riverJournal.create({
+                        data: {
+                            externalId: (highestExternal?.externalId || 0) + 1,
+                            date: String(date),
+                            inputTime: defaultTime,
+                            location: "Dermaga Senyiur KM 0",
+                            site: client_1.JobSite.Senyiur,
+                            waterDepth: parsedDepth,
+                            minThreshold: 4.0,
+                            autoDescription: autoDesc,
+                            userInput: defaultUserInput,
+                            conclusion: conclusion,
+                        },
+                    });
+                    updatedRecords.push(created);
+                }
+            }
+        }
+        res.json({
+            success: true,
+            message: `Data kedalaman sungai tanggal ${date} berhasil diperbarui!`,
+            data: updatedRecords,
+        });
+    }
+    catch (error) {
+        console.error("Error updating paired river journal:", error);
+        res.status(500).json({
+            success: false,
+            message: "Gagal memperbarui data pasangan kedalaman sungai",
+            error: error.message,
+        });
+    }
+};
+exports.updatePairedRiverJournal = updatePairedRiverJournal;

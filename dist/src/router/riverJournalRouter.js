@@ -8,6 +8,7 @@ router.use(authMiddleware_1.extractUser);
 router.get("/stats", riverJournalController_1.getRiverJournalStats);
 router.get("/", riverJournalController_1.getRiverJournals);
 router.post("/", riverJournalController_1.createRiverJournal);
+router.put("/pair", riverJournalController_1.updatePairedRiverJournal);
 router.put("/:id", riverJournalController_1.updateRiverJournal);
 router.delete("/:id", riverJournalController_1.deleteRiverJournal);
 exports.default = router;
