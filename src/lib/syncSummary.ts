@@ -28,9 +28,31 @@ const PARENT_ACCOUNTS = new Set([
   "BEBAN PENYUSUTAN DAN AMORTISASI - SITE",
 ]);
 
+const MONTH_NAMES_ID = [
+  "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"
+];
+const MONTH_LABELS_EN = [
+  "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+const MONTH_WEEKS: Record<number, number[]> = {
+  1: [1, 2, 3, 4, 5],
+  2: [5, 6, 7, 8],
+  3: [9, 10, 11, 12, 13],
+  4: [14, 15, 16, 17, 18],
+  5: [18, 19, 20, 21, 22],
+  6: [22, 23, 24, 25, 26],
+  7: [27, 28, 29, 30],
+  8: [31, 32, 33, 34],
+  9: [35, 36, 37, 38, 39],
+  10: [40, 41, 42, 43],
+  11: [44, 45, 46, 47, 48],
+  12: [48, 49, 50, 51, 52],
+};
+
 export async function syncSummaryForMonth(site: JobSite, year: number = 2026, month: number = 10) {
   try {
-    const weeksForMonth = month === 11 ? [44] : [40, 41, 42, 43];
+    const weeksForMonth = MONTH_WEEKS[month] || (month === 11 ? [44, 45] : [40, 41, 42, 43]);
     const reps = await prisma.weeklyReport.findMany({
       where: {
         jobSite: site,
@@ -55,7 +77,9 @@ export async function syncSummaryForMonth(site: JobSite, year: number = 2026, mo
         endDay = match[2].padStart(2, "0");
       }
     }
-    const computedPeriodName = `01-${endDay} Okt ${year}`;
+    const monthNameId = MONTH_NAMES_ID[month] || "Okt";
+    const computedPeriodName = `01-${endDay} ${monthNameId} ${year}`;
+    const monthLabelEn = MONTH_LABELS_EN[month] || "Oct";
 
     const acctMap = new Map<string, { budget: number; realisasi: number }>();
     for (const r of reps) {
@@ -96,7 +120,7 @@ export async function syncSummaryForMonth(site: JobSite, year: number = 2026, mo
         jobSite: site,
         year,
         month,
-        monthLabel: "Oct",
+        monthLabel: monthLabelEn,
         periodName: computedPeriodName,
         budgetProduksi: totalBudProd,
         realisasiProduksi: totalRealProd,

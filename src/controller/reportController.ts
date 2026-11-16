@@ -1574,11 +1574,23 @@ export const commitExcelUpload = async (req: Request, res: Response) => {
       });
     }
 
-    // Automatically synchronize Month 10 in PLSummaryOps for all imported sites
-    const siteYears = new Set(reportsToCommit.map((r: any) => `${r.jobSite}_${r.year}`));
-    for (const sy of Array.from(siteYears)) {
-      const [site, yr] = sy.split("_");
-      await syncSummaryForMonth(site as JobSite, parseInt(yr, 10), 10);
+    // Automatically synchronize Month in PLSummaryOps for all imported sites and months
+    const siteYearMonths = new Set(
+      reportsToCommit.map((r: any) => {
+        let m = r.month;
+        if (!m && r.periodName) {
+          const lower = r.periodName.toLowerCase();
+          if (lower.includes("nov")) m = 11;
+          else if (lower.includes("okt") || lower.includes("oct")) m = 10;
+          else if (lower.includes("sep")) m = 9;
+          else if (lower.includes("ags") || lower.includes("aug")) m = 8;
+        }
+        return `${r.jobSite}_${r.year}_${m || 10}`;
+      })
+    );
+    for (const sym of Array.from(siteYearMonths)) {
+      const [site, yr, m] = (sym as string).split("_");
+      await syncSummaryForMonth(site as JobSite, parseInt(yr, 10), parseInt(m, 10));
     }
 
     res.json({
