@@ -649,7 +649,11 @@ export const plantController = {
   // -------------------------------------------------------------
   upsertDailyPlan: async (req: Request, res: Response) => {
     try {
-      const { date, targetUnits, notes, leadInspector, jobSite = "MuaraPahu" } = req.body;
+      const { date, targetUnits, notes, leadInspector } = req.body;
+      const rawJobSite = req.body.jobSite || req.body.site;
+      const jobSite: JobSite =
+        rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
+
       if (!date) {
         return res
           .status(400)
@@ -712,7 +716,6 @@ export const plantController = {
         status = "Scheduled",
         inspectorName,
         notes,
-        jobSite = "MuaraPahu",
       } = req.body;
 
       if (!date || !unitCode) {
@@ -728,6 +731,10 @@ export const plantController = {
       const headUnit = await prisma.masterUnit.findUnique({
         where: { unitCode: normalizedUnitCode },
       });
+
+      const rawJobSite = req.body.jobSite || req.body.site || headUnit?.jobSite;
+      const jobSite: JobSite =
+        rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
 
       // Find trailer buntut for this head
       const trailers = await prisma.masterUnit.findMany({
@@ -812,7 +819,6 @@ export const plantController = {
         unitCodes,
         serviceType = "PI Regular",
         shift = "Shift 1",
-        jobSite = "MuaraPahu",
       } = req.body;
 
       if (!date || !Array.isArray(unitCodes) || unitCodes.length === 0) {
@@ -821,6 +827,19 @@ export const plantController = {
           message: "Tanggal dan daftar kode unit wajib diisi",
         });
       }
+
+      let resolvedSite = req.body.jobSite || req.body.site;
+      if (!resolvedSite && unitCodes.length > 0) {
+        const firstUnit = await prisma.masterUnit.findUnique({
+          where: { unitCode: normalizeHeadCode(unitCodes[0]) },
+          select: { jobSite: true },
+        });
+        if (firstUnit?.jobSite) {
+          resolvedSite = firstUnit.jobSite;
+        }
+      }
+      const jobSite: JobSite =
+        resolvedSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
 
       // Ensure Daily Plan exists
       const globalTargetSetting = await prisma.plantSetting.findUnique({

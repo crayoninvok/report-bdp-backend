@@ -347,8 +347,11 @@ export const pmController = {
         notes,
         leadMechanic,
         leadInspector,
-        jobSite = "MuaraPahu",
       } = req.body;
+
+      const rawJobSite = req.body.jobSite || req.body.site;
+      const jobSite: JobSite =
+        rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
 
       if (!date) {
         return res
@@ -425,7 +428,6 @@ export const pmController = {
         nextDueKm,
         nextDueHm,
         notes,
-        jobSite = "MuaraPahu",
       } = req.body;
 
       if (!date || !unitCode) {
@@ -442,6 +444,10 @@ export const pmController = {
         prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
         getVolvoTelemetryMap(),
       ]);
+
+      const rawJobSite = req.body.jobSite || req.body.site || masterUnit?.jobSite;
+      const jobSite: JobSite =
+        rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
 
       const isHead = !masterUnit || masterUnit.category === "Prime Mover";
       const resolvedBuntut = isHead
@@ -575,7 +581,6 @@ export const pmController = {
         unitCodes,
         serviceType = "PS1 (12.000 KM)",
         shift = "Shift 1",
-        jobSite = "MuaraPahu",
       } = req.body;
 
       if (!date || !Array.isArray(unitCodes) || unitCodes.length === 0) {
@@ -592,11 +597,21 @@ export const pmController = {
       const [matchedUnits, globalTargetSetting, telemetry] = await Promise.all([
         prisma.masterUnit.findMany({
           where: { unitCode: { in: normalizedCodes } },
-          select: { unitCode: true, category: true, headUnitCode: true },
+          select: { unitCode: true, category: true, headUnitCode: true, jobSite: true },
         }),
         prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
         getVolvoTelemetryMap(),
       ]);
+
+      let resolvedSite = req.body.jobSite || req.body.site;
+      if (!resolvedSite && matchedUnits.length > 0) {
+        const firstWithSite = matchedUnits.find((u) => u.jobSite);
+        if (firstWithSite?.jobSite) {
+          resolvedSite = firstWithSite.jobSite;
+        }
+      }
+      const jobSite: JobSite =
+        resolvedSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
 
       const unitMetaMap = new Map(
         matchedUnits.map((u) => [u.unitCode, u])
@@ -830,7 +845,10 @@ export const pmController = {
   // -------------------------------------------------------------
   autoScheduleDueUnits: async (req: Request, res: Response) => {
     try {
-      const { date, jobSite = "MuaraPahu" } = req.body;
+      const { date } = req.body;
+      const rawJobSite = req.body.jobSite || req.body.site;
+      const jobSite: JobSite =
+        rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
       const { startDate, endDate, dates } = getWeekRange(date);
 
       const [units, telemetry, existingPlans, globalTargetSetting, completedItems] =
