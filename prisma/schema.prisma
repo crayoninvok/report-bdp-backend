@@ -398,7 +398,7 @@ model DailyBreakdownReport {
   jobSite              JobSite     @default(MuaraPahu)
   date                 String      // YYYY-MM-DD
   unitCode             String      // e.g. "PM401"
-  unit                 MasterUnit? @relation(fields: [unitCode], references: [unitCode], onDelete: SetNull)
+  unit                 MasterUnit? @relation(fields: [unitCode], references: [unitCode], onDelete: Cascade)
   unitType             String?     // e.g. "FH16", "SDT110"
   woNumber             String?     // e.g. "WO-001"
   hm                   Float?
