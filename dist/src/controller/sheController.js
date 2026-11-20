@@ -142,20 +142,37 @@ const getDashboard = async (req, res) => {
             }
         }
         // Fetch all records for aggregation
-        const records = await prisma_1.prisma.hazardReport.findMany({
-            where,
-            select: {
-                id: true,
-                date: true,
-                category: true,
-                riskLevel: true,
-                status: true,
-                statusGForm: true,
-                jenisPelaporan: true,
-                lokasiBahaya: true,
-                month: true,
-            },
-        });
+        const [records, inspections] = await Promise.all([
+            prisma_1.prisma.hazardReport.findMany({
+                where,
+                select: {
+                    id: true,
+                    date: true,
+                    category: true,
+                    riskLevel: true,
+                    status: true,
+                    statusGForm: true,
+                    jenisPelaporan: true,
+                    lokasiBahaya: true,
+                    month: true,
+                    week: true,
+                },
+            }),
+            prisma_1.prisma.workAreaInspection.findMany({
+                where,
+                select: {
+                    id: true,
+                    tanggalInspeksi: true,
+                    status: true,
+                    shift: true,
+                    lokasiInspeksi: true,
+                    complianceScore: true,
+                    findingsCount: true,
+                    month: true,
+                    week: true,
+                },
+            }),
+        ]);
         const totalHazards = records.length;
         const openHazards = records.filter((r) => r.statusGForm === "OPEN").length;
         const closedHazards = records.filter((r) => r.statusGForm === "CLOSE").length;
@@ -165,25 +182,163 @@ const getDashboard = async (req, res) => {
         const resolutionRate = totalHazards > 0 ? Math.round((closedHazards / totalHazards) * 100) : 100;
         // Monthly trends (group by YYYY-MM)
         const monthMap = new Map();
-        records.forEach((r) => {
-            if (!r.date)
-                return;
-            const d = new Date(r.date);
+        const getMonthEntry = (d) => {
             const m = d.getMonth() + 1;
             const y = String(d.getFullYear()).slice(-2);
             const key = `${d.getFullYear()}-${String(m).padStart(2, "0")}`;
             const label = `${MONTH_NAMES[m] || m} ${y}`;
             if (!monthMap.has(key)) {
-                monthMap.set(key, { month: label, hazards: 0, resolved: 0, inspections: 0 });
+                monthMap.set(key, {
+                    month: label,
+                    rawKey: key,
+                    hazards: 0,
+                    resolved: 0,
+                    open: 0,
+                    kta: 0,
+                    tta: 0,
+                    inspections: 0,
+                    inspectionsCompliant: 0,
+                    inspectionsNeedFollowUp: 0,
+                    inspectionsShift1: 0,
+                    inspectionsShift2: 0,
+                });
             }
-            const entry = monthMap.get(key);
+            return monthMap.get(key);
+        };
+        records.forEach((r) => {
+            if (!r.date)
+                return;
+            const d = new Date(r.date);
+            const entry = getMonthEntry(d);
             entry.hazards++;
+            if (r.jenisPelaporan === "TTA")
+                entry.tta++;
+            else
+                entry.kta++;
             if (r.statusGForm === "CLOSE" || r.status === "Closed") {
                 entry.resolved++;
+            }
+            else {
+                entry.open++;
+            }
+        });
+        inspections.forEach((ins) => {
+            if (!ins.tanggalInspeksi)
+                return;
+            const d = new Date(ins.tanggalInspeksi);
+            const entry = getMonthEntry(d);
+            entry.inspections++;
+            if (ins.status === "Compliant") {
+                entry.inspectionsCompliant++;
+            }
+            else {
+                entry.inspectionsNeedFollowUp++;
+            }
+            if (ins.shift === "SHIFT 2") {
+                entry.inspectionsShift2++;
+            }
+            else {
+                entry.inspectionsShift1++;
             }
         });
         const sortedMonthKeys = Array.from(monthMap.keys()).sort();
         const monthlyTrends = sortedMonthKeys.map((k) => monthMap.get(k));
+        // Weekly Trends
+        const weekMap = new Map();
+        const getWeekKey = (d, customWeek) => {
+            if (customWeek && customWeek > 0 && customWeek <= 53) {
+                return `W${String(customWeek).padStart(2, "0")}`;
+            }
+            const tempDate = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            const dayNum = tempDate.getUTCDay() || 7;
+            tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+            const wNo = Math.ceil(((tempDate.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+            return `W${String(wNo).padStart(2, "0")}`;
+        };
+        records.forEach((r) => {
+            if (!r.date)
+                return;
+            const d = new Date(r.date);
+            const wk = getWeekKey(d, r.week);
+            if (!weekMap.has(wk)) {
+                weekMap.set(wk, {
+                    week: wk,
+                    label: `Minggu ${wk.replace("W", "")}`,
+                    hazards: 0,
+                    open: 0,
+                    resolved: 0,
+                    kta: 0,
+                    tta: 0,
+                    inspections: 0,
+                    inspectionsShift1: 0,
+                    inspectionsShift2: 0,
+                    compliant: 0,
+                    needFollowUp: 0,
+                });
+            }
+            const entry = weekMap.get(wk);
+            entry.hazards++;
+            if (r.jenisPelaporan === "TTA")
+                entry.tta++;
+            else
+                entry.kta++;
+            if (r.statusGForm === "CLOSE" || r.status === "Closed") {
+                entry.resolved++;
+            }
+            else {
+                entry.open++;
+            }
+        });
+        inspections.forEach((ins) => {
+            if (!ins.tanggalInspeksi)
+                return;
+            const d = new Date(ins.tanggalInspeksi);
+            const wk = getWeekKey(d, ins.week);
+            if (!weekMap.has(wk)) {
+                weekMap.set(wk, {
+                    week: wk,
+                    label: `Minggu ${wk.replace("W", "")}`,
+                    hazards: 0,
+                    open: 0,
+                    resolved: 0,
+                    kta: 0,
+                    tta: 0,
+                    inspections: 0,
+                    inspectionsShift1: 0,
+                    inspectionsShift2: 0,
+                    compliant: 0,
+                    needFollowUp: 0,
+                });
+            }
+            const entry = weekMap.get(wk);
+            entry.inspections++;
+            if (ins.shift === "SHIFT 2")
+                entry.inspectionsShift2++;
+            else
+                entry.inspectionsShift1++;
+            if (ins.status === "Compliant") {
+                entry.compliant++;
+            }
+            else {
+                entry.needFollowUp++;
+            }
+        });
+        const sortedWeekKeys = Array.from(weekMap.keys()).sort();
+        const weeklyTrends = sortedWeekKeys
+            .map((k) => weekMap.get(k))
+            .filter((w) => w.hazards > 0 || w.inspections > 0);
+        // Inspections Summary
+        const totalInspections = inspections.length;
+        const compliantInspections = inspections.filter((i) => i.status === "Compliant").length;
+        const needFollowUpInspections = inspections.filter((i) => i.status === "Need Follow Up").length;
+        const shift1Inspections = inspections.filter((i) => i.shift === "SHIFT 1").length;
+        const shift2Inspections = inspections.filter((i) => i.shift === "SHIFT 2").length;
+        const avgScoreInspections = totalInspections > 0
+            ? Math.round((inspections.reduce((sum, curr) => sum + (Number(curr.complianceScore) || 100), 0) /
+                totalInspections) *
+                10) / 10
+            : 100;
         // Category distribution
         const categoryCounts = {};
         records.forEach((r) => {
@@ -258,6 +413,15 @@ const getDashboard = async (req, res) => {
                 nearMissCount: 0,
                 resolutionRate,
                 monthlyTrends,
+                weeklyTrends,
+                inspectionsSummary: {
+                    totalInspections,
+                    compliantInspections,
+                    needFollowUpInspections,
+                    shift1Inspections,
+                    shift2Inspections,
+                    avgScoreInspections,
+                },
                 categoryDistribution,
                 riskDistribution,
                 locationDistribution,
