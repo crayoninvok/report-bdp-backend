@@ -304,8 +304,8 @@ async function main() {
       rincianBahaya: r.rawRincian,
       tindakanPerbaikan: r.tindakan,
       penanggungJawabArea: r.rawPic,
-      dokumentasiSebelum: r.fotoSebelum || null,
-      dokumentasiSesudah: r.fotoSesudah || null,
+      dokumentasiSebelum: null,
+      dokumentasiSesudah: null,
       month: r.monthVal || parseInt(r.dateStr.slice(5, 7)),
       week: r.weekVal || 1,
     });
