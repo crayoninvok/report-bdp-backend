@@ -16,6 +16,7 @@ const plantRouter_1 = __importDefault(require("./router/plantRouter"));
 const assetfindrRouter_1 = __importDefault(require("./router/assetfindrRouter"));
 const volvoRouter_1 = __importDefault(require("./router/volvoRouter"));
 const manpowerRouter_1 = __importDefault(require("./router/manpowerRouter"));
+const sheRouter_1 = __importDefault(require("./router/sheRouter"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 5000;
@@ -58,6 +59,7 @@ app.use("/api/plant", plantRouter_1.default);
 app.use("/api/assetfindr", assetfindrRouter_1.default);
 app.use("/api/volvo", volvoRouter_1.default);
 app.use("/api/manpower", manpowerRouter_1.default);
+app.use("/api/she", sheRouter_1.default);
 // Start server locally (on Vercel, serverless function invokes exported app)
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
     app.listen(port, () => {

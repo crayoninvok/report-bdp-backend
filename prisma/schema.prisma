@@ -501,3 +501,46 @@ model MasterManpower {
   @@index([organization])
   @@index([jobPosition])
 }
+
+model HazardReport {
+  id                  String    @id @default(uuid())
+  reportNumber        String    @unique
+  date                DateTime
+  time                String?
+  jobSite             JobSite   @default(MuaraPahu)
+  project             String
+  location            String
+  category            String
+  riskLevel           String    @default("Medium")
+  title               String
+  description         String?
+  immediateAction     String?
+  correctiveAction    String?
+  reporterName        String
+  reporterNrp         String?
+  reporterDept        String?
+  reporterJobTitle    String?
+  picName             String?
+  picDept             String?
+  dueDate             DateTime?
+  completionDate      DateTime?
+  status              String    @default("Open")
+  statusGForm         String    @default("OPEN")
+  jenisPelaporan      String    @default("KTA")
+  lokasiBahaya        String?
+  identifikasiBahaya  String?
+  rincianBahaya       String?
+  tindakanPerbaikan   String?
+  penanggungJawabArea String?
+  dokumentasiSebelum  String?
+  dokumentasiSesudah  String?
+  month               Int?
+  week                Int?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([jobSite, date])
+  @@index([statusGForm])
+  @@index([reporterNrp])
+}
+

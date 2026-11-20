@@ -11,6 +11,7 @@ import plantRouter from "./router/plantRouter";
 import assetfindrRouter from "./router/assetfindrRouter";
 import volvoRouter from "./router/volvoRouter";
 import manpowerRouter from "./router/manpowerRouter";
+import sheRouter from "./router/sheRouter";
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use("/api/plant", plantRouter);
 app.use("/api/assetfindr", assetfindrRouter);
 app.use("/api/volvo", volvoRouter);
 app.use("/api/manpower", manpowerRouter);
+app.use("/api/she", sheRouter);
 
 
 // Start server locally (on Vercel, serverless function invokes exported app)

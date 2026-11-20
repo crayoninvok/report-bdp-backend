@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -123,7 +123,8 @@ exports.ModelName = {
     DailyPaUnitEntry: 'DailyPaUnitEntry',
     DailyPaActivity: 'DailyPaActivity',
     DailyBreakdownReport: 'DailyBreakdownReport',
-    MasterManpower: 'MasterManpower'
+    MasterManpower: 'MasterManpower',
+    HazardReport: 'HazardReport'
 };
 /**
  * Enums
@@ -499,6 +500,43 @@ exports.MasterManpowerScalarFieldEnum = {
     kota: 'kota',
     provinsi: 'provinsi',
     rawJson: 'rawJson',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.HazardReportScalarFieldEnum = {
+    id: 'id',
+    reportNumber: 'reportNumber',
+    date: 'date',
+    time: 'time',
+    jobSite: 'jobSite',
+    project: 'project',
+    location: 'location',
+    category: 'category',
+    riskLevel: 'riskLevel',
+    title: 'title',
+    description: 'description',
+    immediateAction: 'immediateAction',
+    correctiveAction: 'correctiveAction',
+    reporterName: 'reporterName',
+    reporterNrp: 'reporterNrp',
+    reporterDept: 'reporterDept',
+    reporterJobTitle: 'reporterJobTitle',
+    picName: 'picName',
+    picDept: 'picDept',
+    dueDate: 'dueDate',
+    completionDate: 'completionDate',
+    status: 'status',
+    statusGForm: 'statusGForm',
+    jenisPelaporan: 'jenisPelaporan',
+    lokasiBahaya: 'lokasiBahaya',
+    identifikasiBahaya: 'identifikasiBahaya',
+    rincianBahaya: 'rincianBahaya',
+    tindakanPerbaikan: 'tindakanPerbaikan',
+    penanggungJawabArea: 'penanggungJawabArea',
+    dokumentasiSebelum: 'dokumentasiSebelum',
+    dokumentasiSesudah: 'dokumentasiSesudah',
+    month: 'month',
+    week: 'week',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

@@ -543,7 +543,9 @@ exports.plantController = {
     // -------------------------------------------------------------
     upsertDailyPlan: async (req, res) => {
         try {
-            const { date, targetUnits, notes, leadInspector, jobSite = "MuaraPahu" } = req.body;
+            const { date, targetUnits, notes, leadInspector } = req.body;
+            const rawJobSite = req.body.jobSite || req.body.site;
+            const jobSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             if (!date) {
                 return res
                     .status(400)
@@ -595,7 +597,7 @@ exports.plantController = {
     // -------------------------------------------------------------
     addInspectionItem: async (req, res) => {
         try {
-            const { date, unitCode, serviceType = "PI Regular", shift = "Shift 1", status = "Scheduled", inspectorName, notes, jobSite = "MuaraPahu", } = req.body;
+            const { date, unitCode, serviceType = "PI Regular", shift = "Shift 1", status = "Scheduled", inspectorName, notes, } = req.body;
             if (!date || !unitCode) {
                 return res.status(400).json({
                     success: false,
@@ -607,6 +609,8 @@ exports.plantController = {
             const headUnit = await prisma_1.prisma.masterUnit.findUnique({
                 where: { unitCode: normalizedUnitCode },
             });
+            const rawJobSite = req.body.jobSite || req.body.site || headUnit?.jobSite;
+            const jobSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             // Find trailer buntut for this head
             const trailers = await prisma_1.prisma.masterUnit.findMany({
                 where: { headUnitCode: normalizedUnitCode, category: { in: [...volvoUnitSync_1.TRAILER_CATEGORIES] } },
@@ -681,13 +685,24 @@ exports.plantController = {
     // -------------------------------------------------------------
     bulkAddInspectionItems: async (req, res) => {
         try {
-            const { date, unitCodes, serviceType = "PI Regular", shift = "Shift 1", jobSite = "MuaraPahu", } = req.body;
+            const { date, unitCodes, serviceType = "PI Regular", shift = "Shift 1", } = req.body;
             if (!date || !Array.isArray(unitCodes) || unitCodes.length === 0) {
                 return res.status(400).json({
                     success: false,
                     message: "Tanggal dan daftar kode unit wajib diisi",
                 });
             }
+            let resolvedSite = req.body.jobSite || req.body.site;
+            if (!resolvedSite && unitCodes.length > 0) {
+                const firstUnit = await prisma_1.prisma.masterUnit.findUnique({
+                    where: { unitCode: (0, plantHelpers_1.normalizeHeadCode)(unitCodes[0]) },
+                    select: { jobSite: true },
+                });
+                if (firstUnit?.jobSite) {
+                    resolvedSite = firstUnit.jobSite;
+                }
+            }
+            const jobSite = resolvedSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             // Ensure Daily Plan exists
             const globalTargetSetting = await prisma_1.prisma.plantSetting.findUnique({
                 where: { key: "daily_pi_target" },

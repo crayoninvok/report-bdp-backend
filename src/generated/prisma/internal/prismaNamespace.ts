@@ -417,7 +417,8 @@ export const ModelName = {
   DailyPaUnitEntry: 'DailyPaUnitEntry',
   DailyPaActivity: 'DailyPaActivity',
   DailyBreakdownReport: 'DailyBreakdownReport',
-  MasterManpower: 'MasterManpower'
+  MasterManpower: 'MasterManpower',
+  HazardReport: 'HazardReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1991,6 +1992,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    HazardReport: {
+      payload: Prisma.$HazardReportPayload<ExtArgs>
+      fields: Prisma.HazardReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HazardReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HazardReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>
+        }
+        findFirst: {
+          args: Prisma.HazardReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HazardReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>
+        }
+        findMany: {
+          args: Prisma.HazardReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>[]
+        }
+        create: {
+          args: Prisma.HazardReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>
+        }
+        createMany: {
+          args: Prisma.HazardReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HazardReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>[]
+        }
+        delete: {
+          args: Prisma.HazardReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>
+        }
+        update: {
+          args: Prisma.HazardReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.HazardReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HazardReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HazardReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.HazardReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HazardReportPayload>
+        }
+        aggregate: {
+          args: Prisma.HazardReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHazardReport>
+        }
+        groupBy: {
+          args: Prisma.HazardReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HazardReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HazardReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HazardReportCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2482,6 +2557,47 @@ export const MasterManpowerScalarFieldEnum = {
 export type MasterManpowerScalarFieldEnum = (typeof MasterManpowerScalarFieldEnum)[keyof typeof MasterManpowerScalarFieldEnum]
 
 
+export const HazardReportScalarFieldEnum = {
+  id: 'id',
+  reportNumber: 'reportNumber',
+  date: 'date',
+  time: 'time',
+  jobSite: 'jobSite',
+  project: 'project',
+  location: 'location',
+  category: 'category',
+  riskLevel: 'riskLevel',
+  title: 'title',
+  description: 'description',
+  immediateAction: 'immediateAction',
+  correctiveAction: 'correctiveAction',
+  reporterName: 'reporterName',
+  reporterNrp: 'reporterNrp',
+  reporterDept: 'reporterDept',
+  reporterJobTitle: 'reporterJobTitle',
+  picName: 'picName',
+  picDept: 'picDept',
+  dueDate: 'dueDate',
+  completionDate: 'completionDate',
+  status: 'status',
+  statusGForm: 'statusGForm',
+  jenisPelaporan: 'jenisPelaporan',
+  lokasiBahaya: 'lokasiBahaya',
+  identifikasiBahaya: 'identifikasiBahaya',
+  rincianBahaya: 'rincianBahaya',
+  tindakanPerbaikan: 'tindakanPerbaikan',
+  penanggungJawabArea: 'penanggungJawabArea',
+  dokumentasiSebelum: 'dokumentasiSebelum',
+  dokumentasiSesudah: 'dokumentasiSesudah',
+  month: 'month',
+  week: 'week',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HazardReportScalarFieldEnum = (typeof HazardReportScalarFieldEnum)[keyof typeof HazardReportScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2774,6 +2890,7 @@ export type GlobalOmitConfig = {
   dailyPaActivity?: Prisma.DailyPaActivityOmit
   dailyBreakdownReport?: Prisma.DailyBreakdownReportOmit
   masterManpower?: Prisma.MasterManpowerOmit
+  hazardReport?: Prisma.HazardReportOmit
 }
 
 /* Types for Logging */

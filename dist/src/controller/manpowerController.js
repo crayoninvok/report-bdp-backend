@@ -253,7 +253,7 @@ const getManpowerList = async (req, res) => {
     try {
         const { search, statusKeaktifan, branchName, organization, statusEmployee, pointOfHire, page = "1", limit = "25", sortBy = "fullName", sortOrder = "asc", } = req.query;
         const pageNum = Math.max(1, parseInt(String(page)) || 1);
-        const limitNum = Math.min(200, Math.max(5, parseInt(String(limit)) || 25));
+        const limitNum = Math.min(1000, Math.max(5, parseInt(String(limit)) || 25));
         const skip = (pageNum - 1) * limitNum;
         const where = {};
         // Search query

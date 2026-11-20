@@ -122,3 +122,8 @@ export type DailyBreakdownReport = Prisma.DailyBreakdownReportModel
  * 
  */
 export type MasterManpower = Prisma.MasterManpowerModel
+/**
+ * Model HazardReport
+ * 
+ */
+export type HazardReport = Prisma.HazardReportModel

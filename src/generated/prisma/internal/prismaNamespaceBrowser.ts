@@ -71,7 +71,8 @@ export const ModelName = {
   DailyPaUnitEntry: 'DailyPaUnitEntry',
   DailyPaActivity: 'DailyPaActivity',
   DailyBreakdownReport: 'DailyBreakdownReport',
-  MasterManpower: 'MasterManpower'
+  MasterManpower: 'MasterManpower',
+  HazardReport: 'HazardReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -540,6 +541,47 @@ export const MasterManpowerScalarFieldEnum = {
 } as const
 
 export type MasterManpowerScalarFieldEnum = (typeof MasterManpowerScalarFieldEnum)[keyof typeof MasterManpowerScalarFieldEnum]
+
+
+export const HazardReportScalarFieldEnum = {
+  id: 'id',
+  reportNumber: 'reportNumber',
+  date: 'date',
+  time: 'time',
+  jobSite: 'jobSite',
+  project: 'project',
+  location: 'location',
+  category: 'category',
+  riskLevel: 'riskLevel',
+  title: 'title',
+  description: 'description',
+  immediateAction: 'immediateAction',
+  correctiveAction: 'correctiveAction',
+  reporterName: 'reporterName',
+  reporterNrp: 'reporterNrp',
+  reporterDept: 'reporterDept',
+  reporterJobTitle: 'reporterJobTitle',
+  picName: 'picName',
+  picDept: 'picDept',
+  dueDate: 'dueDate',
+  completionDate: 'completionDate',
+  status: 'status',
+  statusGForm: 'statusGForm',
+  jenisPelaporan: 'jenisPelaporan',
+  lokasiBahaya: 'lokasiBahaya',
+  identifikasiBahaya: 'identifikasiBahaya',
+  rincianBahaya: 'rincianBahaya',
+  tindakanPerbaikan: 'tindakanPerbaikan',
+  penanggungJawabArea: 'penanggungJawabArea',
+  dokumentasiSebelum: 'dokumentasiSebelum',
+  dokumentasiSesudah: 'dokumentasiSesudah',
+  month: 'month',
+  week: 'week',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HazardReportScalarFieldEnum = (typeof HazardReportScalarFieldEnum)[keyof typeof HazardReportScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -274,7 +274,9 @@ exports.pmController = {
     // -------------------------------------------------------------
     upsertPmDailyPlan: async (req, res) => {
         try {
-            const { date, targetUnits, notes, leadMechanic, leadInspector, jobSite = "MuaraPahu", } = req.body;
+            const { date, targetUnits, notes, leadMechanic, leadInspector, } = req.body;
+            const rawJobSite = req.body.jobSite || req.body.site;
+            const jobSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             if (!date) {
                 return res
                     .status(400)
@@ -322,7 +324,7 @@ exports.pmController = {
     // -------------------------------------------------------------
     addPmItem: async (req, res) => {
         try {
-            const { date, unitCode, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", status = "Scheduled", category = "Scheduled PS", planStartTime, planLeadTime, planHmServis, actualStartTime, actualLeadTime, actualHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, buntutSummary: rawBuntutSummary, includedTrailers, currentKm, currentHm, nextDueKm, nextDueHm, notes, jobSite = "MuaraPahu", } = req.body;
+            const { date, unitCode, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", status = "Scheduled", category = "Scheduled PS", planStartTime, planLeadTime, planHmServis, actualStartTime, actualLeadTime, actualHmServis, supervisorName, mechanicNames, mechanicName, inspectorName, buntutSummary: rawBuntutSummary, includedTrailers, currentKm, currentHm, nextDueKm, nextDueHm, notes, } = req.body;
             if (!date || !unitCode) {
                 return res.status(400).json({
                     success: false,
@@ -335,6 +337,8 @@ exports.pmController = {
                 prisma_1.prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
                 (0, volvoClient_1.getVolvoTelemetryMap)(),
             ]);
+            const rawJobSite = req.body.jobSite || req.body.site || masterUnit?.jobSite;
+            const jobSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             const isHead = !masterUnit || masterUnit.category === "Prime Mover";
             const resolvedBuntut = isHead
                 ? resolveOptionalBuntutSummary(rawBuntutSummary, includedTrailers)
@@ -445,7 +449,7 @@ exports.pmController = {
     // -------------------------------------------------------------
     bulkAddPmItems: async (req, res) => {
         try {
-            const { date, unitCodes, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", jobSite = "MuaraPahu", } = req.body;
+            const { date, unitCodes, serviceType = "PS1 (12.000 KM)", shift = "Shift 1", } = req.body;
             if (!date || !Array.isArray(unitCodes) || unitCodes.length === 0) {
                 return res.status(400).json({
                     success: false,
@@ -456,11 +460,19 @@ exports.pmController = {
             const [matchedUnits, globalTargetSetting, telemetry] = await Promise.all([
                 prisma_1.prisma.masterUnit.findMany({
                     where: { unitCode: { in: normalizedCodes } },
-                    select: { unitCode: true, category: true, headUnitCode: true },
+                    select: { unitCode: true, category: true, headUnitCode: true, jobSite: true },
                 }),
                 prisma_1.prisma.plantSetting.findUnique({ where: { key: "daily_pm_target" } }),
                 (0, volvoClient_1.getVolvoTelemetryMap)(),
             ]);
+            let resolvedSite = req.body.jobSite || req.body.site;
+            if (!resolvedSite && matchedUnits.length > 0) {
+                const firstWithSite = matchedUnits.find((u) => u.jobSite);
+                if (firstWithSite?.jobSite) {
+                    resolvedSite = firstWithSite.jobSite;
+                }
+            }
+            const jobSite = resolvedSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             const unitMetaMap = new Map(matchedUnits.map((u) => [u.unitCode, u]));
             const defaultTarget = globalTargetSetting
                 ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
@@ -644,7 +656,9 @@ exports.pmController = {
     // -------------------------------------------------------------
     autoScheduleDueUnits: async (req, res) => {
         try {
-            const { date, jobSite = "MuaraPahu" } = req.body;
+            const { date } = req.body;
+            const rawJobSite = req.body.jobSite || req.body.site;
+            const jobSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
             const { startDate, endDate, dates } = (0, plantHelpers_1.getWeekRange)(date);
             const [units, telemetry, existingPlans, globalTargetSetting, completedItems] = await Promise.all([
                 prisma_1.prisma.masterUnit.findMany({
