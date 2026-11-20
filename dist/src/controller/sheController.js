@@ -273,6 +273,13 @@ exports.getDashboard = getDashboard;
 const createHazard = async (req, res) => {
     try {
         const data = req.body;
+        const dokSebelum = data.dokumentasiSebelum || data.photoUrl;
+        if (!dokSebelum || !String(dokSebelum).trim()) {
+            return res.status(400).json({
+                success: false,
+                error: "Dokumentasi Sebelum (Foto Temuan) wajib diisi / diunggah.",
+            });
+        }
         const jobSite = data.jobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
         const sitePrefix = jobSite === "MuaraPahu" ? "MP" : "SY";
         const year = new Date().getFullYear();

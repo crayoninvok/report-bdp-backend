@@ -285,6 +285,15 @@ export const getDashboard = async (req: Request, res: Response) => {
 export const createHazard = async (req: Request, res: Response) => {
   try {
     const data = req.body;
+
+    const dokSebelum = data.dokumentasiSebelum || data.photoUrl;
+    if (!dokSebelum || !String(dokSebelum).trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Dokumentasi Sebelum (Foto Temuan) wajib diisi / diunggah.",
+      });
+    }
+
     const jobSite = data.jobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
     const sitePrefix = jobSite === "MuaraPahu" ? "MP" : "SY";
     const year = new Date().getFullYear();
