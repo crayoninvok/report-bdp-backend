@@ -72,7 +72,8 @@ export const ModelName = {
   DailyPaActivity: 'DailyPaActivity',
   DailyBreakdownReport: 'DailyBreakdownReport',
   MasterManpower: 'MasterManpower',
-  HazardReport: 'HazardReport'
+  HazardReport: 'HazardReport',
+  WorkAreaInspection: 'WorkAreaInspection'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -582,6 +583,37 @@ export const HazardReportScalarFieldEnum = {
 } as const
 
 export type HazardReportScalarFieldEnum = (typeof HazardReportScalarFieldEnum)[keyof typeof HazardReportScalarFieldEnum]
+
+
+export const WorkAreaInspectionScalarFieldEnum = {
+  id: 'id',
+  inspectionNumber: 'inspectionNumber',
+  namaKaryawan: 'namaKaryawan',
+  nikKaryawan: 'nikKaryawan',
+  tanggalInspeksi: 'tanggalInspeksi',
+  lokasiInspeksi: 'lokasiInspeksi',
+  shift: 'shift',
+  project: 'project',
+  jobSite: 'jobSite',
+  areaName: 'areaName',
+  time: 'time',
+  complianceScore: 'complianceScore',
+  status: 'status',
+  findingsCount: 'findingsCount',
+  findingsDescription: 'findingsDescription',
+  correctiveAction: 'correctiveAction',
+  pic: 'pic',
+  targetCompletionDate: 'targetCompletionDate',
+  lokasiOilTrap: 'lokasiOilTrap',
+  oilTrapAnswersJson: 'oilTrapAnswersJson',
+  dokumentasiInspeksi: 'dokumentasiInspeksi',
+  month: 'month',
+  week: 'week',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WorkAreaInspectionScalarFieldEnum = (typeof WorkAreaInspectionScalarFieldEnum)[keyof typeof WorkAreaInspectionScalarFieldEnum]
 
 
 export const SortOrder = {

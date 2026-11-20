@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.WorkAreaInspectionScalarFieldEnum = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -96,7 +96,8 @@ exports.ModelName = {
     DailyPaActivity: 'DailyPaActivity',
     DailyBreakdownReport: 'DailyBreakdownReport',
     MasterManpower: 'MasterManpower',
-    HazardReport: 'HazardReport'
+    HazardReport: 'HazardReport',
+    WorkAreaInspection: 'WorkAreaInspection'
 };
 /*
  * Enums
@@ -507,6 +508,33 @@ exports.HazardReportScalarFieldEnum = {
     penanggungJawabArea: 'penanggungJawabArea',
     dokumentasiSebelum: 'dokumentasiSebelum',
     dokumentasiSesudah: 'dokumentasiSesudah',
+    month: 'month',
+    week: 'week',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.WorkAreaInspectionScalarFieldEnum = {
+    id: 'id',
+    inspectionNumber: 'inspectionNumber',
+    namaKaryawan: 'namaKaryawan',
+    nikKaryawan: 'nikKaryawan',
+    tanggalInspeksi: 'tanggalInspeksi',
+    lokasiInspeksi: 'lokasiInspeksi',
+    shift: 'shift',
+    project: 'project',
+    jobSite: 'jobSite',
+    areaName: 'areaName',
+    time: 'time',
+    complianceScore: 'complianceScore',
+    status: 'status',
+    findingsCount: 'findingsCount',
+    findingsDescription: 'findingsDescription',
+    correctiveAction: 'correctiveAction',
+    pic: 'pic',
+    targetCompletionDate: 'targetCompletionDate',
+    lokasiOilTrap: 'lokasiOilTrap',
+    oilTrapAnswersJson: 'oilTrapAnswersJson',
+    dokumentasiInspeksi: 'dokumentasiInspeksi',
     month: 'month',
     week: 'week',
     createdAt: 'createdAt',

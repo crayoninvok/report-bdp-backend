@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteHazard = exports.updateHazard = exports.createHazard = exports.getDashboard = exports.getHazards = void 0;
+exports.deleteInspection = exports.updateInspection = exports.createInspection = exports.getInspections = exports.deleteHazard = exports.updateHazard = exports.createHazard = exports.getDashboard = exports.getHazards = void 0;
 const prisma_1 = require("../lib/prisma");
 // Month name map for formatting monthly trends (e.g. 8 -> "Agu 26")
 const MONTH_NAMES = {
@@ -372,3 +372,184 @@ const deleteHazard = async (req, res) => {
     }
 };
 exports.deleteHazard = deleteHazard;
+// ==========================================
+// WORK AREA INSPECTION CONTROLLERS
+// ==========================================
+const getInspections = async (req, res) => {
+    try {
+        const { site, search, location, shift, status, limit, offset } = req.query;
+        const where = {};
+        // Site filtering
+        if (site && site !== "ALL") {
+            const siteStr = String(site).replace(/[\s_-]+/g, "").toUpperCase();
+            if (siteStr.includes("MUARA") || siteStr.includes("PAHU") || siteStr === "MP") {
+                where.jobSite = "MuaraPahu";
+            }
+            else if (siteStr.includes("SENYIUR") || siteStr === "SY") {
+                where.jobSite = "Senyiur";
+            }
+            else if (site === "MuaraPahu" || site === "Senyiur") {
+                where.jobSite = site;
+            }
+        }
+        // Location filtering
+        if (location && location !== "ALL") {
+            where.lokasiInspeksi = String(location).trim().toUpperCase();
+        }
+        // Shift filtering
+        if (shift && shift !== "ALL") {
+            where.shift = String(shift).trim().toUpperCase();
+        }
+        // Status filtering
+        if (status && status !== "ALL") {
+            where.status = String(status).trim();
+        }
+        // Search query
+        if (search && String(search).trim()) {
+            const q = String(search).trim();
+            where.OR = [
+                { inspectionNumber: { contains: q, mode: "insensitive" } },
+                { namaKaryawan: { contains: q, mode: "insensitive" } },
+                { nikKaryawan: { contains: q, mode: "insensitive" } },
+                { lokasiInspeksi: { contains: q, mode: "insensitive" } },
+                { areaName: { contains: q, mode: "insensitive" } },
+                { findingsDescription: { contains: q, mode: "insensitive" } },
+                { pic: { contains: q, mode: "insensitive" } },
+            ];
+        }
+        const take = limit ? Math.min(Math.max(Number(limit), 1), 5000) : 5000;
+        const skip = offset ? Math.max(Number(offset), 0) : 0;
+        const [total, records] = await Promise.all([
+            prisma_1.prisma.workAreaInspection.count({ where }),
+            prisma_1.prisma.workAreaInspection.findMany({
+                where,
+                orderBy: [{ tanggalInspeksi: "desc" }, { createdAt: "desc" }],
+                take,
+                skip,
+            }),
+        ]);
+        const formatted = records.map((r) => ({
+            id: r.id,
+            inspectionNumber: r.inspectionNumber,
+            namaKaryawan: r.namaKaryawan,
+            nikKaryawan: r.nikKaryawan,
+            tanggalInspeksi: r.tanggalInspeksi ? new Date(r.tanggalInspeksi).toISOString().slice(0, 10) : "",
+            lokasiInspeksi: r.lokasiInspeksi,
+            shift: r.shift,
+            project: r.project,
+            jobSite: r.jobSite,
+            areaName: r.areaName || `${r.lokasiInspeksi} ${r.project}`,
+            time: r.time || "08:00",
+            complianceScore: Number(r.complianceScore) || 100,
+            status: r.status || "Compliant",
+            findingsCount: Number(r.findingsCount) || 0,
+            findingsDescription: r.findingsDescription || undefined,
+            correctiveAction: r.correctiveAction || undefined,
+            pic: r.pic || undefined,
+            targetCompletionDate: r.targetCompletionDate ? new Date(r.targetCompletionDate).toISOString().slice(0, 10) : undefined,
+            lokasiOilTrap: r.lokasiOilTrap || undefined,
+            oilTrapAnswers: r.oilTrapAnswersJson ? JSON.parse(r.oilTrapAnswersJson) : undefined,
+            dokumentasiInspeksi: r.dokumentasiInspeksi || undefined,
+            createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+        }));
+        res.json({
+            success: true,
+            total,
+            data: formatted,
+        });
+    }
+    catch (err) {
+        console.error("Error fetching work area inspections:", err);
+        res.status(500).json({ success: false, error: err.message || "Failed to fetch work area inspections" });
+    }
+};
+exports.getInspections = getInspections;
+const createInspection = async (req, res) => {
+    try {
+        const data = req.body;
+        const jobSite = data.project === "SENYIUR" || data.jobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
+        const sitePrefix = jobSite === "MuaraPahu" ? "MP" : "SN";
+        const year = new Date().getFullYear();
+        const count = await prisma_1.prisma.workAreaInspection.count({
+            where: { jobSite },
+        });
+        const inspectionNumber = data.inspectionNumber || `INS-${sitePrefix}-${year}-${String(count + 1).padStart(4, "0")}`;
+        const dateVal = data.tanggalInspeksi ? new Date(data.tanggalInspeksi) : new Date();
+        const created = await prisma_1.prisma.workAreaInspection.create({
+            data: {
+                inspectionNumber,
+                namaKaryawan: data.namaKaryawan,
+                nikKaryawan: data.nikKaryawan,
+                tanggalInspeksi: dateVal,
+                lokasiInspeksi: data.lokasiInspeksi || "WORKSHOP",
+                shift: data.shift || "SHIFT 1",
+                project: data.project || (jobSite === "MuaraPahu" ? "MUARA PAHU" : "SENYIUR"),
+                jobSite,
+                areaName: data.areaName || `${data.lokasiInspeksi || "WORKSHOP"} ${jobSite}`,
+                time: data.time || "08:00",
+                complianceScore: Number(data.complianceScore) || 100,
+                status: data.status || "Compliant",
+                findingsCount: Number(data.findingsCount) || 0,
+                findingsDescription: data.findingsDescription || null,
+                correctiveAction: data.correctiveAction || null,
+                pic: data.pic || null,
+                targetCompletionDate: data.targetCompletionDate ? new Date(data.targetCompletionDate) : null,
+                lokasiOilTrap: data.lokasiOilTrap || null,
+                oilTrapAnswersJson: data.oilTrapAnswers ? JSON.stringify(data.oilTrapAnswers) : null,
+                dokumentasiInspeksi: data.dokumentasiInspeksi || null,
+                month: dateVal.getMonth() + 1,
+            },
+        });
+        res.status(201).json({ success: true, data: created });
+    }
+    catch (err) {
+        console.error("Error creating work area inspection:", err);
+        res.status(500).json({ success: false, error: err.message || "Failed to create inspection" });
+    }
+};
+exports.createInspection = createInspection;
+const updateInspection = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = req.body;
+        const updates = {};
+        if (data.status !== undefined)
+            updates.status = data.status;
+        if (data.complianceScore !== undefined)
+            updates.complianceScore = Number(data.complianceScore);
+        if (data.findingsCount !== undefined)
+            updates.findingsCount = Number(data.findingsCount);
+        if (data.findingsDescription !== undefined)
+            updates.findingsDescription = data.findingsDescription;
+        if (data.correctiveAction !== undefined)
+            updates.correctiveAction = data.correctiveAction;
+        if (data.pic !== undefined)
+            updates.pic = data.pic;
+        if (data.targetCompletionDate !== undefined)
+            updates.targetCompletionDate = data.targetCompletionDate ? new Date(data.targetCompletionDate) : null;
+        const updated = await prisma_1.prisma.workAreaInspection.update({
+            where: { id },
+            data: updates,
+        });
+        res.json({ success: true, data: updated });
+    }
+    catch (err) {
+        console.error("Error updating work area inspection:", err);
+        res.status(500).json({ success: false, error: err.message || "Failed to update inspection" });
+    }
+};
+exports.updateInspection = updateInspection;
+const deleteInspection = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma_1.prisma.workAreaInspection.delete({
+            where: { id },
+        });
+        res.json({ success: true, message: "Work area inspection deleted successfully" });
+    }
+    catch (err) {
+        console.error("Error deleting work area inspection:", err);
+        res.status(500).json({ success: false, error: err.message || "Failed to delete inspection" });
+    }
+};
+exports.deleteInspection = deleteInspection;

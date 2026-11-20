@@ -544,3 +544,36 @@ model HazardReport {
   @@index([reporterNrp])
 }
 
+model WorkAreaInspection {
+  id                   String    @id @default(uuid())
+  inspectionNumber     String    @unique
+  namaKaryawan         String
+  nikKaryawan          String
+  tanggalInspeksi      DateTime
+  lokasiInspeksi       String
+  shift                String
+  project              String
+  jobSite              JobSite   @default(MuaraPahu)
+  areaName             String?
+  time                 String?   @default("08:00")
+  complianceScore      Float     @default(100)
+  status               String    @default("Compliant")
+  findingsCount        Int       @default(0)
+  findingsDescription  String?
+  correctiveAction     String?
+  pic                  String?
+  targetCompletionDate DateTime?
+  lokasiOilTrap        String?
+  oilTrapAnswersJson   String?
+  dokumentasiInspeksi  String?
+  month                Int?
+  week                 Int?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([jobSite, tanggalInspeksi])
+  @@index([lokasiInspeksi])
+  @@index([nikKaryawan])
+}
+
+

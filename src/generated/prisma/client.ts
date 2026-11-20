@@ -149,3 +149,8 @@ export type MasterManpower = Prisma.MasterManpowerModel
  * 
  */
 export type HazardReport = Prisma.HazardReportModel
+/**
+ * Model WorkAreaInspection
+ * 
+ */
+export type WorkAreaInspection = Prisma.WorkAreaInspectionModel

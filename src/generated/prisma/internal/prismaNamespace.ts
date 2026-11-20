@@ -418,7 +418,8 @@ export const ModelName = {
   DailyPaActivity: 'DailyPaActivity',
   DailyBreakdownReport: 'DailyBreakdownReport',
   MasterManpower: 'MasterManpower',
-  HazardReport: 'HazardReport'
+  HazardReport: 'HazardReport',
+  WorkAreaInspection: 'WorkAreaInspection'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport" | "workAreaInspection"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2066,6 +2067,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    WorkAreaInspection: {
+      payload: Prisma.$WorkAreaInspectionPayload<ExtArgs>
+      fields: Prisma.WorkAreaInspectionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WorkAreaInspectionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WorkAreaInspectionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>
+        }
+        findFirst: {
+          args: Prisma.WorkAreaInspectionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WorkAreaInspectionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>
+        }
+        findMany: {
+          args: Prisma.WorkAreaInspectionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>[]
+        }
+        create: {
+          args: Prisma.WorkAreaInspectionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>
+        }
+        createMany: {
+          args: Prisma.WorkAreaInspectionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WorkAreaInspectionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>[]
+        }
+        delete: {
+          args: Prisma.WorkAreaInspectionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>
+        }
+        update: {
+          args: Prisma.WorkAreaInspectionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>
+        }
+        deleteMany: {
+          args: Prisma.WorkAreaInspectionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WorkAreaInspectionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WorkAreaInspectionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>[]
+        }
+        upsert: {
+          args: Prisma.WorkAreaInspectionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkAreaInspectionPayload>
+        }
+        aggregate: {
+          args: Prisma.WorkAreaInspectionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkAreaInspection>
+        }
+        groupBy: {
+          args: Prisma.WorkAreaInspectionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkAreaInspectionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WorkAreaInspectionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkAreaInspectionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2598,6 +2673,37 @@ export const HazardReportScalarFieldEnum = {
 export type HazardReportScalarFieldEnum = (typeof HazardReportScalarFieldEnum)[keyof typeof HazardReportScalarFieldEnum]
 
 
+export const WorkAreaInspectionScalarFieldEnum = {
+  id: 'id',
+  inspectionNumber: 'inspectionNumber',
+  namaKaryawan: 'namaKaryawan',
+  nikKaryawan: 'nikKaryawan',
+  tanggalInspeksi: 'tanggalInspeksi',
+  lokasiInspeksi: 'lokasiInspeksi',
+  shift: 'shift',
+  project: 'project',
+  jobSite: 'jobSite',
+  areaName: 'areaName',
+  time: 'time',
+  complianceScore: 'complianceScore',
+  status: 'status',
+  findingsCount: 'findingsCount',
+  findingsDescription: 'findingsDescription',
+  correctiveAction: 'correctiveAction',
+  pic: 'pic',
+  targetCompletionDate: 'targetCompletionDate',
+  lokasiOilTrap: 'lokasiOilTrap',
+  oilTrapAnswersJson: 'oilTrapAnswersJson',
+  dokumentasiInspeksi: 'dokumentasiInspeksi',
+  month: 'month',
+  week: 'week',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WorkAreaInspectionScalarFieldEnum = (typeof WorkAreaInspectionScalarFieldEnum)[keyof typeof WorkAreaInspectionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2891,6 +2997,7 @@ export type GlobalOmitConfig = {
   dailyBreakdownReport?: Prisma.DailyBreakdownReportOmit
   masterManpower?: Prisma.MasterManpowerOmit
   hazardReport?: Prisma.HazardReportOmit
+  workAreaInspection?: Prisma.WorkAreaInspectionOmit
 }
 
 /* Types for Logging */
