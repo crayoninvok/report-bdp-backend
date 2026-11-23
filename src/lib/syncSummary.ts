@@ -65,11 +65,21 @@ export async function syncSummaryForMonth(site: JobSite, year: number = 2026, mo
 
     if (reps.length === 0) return;
 
-    const totalBudProd = reps.reduce((sum, r) => sum + r.budgetProduksi, 0);
-    const totalRealProd = reps.reduce((sum, r) => sum + r.realisasiProduksi, 0);
+    const lastRep = reps[reps.length - 1];
+    const hasMtdData = lastRep && lastRep.items.some(
+      (it) => it.mtdBudgetCost !== null && it.mtdBudgetCost !== undefined && it.mtdBudgetCost > 0
+    );
+
+    let totalBudProd = reps.reduce((sum, r) => sum + r.budgetProduksi, 0);
+    let totalRealProd = reps.reduce((sum, r) => sum + r.realisasiProduksi, 0);
+
+    if (hasMtdData && lastRep.mtdBudgetProduksi !== null && lastRep.mtdBudgetProduksi !== undefined) {
+      totalBudProd = lastRep.mtdBudgetProduksi;
+      totalRealProd = lastRep.mtdRealisasiProduksi ?? totalRealProd;
+    }
+
     const achProd = totalBudProd > 0 ? (totalRealProd / totalBudProd) * 100 : 0;
 
-    const lastRep = reps[reps.length - 1];
     let endDay = "15";
     if (lastRep && lastRep.periodName) {
       const match = lastRep.periodName.match(/(\d{1,2})\s*(?:-|–|s\/d|\s)\s*(\d{1,2})/);
@@ -82,12 +92,21 @@ export async function syncSummaryForMonth(site: JobSite, year: number = 2026, mo
     const monthLabelEn = MONTH_LABELS_EN[month] || "Oct";
 
     const acctMap = new Map<string, { budget: number; realisasi: number }>();
-    for (const r of reps) {
-      for (const it of r.items) {
-        const cur = acctMap.get(it.accountName) || { budget: 0, realisasi: 0 };
-        cur.budget += it.budgetCost;
-        cur.realisasi += it.realisasiCost;
-        acctMap.set(it.accountName, cur);
+    if (hasMtdData) {
+      for (const it of lastRep.items) {
+        acctMap.set(it.accountName, {
+          budget: it.mtdBudgetCost ?? 0,
+          realisasi: it.mtdRealisasiCost ?? 0,
+        });
+      }
+    } else {
+      for (const r of reps) {
+        for (const it of r.items) {
+          const cur = acctMap.get(it.accountName) || { budget: 0, realisasi: 0 };
+          cur.budget += it.budgetCost;
+          cur.realisasi += it.realisasiCost;
+          acctMap.set(it.accountName, cur);
+        }
       }
     }
 

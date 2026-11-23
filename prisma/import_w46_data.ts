@@ -10,13 +10,13 @@ async function main() {
   console.log("IMPORTING WEEK 46 FINANCIAL REPORT (YTD 19 NOV 2026)");
   console.log("==========================================================");
 
-  const excelPath = path.resolve(__dirname, "../../11.26 - Lap Keu BDP 1 Update - YTD November 2026 Site (19112026).xlsx");
+  const excelPath = path.resolve(__dirname, "../../11.26 - Lap Keu BDP 1 Update - YTD November 2026 Site (19112026) (1).xlsx");
   if (!fs.existsSync(excelPath)) {
     throw new Error(`File not found: ${excelPath}`);
   }
 
   const buffer = fs.readFileSync(excelPath);
-  const parseResult = await parseExcelReport(buffer, "11.26 - Lap Keu BDP 1 Update - YTD November 2026 Site (19112026).xlsx");
+  const parseResult = await parseExcelReport(buffer, "11.26 - Lap Keu BDP 1 Update - YTD November 2026 Site (19112026) (1).xlsx");
 
   const w46Reports = parseResult.reports.filter((r) => r.weekNumber === 46);
   console.log(`Found ${w46Reports.length} W46 report(s) to import.`);
