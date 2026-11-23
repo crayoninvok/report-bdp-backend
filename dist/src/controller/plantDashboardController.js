@@ -638,7 +638,7 @@ exports.plantDashboardController = {
             });
             const pmDateWhere = { gte: pmWindow.startDate, lte: pmWindow.endDate };
             const siteWhere = site !== "ALL" ? { jobSite: site } : {};
-            const [piPlans, psPlans, piTargetSetting, psTargetSetting, primeMoversBySite, totalUnitsCount,] = await Promise.all([
+            const [piPlans, psPlans, piTargetSetting, psTargetSetting, primeMoversBySite, activeUnitsCount, totalAllUnitsCount, dailyPaReports, closedBreakdownsAgg, openBreakdownsCount, categoryUnitCounts,] = await Promise.all([
                 prisma_1.prisma.periodicInspectionPlan.findMany({
                     where: { date: pmDateWhere, ...siteWhere },
                     include: { items: true },
@@ -663,7 +663,33 @@ exports.plantDashboardController = {
                 prisma_1.prisma.masterUnit.count({
                     where: { status: "Active", ...siteWhere },
                 }),
+                prisma_1.prisma.masterUnit.count({
+                    where: siteWhere,
+                }),
+                prisma_1.prisma.dailyPaReport.findMany({
+                    where: siteWhere,
+                    include: {
+                        units: {
+                            include: { activities: true },
+                        },
+                    },
+                    orderBy: { date: "desc" },
+                }),
+                prisma_1.prisma.dailyBreakdownReport.aggregate({
+                    where: { status: "Close", ...siteWhere },
+                    _count: { id: true },
+                    _sum: { durationHours: true },
+                }),
+                prisma_1.prisma.dailyBreakdownReport.count({
+                    where: { status: "Open", ...siteWhere },
+                }),
+                prisma_1.prisma.masterUnit.groupBy({
+                    by: ["category", "status"],
+                    where: siteWhere,
+                    _count: { id: true },
+                }),
             ]);
+            const totalUnitsCount = activeUnitsCount;
             const defaultPiTarget = piTargetSetting ? parseInt(piTargetSetting.value, 10) || 9 : 9;
             const defaultPsTarget = psTargetSetting ? parseInt(psTargetSetting.value, 10) || 4 : 4;
             const primeMoverPopulation = primeMoversBySite.reduce((sum, s) => sum + s._count.id, 0);
@@ -833,6 +859,79 @@ exports.plantDashboardController = {
             ];
             const psIntervalBreakdown = Array.from(intervalMap.values()).sort((a, b) => intervalOrder.indexOf(a.interval) - intervalOrder.indexOf(b.interval));
             const psAssetBreakdown = Array.from(assetCategoryMap.values()).sort((a, b) => b.total - a.total);
+            // Compute Fleet Availability & Reliability KPIs from real database records
+            let realPaData = null;
+            if (dailyPaReports.length > 0) {
+                let totalCal = 0;
+                let totalDowntime = 0;
+                let totalBdCount = 0;
+                for (const r of dailyPaReports) {
+                    totalCal += r.units.length * r.calendarHours;
+                    for (const u of r.units) {
+                        totalBdCount += u.activities.length;
+                        for (const a of u.activities) {
+                            totalDowntime += a.durationHours || 0;
+                        }
+                    }
+                }
+                const totalAvail = totalCal - totalDowntime;
+                const paPercent = totalCal > 0 ? Math.round((totalAvail / totalCal) * 1000) / 10 : null;
+                const targetPa = dailyPaReports[0]?.targetPa || 85;
+                const isNeedsFocus = paPercent !== null && paPercent < targetPa;
+                realPaData = {
+                    paPercent,
+                    targetPa,
+                    mohhHours: Math.round(totalAvail * 10) / 10,
+                    bdHours: Math.round(totalDowntime * 10) / 10,
+                    statusText: isNeedsFocus ? "Needs Focus" : "On Target",
+                    overallMtbf: totalBdCount > 0 ? Math.round((totalAvail / totalBdCount) * 10) / 10 : null,
+                };
+            }
+            const closedBdCount = closedBreakdownsAgg._count.id;
+            const closedBdHours = closedBreakdownsAgg._sum.durationHours || 0;
+            const realMttr = closedBdCount > 0 ? Math.round((closedBdHours / closedBdCount) * 10) / 10 : null;
+            const rfuUnits = activeUnitsCount;
+            const totalUnits = totalAllUnitsCount;
+            const readinessPercent = totalUnits > 0 ? Math.round((rfuUnits / totalUnits) * 1000) / 10 : null;
+            const pmCompletedCount = psAggregated.summary.totalCompleted;
+            const pmTotalCount = psAggregated.summary.totalPlan > 0 ? psAggregated.summary.totalPlan : psAggregated.summary.totalScheduled;
+            const pmCompliancePercent = psAggregated.summary.achievementPercent;
+            const fleetReliability = {
+                pa: realPaData,
+                ma: null, // Operating hours not tracked separately in DB -> show "-"
+                fleetReadiness: {
+                    rfuUnits,
+                    totalUnits,
+                    readinessPercent,
+                },
+                mtbs: {
+                    inWorkshopUnits: openBreakdownsCount,
+                    targetHours: 20,
+                },
+                mtbf: {
+                    valueHours: realPaData?.overallMtbf ?? null,
+                    targetHours: 20,
+                },
+                mttr: {
+                    valueHours: realMttr,
+                    closedCount: closedBdCount,
+                    targetHours: 4,
+                },
+                redoPs: {
+                    openJobsCount: 0,
+                    targetPercent: 10,
+                },
+                pmCompliance: {
+                    compliancePercent: pmCompliancePercent,
+                    completedCount: pmCompletedCount,
+                    totalCount: pmTotalCount,
+                },
+                categoryCounts: categoryUnitCounts.map((c) => ({
+                    category: c.category,
+                    status: c.status,
+                    count: c._count.id,
+                })),
+            };
             return res.json({
                 success: true,
                 data: {
@@ -864,6 +963,7 @@ exports.plantDashboardController = {
                         primeMoverPopulation,
                         totalUnitsCount,
                     },
+                    fleetReliability,
                     glCost: {
                         ytd: {
                             totalCost: Math.round(ytdTotal),
