@@ -512,8 +512,8 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
       };
     });
 
-    // 4. Weekly Aggregations (W36 to W44)
-    const baseWeeks = ["W36", "W37", "W38", "W39", "W40", "W41", "W42", "W43", "W44"];
+    // 4. Weekly Aggregations (W36 to W46)
+    const baseWeeks = ["W36", "W37", "W38", "W39", "W40", "W41", "W42", "W43", "W44", "W45", "W46"];
     const weekProdMap = new Map<string, { totalTon: number; sumFR: number; count: number }>();
     allProdRecords.forEach((p) => {
       if (!p.weekNumber) return;
@@ -543,6 +543,8 @@ export const getGLFuelConsumption = async (req: Request, res: Response) => {
           W42: 1.42,
           W43: 1.45,
           W44: 1.48,
+          W45: 1.44,
+          W46: 1.38,
         };
         frAktual = defaultWeeklyFR[week] || 1.55;
       }

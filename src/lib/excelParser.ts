@@ -338,12 +338,10 @@ export async function parseExcelReport(
             if (sumB > 0) {
               rawProdBudget = sumB;
             }
-            if (rawProdReal === 0) {
-              const sumRLetter = XLSX.utils.encode_col(baseC + 2);
-              const sumR = cleanFloat(sumSheet[`${sumRLetter}8`]?.v);
-              if (sumR > 0) {
-                rawProdReal = sumR;
-              }
+            const sumRLetter = XLSX.utils.encode_col(baseC + 2);
+            const sumR = cleanFloat(sumSheet[`${sumRLetter}8`]?.v);
+            if (sumR > 0 && (rawProdReal === 0 || site === "MuaraPahu")) {
+              rawProdReal = sumR;
             }
           }
         }
