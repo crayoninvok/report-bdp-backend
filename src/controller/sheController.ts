@@ -864,15 +864,60 @@ export const getObservations = async (req: Request, res: Response) => {
       penanggungJawabArea: r.penanggungJawabArea || "PLANT",
       project: r.project,
       jobSite: r.jobSite,
+
+      // 1. Reaksi Pekerja
       perubahanPosisi: r.perubahanPosisi || "AMAN",
       penghentianPekerjaan: r.penghentianPekerjaan || "AMAN",
       penggantianTool: r.penggantianTool || "AMAN",
       reaksiPekerjaCustom: r.reaksiPekerjaCustom || undefined,
-      status: r.status || "AMAN",
-      statusGForm: r.statusGForm || "OPEN",
+
+      // 2. Posisi Manusia
+      posisiMenabrak: r.posisiMenabrak || "AMAN",
+      posisiTerjepit: r.posisiTerjepit || "AMAN",
+      posisiTerhirup: r.posisiTerhirup || "AMAN",
+      posisiTerseret: r.posisiTerseret || "AMAN",
+      posisiTerkenaListrik: r.posisiTerkenaListrik || "AMAN",
+      posisiTerjatuh: r.posisiTerjatuh || "AMAN",
+      posisiTerpukul: r.posisiTerpukul || "AMAN",
+
+      // 3. APD
+      apdKepala: r.apdKepala || "AMAN",
+      apdTelingaMata: r.apdTelingaMata || "AMAN",
+      apdMukaPernafasan: r.apdMukaPernafasan || "AMAN",
+      apdTanganLengan: r.apdTanganLengan || "AMAN",
+      apdKakiTungkai: r.apdKakiTungkai || "AMAN",
+
+      // 4. Prosedur
+      prosedurStandard: r.prosedurStandard || "AMAN",
+      prosedurPengawasan: r.prosedurPengawasan || "AMAN",
+      prosedurIjinKerja: r.prosedurIjinKerja || "AMAN",
+      prosedurEmergency: r.prosedurEmergency || "AMAN",
+
+      // 5. Perkakas Tangan dan Peralatan
+      perkakasSesuai: r.perkakasSesuai || "AMAN",
+      perkakasBenar: r.perkakasBenar || "AMAN",
+      perkakasAmanInspeksi: r.perkakasAmanInspeksi || "AMAN",
+      perkakasPengaman: r.perkakasPengaman || "AMAN",
+      perkakasSafetyDevice: r.perkakasSafetyDevice || "AMAN",
+
+      // 6. Ketertiban / Kerapihan
+      kerapihanRuangJalan: r.kerapihanRuangJalan || "AMAN",
+      kerapihanPenempatan: r.kerapihanPenempatan || "AMAN",
+      kerapihanPenyimpanan: r.kerapihanPenyimpanan || "AMAN",
+      kerapihanHambatan: r.kerapihanHambatan || "AMAN",
+      kerapihanPijakanLantai: r.kerapihanPijakanLantai || "AMAN",
+
+      // 7. Tindak Lanjut Observasi
+      saranObserver: r.saranObserver || "",
+      feedbackObjek: r.feedbackObjek || "",
+      kesepakatan: r.kesepakatan || "",
       catatanObservasi: r.catatanObservasi || "",
       tindakanPerbaikan: r.tindakanPerbaikan || "",
       dokumentasi: r.dokumentasi || undefined,
+      rawAnswersJson: r.rawAnswersJson || undefined,
+
+      status: r.status || "AMAN",
+      statusGForm: r.statusGForm || "OPEN",
       createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
     }));
 
@@ -901,12 +946,46 @@ export const createObservation = async (req: Request, res: Response) => {
 
     const dateVal = data.tanggalObservasi ? new Date(data.tanggalObservasi) : new Date();
 
-    const isRisky =
-      String(data.perubahanPosisi).toUpperCase().includes("BERISIKO") ||
-      String(data.penghentianPekerjaan).toUpperCase().includes("BERISIKO") ||
-      String(data.penggantianTool).toUpperCase().includes("BERISIKO");
+    const isFieldRisky = (val?: string) => {
+      if (!val) return false;
+      const s = String(val).toUpperCase();
+      return s.includes("BERISIKO") || s.includes("BERESIKO");
+    };
 
-    const status = data.status || (isRisky ? "BERISIKO" : "AMAN");
+    const evaluatedFields = [
+      data.perubahanPosisi,
+      data.penghentianPekerjaan,
+      data.penggantianTool,
+      data.posisiMenabrak,
+      data.posisiTerjepit,
+      data.posisiTerhirup,
+      data.posisiTerseret,
+      data.posisiTerkenaListrik,
+      data.posisiTerjatuh,
+      data.posisiTerpukul,
+      data.apdKepala,
+      data.apdTelingaMata,
+      data.apdMukaPernafasan,
+      data.apdTanganLengan,
+      data.apdKakiTungkai,
+      data.prosedurStandard,
+      data.prosedurPengawasan,
+      data.prosedurIjinKerja,
+      data.prosedurEmergency,
+      data.perkakasSesuai,
+      data.perkakasBenar,
+      data.perkakasAmanInspeksi,
+      data.perkakasPengaman,
+      data.perkakasSafetyDevice,
+      data.kerapihanRuangJalan,
+      data.kerapihanPenempatan,
+      data.kerapihanPenyimpanan,
+      data.kerapihanHambatan,
+      data.kerapihanPijakanLantai,
+    ];
+
+    const hasRisk = evaluatedFields.some(isFieldRisky);
+    const status = data.status || (hasRisk ? "BERISIKO" : "AMAN");
 
     const created = await (prisma as any).safetyObservation.create({
       data: {
@@ -921,15 +1000,60 @@ export const createObservation = async (req: Request, res: Response) => {
         penanggungJawabArea: data.penanggungJawabArea || "PLANT",
         project: data.project || (jobSite === "MuaraPahu" ? "MUARA PAHU" : "SENYIUR"),
         jobSite,
+
+        // 1. Reaksi Pekerja
         perubahanPosisi: data.perubahanPosisi || "AMAN",
         penghentianPekerjaan: data.penghentianPekerjaan || "AMAN",
         penggantianTool: data.penggantianTool || "AMAN",
         reaksiPekerjaCustom: data.reaksiPekerjaCustom || null,
-        status,
-        statusGForm: data.statusGForm || "OPEN",
+
+        // 2. Posisi Manusia
+        posisiMenabrak: data.posisiMenabrak || "AMAN",
+        posisiTerjepit: data.posisiTerjepit || "AMAN",
+        posisiTerhirup: data.posisiTerhirup || "AMAN",
+        posisiTerseret: data.posisiTerseret || "AMAN",
+        posisiTerkenaListrik: data.posisiTerkenaListrik || "AMAN",
+        posisiTerjatuh: data.posisiTerjatuh || "AMAN",
+        posisiTerpukul: data.posisiTerpukul || "AMAN",
+
+        // 3. APD
+        apdKepala: data.apdKepala || "AMAN",
+        apdTelingaMata: data.apdTelingaMata || "AMAN",
+        apdMukaPernafasan: data.apdMukaPernafasan || "AMAN",
+        apdTanganLengan: data.apdTanganLengan || "AMAN",
+        apdKakiTungkai: data.apdKakiTungkai || "AMAN",
+
+        // 4. Prosedur
+        prosedurStandard: data.prosedurStandard || "AMAN",
+        prosedurPengawasan: data.prosedurPengawasan || "AMAN",
+        prosedurIjinKerja: data.prosedurIjinKerja || "AMAN",
+        prosedurEmergency: data.prosedurEmergency || "AMAN",
+
+        // 5. Perkakas Tangan dan Peralatan
+        perkakasSesuai: data.perkakasSesuai || "AMAN",
+        perkakasBenar: data.perkakasBenar || "AMAN",
+        perkakasAmanInspeksi: data.perkakasAmanInspeksi || "AMAN",
+        perkakasPengaman: data.perkakasPengaman || "AMAN",
+        perkakasSafetyDevice: data.perkakasSafetyDevice || "AMAN",
+
+        // 6. Ketertiban / Kerapihan
+        kerapihanRuangJalan: data.kerapihanRuangJalan || "AMAN",
+        kerapihanPenempatan: data.kerapihanPenempatan || "AMAN",
+        kerapihanPenyimpanan: data.kerapihanPenyimpanan || "AMAN",
+        kerapihanHambatan: data.kerapihanHambatan || "AMAN",
+        kerapihanPijakanLantai: data.kerapihanPijakanLantai || "AMAN",
+
+        // 7. Tindak Lanjut Observasi
+        saranObserver: data.saranObserver || null,
+        feedbackObjek: data.feedbackObjek || null,
+        kesepakatan: data.kesepakatan || null,
         catatanObservasi: data.catatanObservasi || null,
         tindakanPerbaikan: data.tindakanPerbaikan || null,
         dokumentasi: data.dokumentasi || null,
+        rawAnswersJson: data.rawAnswersJson ? (typeof data.rawAnswersJson === "string" ? data.rawAnswersJson : JSON.stringify(data.rawAnswersJson)) : null,
+
+        status,
+        statusGForm: data.statusGForm || "OPEN",
         month: dateVal.getMonth() + 1,
       },
     });
@@ -955,6 +1079,9 @@ export const updateObservation = async (req: Request, res: Response) => {
     if (data.penghentianPekerjaan !== undefined) updates.penghentianPekerjaan = data.penghentianPekerjaan;
     if (data.penggantianTool !== undefined) updates.penggantianTool = data.penggantianTool;
     if (data.dokumentasi !== undefined) updates.dokumentasi = data.dokumentasi;
+    if (data.saranObserver !== undefined) updates.saranObserver = data.saranObserver;
+    if (data.feedbackObjek !== undefined) updates.feedbackObjek = data.feedbackObjek;
+    if (data.kesepakatan !== undefined) updates.kesepakatan = data.kesepakatan;
 
     const updated = await (prisma as any).safetyObservation.update({
       where: { id },

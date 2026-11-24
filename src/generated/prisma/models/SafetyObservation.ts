@@ -53,11 +53,41 @@ export type SafetyObservationMinAggregateOutputType = {
   penghentianPekerjaan: string | null
   penggantianTool: string | null
   reaksiPekerjaCustom: string | null
-  status: string | null
-  statusGForm: string | null
+  posisiMenabrak: string | null
+  posisiTerjepit: string | null
+  posisiTerhirup: string | null
+  posisiTerseret: string | null
+  posisiTerkenaListrik: string | null
+  posisiTerjatuh: string | null
+  posisiTerpukul: string | null
+  apdKepala: string | null
+  apdTelingaMata: string | null
+  apdMukaPernafasan: string | null
+  apdTanganLengan: string | null
+  apdKakiTungkai: string | null
+  prosedurStandard: string | null
+  prosedurPengawasan: string | null
+  prosedurIjinKerja: string | null
+  prosedurEmergency: string | null
+  perkakasSesuai: string | null
+  perkakasBenar: string | null
+  perkakasAmanInspeksi: string | null
+  perkakasPengaman: string | null
+  perkakasSafetyDevice: string | null
+  kerapihanRuangJalan: string | null
+  kerapihanPenempatan: string | null
+  kerapihanPenyimpanan: string | null
+  kerapihanHambatan: string | null
+  kerapihanPijakanLantai: string | null
+  saranObserver: string | null
+  feedbackObjek: string | null
+  kesepakatan: string | null
   catatanObservasi: string | null
   tindakanPerbaikan: string | null
   dokumentasi: string | null
+  rawAnswersJson: string | null
+  status: string | null
+  statusGForm: string | null
   month: number | null
   week: number | null
   createdAt: Date | null
@@ -81,11 +111,41 @@ export type SafetyObservationMaxAggregateOutputType = {
   penghentianPekerjaan: string | null
   penggantianTool: string | null
   reaksiPekerjaCustom: string | null
-  status: string | null
-  statusGForm: string | null
+  posisiMenabrak: string | null
+  posisiTerjepit: string | null
+  posisiTerhirup: string | null
+  posisiTerseret: string | null
+  posisiTerkenaListrik: string | null
+  posisiTerjatuh: string | null
+  posisiTerpukul: string | null
+  apdKepala: string | null
+  apdTelingaMata: string | null
+  apdMukaPernafasan: string | null
+  apdTanganLengan: string | null
+  apdKakiTungkai: string | null
+  prosedurStandard: string | null
+  prosedurPengawasan: string | null
+  prosedurIjinKerja: string | null
+  prosedurEmergency: string | null
+  perkakasSesuai: string | null
+  perkakasBenar: string | null
+  perkakasAmanInspeksi: string | null
+  perkakasPengaman: string | null
+  perkakasSafetyDevice: string | null
+  kerapihanRuangJalan: string | null
+  kerapihanPenempatan: string | null
+  kerapihanPenyimpanan: string | null
+  kerapihanHambatan: string | null
+  kerapihanPijakanLantai: string | null
+  saranObserver: string | null
+  feedbackObjek: string | null
+  kesepakatan: string | null
   catatanObservasi: string | null
   tindakanPerbaikan: string | null
   dokumentasi: string | null
+  rawAnswersJson: string | null
+  status: string | null
+  statusGForm: string | null
   month: number | null
   week: number | null
   createdAt: Date | null
@@ -109,11 +169,41 @@ export type SafetyObservationCountAggregateOutputType = {
   penghentianPekerjaan: number
   penggantianTool: number
   reaksiPekerjaCustom: number
-  status: number
-  statusGForm: number
+  posisiMenabrak: number
+  posisiTerjepit: number
+  posisiTerhirup: number
+  posisiTerseret: number
+  posisiTerkenaListrik: number
+  posisiTerjatuh: number
+  posisiTerpukul: number
+  apdKepala: number
+  apdTelingaMata: number
+  apdMukaPernafasan: number
+  apdTanganLengan: number
+  apdKakiTungkai: number
+  prosedurStandard: number
+  prosedurPengawasan: number
+  prosedurIjinKerja: number
+  prosedurEmergency: number
+  perkakasSesuai: number
+  perkakasBenar: number
+  perkakasAmanInspeksi: number
+  perkakasPengaman: number
+  perkakasSafetyDevice: number
+  kerapihanRuangJalan: number
+  kerapihanPenempatan: number
+  kerapihanPenyimpanan: number
+  kerapihanHambatan: number
+  kerapihanPijakanLantai: number
+  saranObserver: number
+  feedbackObjek: number
+  kesepakatan: number
   catatanObservasi: number
   tindakanPerbaikan: number
   dokumentasi: number
+  rawAnswersJson: number
+  status: number
+  statusGForm: number
   month: number
   week: number
   createdAt: number
@@ -149,11 +239,41 @@ export type SafetyObservationMinAggregateInputType = {
   penghentianPekerjaan?: true
   penggantianTool?: true
   reaksiPekerjaCustom?: true
-  status?: true
-  statusGForm?: true
+  posisiMenabrak?: true
+  posisiTerjepit?: true
+  posisiTerhirup?: true
+  posisiTerseret?: true
+  posisiTerkenaListrik?: true
+  posisiTerjatuh?: true
+  posisiTerpukul?: true
+  apdKepala?: true
+  apdTelingaMata?: true
+  apdMukaPernafasan?: true
+  apdTanganLengan?: true
+  apdKakiTungkai?: true
+  prosedurStandard?: true
+  prosedurPengawasan?: true
+  prosedurIjinKerja?: true
+  prosedurEmergency?: true
+  perkakasSesuai?: true
+  perkakasBenar?: true
+  perkakasAmanInspeksi?: true
+  perkakasPengaman?: true
+  perkakasSafetyDevice?: true
+  kerapihanRuangJalan?: true
+  kerapihanPenempatan?: true
+  kerapihanPenyimpanan?: true
+  kerapihanHambatan?: true
+  kerapihanPijakanLantai?: true
+  saranObserver?: true
+  feedbackObjek?: true
+  kesepakatan?: true
   catatanObservasi?: true
   tindakanPerbaikan?: true
   dokumentasi?: true
+  rawAnswersJson?: true
+  status?: true
+  statusGForm?: true
   month?: true
   week?: true
   createdAt?: true
@@ -177,11 +297,41 @@ export type SafetyObservationMaxAggregateInputType = {
   penghentianPekerjaan?: true
   penggantianTool?: true
   reaksiPekerjaCustom?: true
-  status?: true
-  statusGForm?: true
+  posisiMenabrak?: true
+  posisiTerjepit?: true
+  posisiTerhirup?: true
+  posisiTerseret?: true
+  posisiTerkenaListrik?: true
+  posisiTerjatuh?: true
+  posisiTerpukul?: true
+  apdKepala?: true
+  apdTelingaMata?: true
+  apdMukaPernafasan?: true
+  apdTanganLengan?: true
+  apdKakiTungkai?: true
+  prosedurStandard?: true
+  prosedurPengawasan?: true
+  prosedurIjinKerja?: true
+  prosedurEmergency?: true
+  perkakasSesuai?: true
+  perkakasBenar?: true
+  perkakasAmanInspeksi?: true
+  perkakasPengaman?: true
+  perkakasSafetyDevice?: true
+  kerapihanRuangJalan?: true
+  kerapihanPenempatan?: true
+  kerapihanPenyimpanan?: true
+  kerapihanHambatan?: true
+  kerapihanPijakanLantai?: true
+  saranObserver?: true
+  feedbackObjek?: true
+  kesepakatan?: true
   catatanObservasi?: true
   tindakanPerbaikan?: true
   dokumentasi?: true
+  rawAnswersJson?: true
+  status?: true
+  statusGForm?: true
   month?: true
   week?: true
   createdAt?: true
@@ -205,11 +355,41 @@ export type SafetyObservationCountAggregateInputType = {
   penghentianPekerjaan?: true
   penggantianTool?: true
   reaksiPekerjaCustom?: true
-  status?: true
-  statusGForm?: true
+  posisiMenabrak?: true
+  posisiTerjepit?: true
+  posisiTerhirup?: true
+  posisiTerseret?: true
+  posisiTerkenaListrik?: true
+  posisiTerjatuh?: true
+  posisiTerpukul?: true
+  apdKepala?: true
+  apdTelingaMata?: true
+  apdMukaPernafasan?: true
+  apdTanganLengan?: true
+  apdKakiTungkai?: true
+  prosedurStandard?: true
+  prosedurPengawasan?: true
+  prosedurIjinKerja?: true
+  prosedurEmergency?: true
+  perkakasSesuai?: true
+  perkakasBenar?: true
+  perkakasAmanInspeksi?: true
+  perkakasPengaman?: true
+  perkakasSafetyDevice?: true
+  kerapihanRuangJalan?: true
+  kerapihanPenempatan?: true
+  kerapihanPenyimpanan?: true
+  kerapihanHambatan?: true
+  kerapihanPijakanLantai?: true
+  saranObserver?: true
+  feedbackObjek?: true
+  kesepakatan?: true
   catatanObservasi?: true
   tindakanPerbaikan?: true
   dokumentasi?: true
+  rawAnswersJson?: true
+  status?: true
+  statusGForm?: true
   month?: true
   week?: true
   createdAt?: true
@@ -320,11 +500,41 @@ export type SafetyObservationGroupByOutputType = {
   penghentianPekerjaan: string
   penggantianTool: string
   reaksiPekerjaCustom: string | null
-  status: string
-  statusGForm: string
+  posisiMenabrak: string | null
+  posisiTerjepit: string | null
+  posisiTerhirup: string | null
+  posisiTerseret: string | null
+  posisiTerkenaListrik: string | null
+  posisiTerjatuh: string | null
+  posisiTerpukul: string | null
+  apdKepala: string | null
+  apdTelingaMata: string | null
+  apdMukaPernafasan: string | null
+  apdTanganLengan: string | null
+  apdKakiTungkai: string | null
+  prosedurStandard: string | null
+  prosedurPengawasan: string | null
+  prosedurIjinKerja: string | null
+  prosedurEmergency: string | null
+  perkakasSesuai: string | null
+  perkakasBenar: string | null
+  perkakasAmanInspeksi: string | null
+  perkakasPengaman: string | null
+  perkakasSafetyDevice: string | null
+  kerapihanRuangJalan: string | null
+  kerapihanPenempatan: string | null
+  kerapihanPenyimpanan: string | null
+  kerapihanHambatan: string | null
+  kerapihanPijakanLantai: string | null
+  saranObserver: string | null
+  feedbackObjek: string | null
+  kesepakatan: string | null
   catatanObservasi: string | null
   tindakanPerbaikan: string | null
   dokumentasi: string | null
+  rawAnswersJson: string | null
+  status: string
+  statusGForm: string
   month: number | null
   week: number | null
   createdAt: Date
@@ -371,11 +581,41 @@ export type SafetyObservationWhereInput = {
   penghentianPekerjaan?: Prisma.StringFilter<"SafetyObservation"> | string
   penggantianTool?: Prisma.StringFilter<"SafetyObservation"> | string
   reaksiPekerjaCustom?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
-  status?: Prisma.StringFilter<"SafetyObservation"> | string
-  statusGForm?: Prisma.StringFilter<"SafetyObservation"> | string
+  posisiMenabrak?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerjepit?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerhirup?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerseret?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerkenaListrik?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerjatuh?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerpukul?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdKepala?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdTelingaMata?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdMukaPernafasan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdTanganLengan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdKakiTungkai?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurStandard?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurPengawasan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurIjinKerja?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurEmergency?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasSesuai?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasBenar?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasAmanInspeksi?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasPengaman?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasSafetyDevice?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanRuangJalan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanPenempatan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanPenyimpanan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanHambatan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanPijakanLantai?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  saranObserver?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  feedbackObjek?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kesepakatan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
   catatanObservasi?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
   tindakanPerbaikan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
   dokumentasi?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  rawAnswersJson?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  status?: Prisma.StringFilter<"SafetyObservation"> | string
+  statusGForm?: Prisma.StringFilter<"SafetyObservation"> | string
   month?: Prisma.IntNullableFilter<"SafetyObservation"> | number | null
   week?: Prisma.IntNullableFilter<"SafetyObservation"> | number | null
   createdAt?: Prisma.DateTimeFilter<"SafetyObservation"> | Date | string
@@ -399,11 +639,41 @@ export type SafetyObservationOrderByWithRelationInput = {
   penghentianPekerjaan?: Prisma.SortOrder
   penggantianTool?: Prisma.SortOrder
   reaksiPekerjaCustom?: Prisma.SortOrderInput | Prisma.SortOrder
-  status?: Prisma.SortOrder
-  statusGForm?: Prisma.SortOrder
+  posisiMenabrak?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerjepit?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerhirup?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerseret?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerkenaListrik?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerjatuh?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerpukul?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdKepala?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdTelingaMata?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdMukaPernafasan?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdTanganLengan?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdKakiTungkai?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurStandard?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurPengawasan?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurIjinKerja?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurEmergency?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasSesuai?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasBenar?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasAmanInspeksi?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasPengaman?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasSafetyDevice?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanRuangJalan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanPenempatan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanPenyimpanan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanHambatan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanPijakanLantai?: Prisma.SortOrderInput | Prisma.SortOrder
+  saranObserver?: Prisma.SortOrderInput | Prisma.SortOrder
+  feedbackObjek?: Prisma.SortOrderInput | Prisma.SortOrder
+  kesepakatan?: Prisma.SortOrderInput | Prisma.SortOrder
   catatanObservasi?: Prisma.SortOrderInput | Prisma.SortOrder
   tindakanPerbaikan?: Prisma.SortOrderInput | Prisma.SortOrder
   dokumentasi?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawAnswersJson?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusGForm?: Prisma.SortOrder
   month?: Prisma.SortOrderInput | Prisma.SortOrder
   week?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -430,11 +700,41 @@ export type SafetyObservationWhereUniqueInput = Prisma.AtLeast<{
   penghentianPekerjaan?: Prisma.StringFilter<"SafetyObservation"> | string
   penggantianTool?: Prisma.StringFilter<"SafetyObservation"> | string
   reaksiPekerjaCustom?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
-  status?: Prisma.StringFilter<"SafetyObservation"> | string
-  statusGForm?: Prisma.StringFilter<"SafetyObservation"> | string
+  posisiMenabrak?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerjepit?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerhirup?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerseret?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerkenaListrik?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerjatuh?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  posisiTerpukul?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdKepala?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdTelingaMata?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdMukaPernafasan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdTanganLengan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  apdKakiTungkai?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurStandard?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurPengawasan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurIjinKerja?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  prosedurEmergency?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasSesuai?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasBenar?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasAmanInspeksi?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasPengaman?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  perkakasSafetyDevice?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanRuangJalan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanPenempatan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanPenyimpanan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanHambatan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kerapihanPijakanLantai?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  saranObserver?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  feedbackObjek?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  kesepakatan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
   catatanObservasi?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
   tindakanPerbaikan?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
   dokumentasi?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  rawAnswersJson?: Prisma.StringNullableFilter<"SafetyObservation"> | string | null
+  status?: Prisma.StringFilter<"SafetyObservation"> | string
+  statusGForm?: Prisma.StringFilter<"SafetyObservation"> | string
   month?: Prisma.IntNullableFilter<"SafetyObservation"> | number | null
   week?: Prisma.IntNullableFilter<"SafetyObservation"> | number | null
   createdAt?: Prisma.DateTimeFilter<"SafetyObservation"> | Date | string
@@ -458,11 +758,41 @@ export type SafetyObservationOrderByWithAggregationInput = {
   penghentianPekerjaan?: Prisma.SortOrder
   penggantianTool?: Prisma.SortOrder
   reaksiPekerjaCustom?: Prisma.SortOrderInput | Prisma.SortOrder
-  status?: Prisma.SortOrder
-  statusGForm?: Prisma.SortOrder
+  posisiMenabrak?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerjepit?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerhirup?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerseret?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerkenaListrik?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerjatuh?: Prisma.SortOrderInput | Prisma.SortOrder
+  posisiTerpukul?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdKepala?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdTelingaMata?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdMukaPernafasan?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdTanganLengan?: Prisma.SortOrderInput | Prisma.SortOrder
+  apdKakiTungkai?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurStandard?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurPengawasan?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurIjinKerja?: Prisma.SortOrderInput | Prisma.SortOrder
+  prosedurEmergency?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasSesuai?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasBenar?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasAmanInspeksi?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasPengaman?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkakasSafetyDevice?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanRuangJalan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanPenempatan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanPenyimpanan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanHambatan?: Prisma.SortOrderInput | Prisma.SortOrder
+  kerapihanPijakanLantai?: Prisma.SortOrderInput | Prisma.SortOrder
+  saranObserver?: Prisma.SortOrderInput | Prisma.SortOrder
+  feedbackObjek?: Prisma.SortOrderInput | Prisma.SortOrder
+  kesepakatan?: Prisma.SortOrderInput | Prisma.SortOrder
   catatanObservasi?: Prisma.SortOrderInput | Prisma.SortOrder
   tindakanPerbaikan?: Prisma.SortOrderInput | Prisma.SortOrder
   dokumentasi?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawAnswersJson?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusGForm?: Prisma.SortOrder
   month?: Prisma.SortOrderInput | Prisma.SortOrder
   week?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -494,11 +824,41 @@ export type SafetyObservationScalarWhereWithAggregatesInput = {
   penghentianPekerjaan?: Prisma.StringWithAggregatesFilter<"SafetyObservation"> | string
   penggantianTool?: Prisma.StringWithAggregatesFilter<"SafetyObservation"> | string
   reaksiPekerjaCustom?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
-  status?: Prisma.StringWithAggregatesFilter<"SafetyObservation"> | string
-  statusGForm?: Prisma.StringWithAggregatesFilter<"SafetyObservation"> | string
+  posisiMenabrak?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  posisiTerjepit?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  posisiTerhirup?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  posisiTerseret?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  posisiTerkenaListrik?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  posisiTerjatuh?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  posisiTerpukul?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  apdKepala?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  apdTelingaMata?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  apdMukaPernafasan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  apdTanganLengan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  apdKakiTungkai?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  prosedurStandard?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  prosedurPengawasan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  prosedurIjinKerja?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  prosedurEmergency?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  perkakasSesuai?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  perkakasBenar?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  perkakasAmanInspeksi?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  perkakasPengaman?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  perkakasSafetyDevice?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  kerapihanRuangJalan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  kerapihanPenempatan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  kerapihanPenyimpanan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  kerapihanHambatan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  kerapihanPijakanLantai?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  saranObserver?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  feedbackObjek?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  kesepakatan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
   catatanObservasi?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
   tindakanPerbaikan?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
   dokumentasi?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  rawAnswersJson?: Prisma.StringNullableWithAggregatesFilter<"SafetyObservation"> | string | null
+  status?: Prisma.StringWithAggregatesFilter<"SafetyObservation"> | string
+  statusGForm?: Prisma.StringWithAggregatesFilter<"SafetyObservation"> | string
   month?: Prisma.IntNullableWithAggregatesFilter<"SafetyObservation"> | number | null
   week?: Prisma.IntNullableWithAggregatesFilter<"SafetyObservation"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SafetyObservation"> | Date | string
@@ -522,11 +882,41 @@ export type SafetyObservationCreateInput = {
   penghentianPekerjaan?: string
   penggantianTool?: string
   reaksiPekerjaCustom?: string | null
-  status?: string
-  statusGForm?: string
+  posisiMenabrak?: string | null
+  posisiTerjepit?: string | null
+  posisiTerhirup?: string | null
+  posisiTerseret?: string | null
+  posisiTerkenaListrik?: string | null
+  posisiTerjatuh?: string | null
+  posisiTerpukul?: string | null
+  apdKepala?: string | null
+  apdTelingaMata?: string | null
+  apdMukaPernafasan?: string | null
+  apdTanganLengan?: string | null
+  apdKakiTungkai?: string | null
+  prosedurStandard?: string | null
+  prosedurPengawasan?: string | null
+  prosedurIjinKerja?: string | null
+  prosedurEmergency?: string | null
+  perkakasSesuai?: string | null
+  perkakasBenar?: string | null
+  perkakasAmanInspeksi?: string | null
+  perkakasPengaman?: string | null
+  perkakasSafetyDevice?: string | null
+  kerapihanRuangJalan?: string | null
+  kerapihanPenempatan?: string | null
+  kerapihanPenyimpanan?: string | null
+  kerapihanHambatan?: string | null
+  kerapihanPijakanLantai?: string | null
+  saranObserver?: string | null
+  feedbackObjek?: string | null
+  kesepakatan?: string | null
   catatanObservasi?: string | null
   tindakanPerbaikan?: string | null
   dokumentasi?: string | null
+  rawAnswersJson?: string | null
+  status?: string
+  statusGForm?: string
   month?: number | null
   week?: number | null
   createdAt?: Date | string
@@ -550,11 +940,41 @@ export type SafetyObservationUncheckedCreateInput = {
   penghentianPekerjaan?: string
   penggantianTool?: string
   reaksiPekerjaCustom?: string | null
-  status?: string
-  statusGForm?: string
+  posisiMenabrak?: string | null
+  posisiTerjepit?: string | null
+  posisiTerhirup?: string | null
+  posisiTerseret?: string | null
+  posisiTerkenaListrik?: string | null
+  posisiTerjatuh?: string | null
+  posisiTerpukul?: string | null
+  apdKepala?: string | null
+  apdTelingaMata?: string | null
+  apdMukaPernafasan?: string | null
+  apdTanganLengan?: string | null
+  apdKakiTungkai?: string | null
+  prosedurStandard?: string | null
+  prosedurPengawasan?: string | null
+  prosedurIjinKerja?: string | null
+  prosedurEmergency?: string | null
+  perkakasSesuai?: string | null
+  perkakasBenar?: string | null
+  perkakasAmanInspeksi?: string | null
+  perkakasPengaman?: string | null
+  perkakasSafetyDevice?: string | null
+  kerapihanRuangJalan?: string | null
+  kerapihanPenempatan?: string | null
+  kerapihanPenyimpanan?: string | null
+  kerapihanHambatan?: string | null
+  kerapihanPijakanLantai?: string | null
+  saranObserver?: string | null
+  feedbackObjek?: string | null
+  kesepakatan?: string | null
   catatanObservasi?: string | null
   tindakanPerbaikan?: string | null
   dokumentasi?: string | null
+  rawAnswersJson?: string | null
+  status?: string
+  statusGForm?: string
   month?: number | null
   week?: number | null
   createdAt?: Date | string
@@ -578,11 +998,41 @@ export type SafetyObservationUpdateInput = {
   penghentianPekerjaan?: Prisma.StringFieldUpdateOperationsInput | string
   penggantianTool?: Prisma.StringFieldUpdateOperationsInput | string
   reaksiPekerjaCustom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
+  posisiMenabrak?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjepit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerhirup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerseret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerkenaListrik?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjatuh?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerpukul?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKepala?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTelingaMata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdMukaPernafasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTanganLengan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKakiTungkai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurStandard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurPengawasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurIjinKerja?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurEmergency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSesuai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasBenar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasAmanInspeksi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasPengaman?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSafetyDevice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanRuangJalan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenempatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenyimpanan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanHambatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPijakanLantai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saranObserver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackObjek?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kesepakatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   catatanObservasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tindakanPerbaikan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dokumentasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawAnswersJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
   month?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   week?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -606,11 +1056,41 @@ export type SafetyObservationUncheckedUpdateInput = {
   penghentianPekerjaan?: Prisma.StringFieldUpdateOperationsInput | string
   penggantianTool?: Prisma.StringFieldUpdateOperationsInput | string
   reaksiPekerjaCustom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
+  posisiMenabrak?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjepit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerhirup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerseret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerkenaListrik?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjatuh?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerpukul?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKepala?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTelingaMata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdMukaPernafasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTanganLengan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKakiTungkai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurStandard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurPengawasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurIjinKerja?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurEmergency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSesuai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasBenar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasAmanInspeksi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasPengaman?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSafetyDevice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanRuangJalan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenempatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenyimpanan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanHambatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPijakanLantai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saranObserver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackObjek?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kesepakatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   catatanObservasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tindakanPerbaikan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dokumentasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawAnswersJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
   month?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   week?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -634,11 +1114,41 @@ export type SafetyObservationCreateManyInput = {
   penghentianPekerjaan?: string
   penggantianTool?: string
   reaksiPekerjaCustom?: string | null
-  status?: string
-  statusGForm?: string
+  posisiMenabrak?: string | null
+  posisiTerjepit?: string | null
+  posisiTerhirup?: string | null
+  posisiTerseret?: string | null
+  posisiTerkenaListrik?: string | null
+  posisiTerjatuh?: string | null
+  posisiTerpukul?: string | null
+  apdKepala?: string | null
+  apdTelingaMata?: string | null
+  apdMukaPernafasan?: string | null
+  apdTanganLengan?: string | null
+  apdKakiTungkai?: string | null
+  prosedurStandard?: string | null
+  prosedurPengawasan?: string | null
+  prosedurIjinKerja?: string | null
+  prosedurEmergency?: string | null
+  perkakasSesuai?: string | null
+  perkakasBenar?: string | null
+  perkakasAmanInspeksi?: string | null
+  perkakasPengaman?: string | null
+  perkakasSafetyDevice?: string | null
+  kerapihanRuangJalan?: string | null
+  kerapihanPenempatan?: string | null
+  kerapihanPenyimpanan?: string | null
+  kerapihanHambatan?: string | null
+  kerapihanPijakanLantai?: string | null
+  saranObserver?: string | null
+  feedbackObjek?: string | null
+  kesepakatan?: string | null
   catatanObservasi?: string | null
   tindakanPerbaikan?: string | null
   dokumentasi?: string | null
+  rawAnswersJson?: string | null
+  status?: string
+  statusGForm?: string
   month?: number | null
   week?: number | null
   createdAt?: Date | string
@@ -662,11 +1172,41 @@ export type SafetyObservationUpdateManyMutationInput = {
   penghentianPekerjaan?: Prisma.StringFieldUpdateOperationsInput | string
   penggantianTool?: Prisma.StringFieldUpdateOperationsInput | string
   reaksiPekerjaCustom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
+  posisiMenabrak?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjepit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerhirup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerseret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerkenaListrik?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjatuh?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerpukul?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKepala?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTelingaMata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdMukaPernafasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTanganLengan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKakiTungkai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurStandard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurPengawasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurIjinKerja?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurEmergency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSesuai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasBenar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasAmanInspeksi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasPengaman?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSafetyDevice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanRuangJalan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenempatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenyimpanan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanHambatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPijakanLantai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saranObserver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackObjek?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kesepakatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   catatanObservasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tindakanPerbaikan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dokumentasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawAnswersJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
   month?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   week?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -690,11 +1230,41 @@ export type SafetyObservationUncheckedUpdateManyInput = {
   penghentianPekerjaan?: Prisma.StringFieldUpdateOperationsInput | string
   penggantianTool?: Prisma.StringFieldUpdateOperationsInput | string
   reaksiPekerjaCustom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
+  posisiMenabrak?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjepit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerhirup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerseret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerkenaListrik?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerjatuh?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  posisiTerpukul?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKepala?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTelingaMata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdMukaPernafasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdTanganLengan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apdKakiTungkai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurStandard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurPengawasan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurIjinKerja?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prosedurEmergency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSesuai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasBenar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasAmanInspeksi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasPengaman?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkakasSafetyDevice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanRuangJalan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenempatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPenyimpanan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanHambatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kerapihanPijakanLantai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saranObserver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackObjek?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kesepakatan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   catatanObservasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tindakanPerbaikan?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dokumentasi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawAnswersJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  statusGForm?: Prisma.StringFieldUpdateOperationsInput | string
   month?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   week?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -718,11 +1288,41 @@ export type SafetyObservationCountOrderByAggregateInput = {
   penghentianPekerjaan?: Prisma.SortOrder
   penggantianTool?: Prisma.SortOrder
   reaksiPekerjaCustom?: Prisma.SortOrder
-  status?: Prisma.SortOrder
-  statusGForm?: Prisma.SortOrder
+  posisiMenabrak?: Prisma.SortOrder
+  posisiTerjepit?: Prisma.SortOrder
+  posisiTerhirup?: Prisma.SortOrder
+  posisiTerseret?: Prisma.SortOrder
+  posisiTerkenaListrik?: Prisma.SortOrder
+  posisiTerjatuh?: Prisma.SortOrder
+  posisiTerpukul?: Prisma.SortOrder
+  apdKepala?: Prisma.SortOrder
+  apdTelingaMata?: Prisma.SortOrder
+  apdMukaPernafasan?: Prisma.SortOrder
+  apdTanganLengan?: Prisma.SortOrder
+  apdKakiTungkai?: Prisma.SortOrder
+  prosedurStandard?: Prisma.SortOrder
+  prosedurPengawasan?: Prisma.SortOrder
+  prosedurIjinKerja?: Prisma.SortOrder
+  prosedurEmergency?: Prisma.SortOrder
+  perkakasSesuai?: Prisma.SortOrder
+  perkakasBenar?: Prisma.SortOrder
+  perkakasAmanInspeksi?: Prisma.SortOrder
+  perkakasPengaman?: Prisma.SortOrder
+  perkakasSafetyDevice?: Prisma.SortOrder
+  kerapihanRuangJalan?: Prisma.SortOrder
+  kerapihanPenempatan?: Prisma.SortOrder
+  kerapihanPenyimpanan?: Prisma.SortOrder
+  kerapihanHambatan?: Prisma.SortOrder
+  kerapihanPijakanLantai?: Prisma.SortOrder
+  saranObserver?: Prisma.SortOrder
+  feedbackObjek?: Prisma.SortOrder
+  kesepakatan?: Prisma.SortOrder
   catatanObservasi?: Prisma.SortOrder
   tindakanPerbaikan?: Prisma.SortOrder
   dokumentasi?: Prisma.SortOrder
+  rawAnswersJson?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusGForm?: Prisma.SortOrder
   month?: Prisma.SortOrder
   week?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -751,11 +1351,41 @@ export type SafetyObservationMaxOrderByAggregateInput = {
   penghentianPekerjaan?: Prisma.SortOrder
   penggantianTool?: Prisma.SortOrder
   reaksiPekerjaCustom?: Prisma.SortOrder
-  status?: Prisma.SortOrder
-  statusGForm?: Prisma.SortOrder
+  posisiMenabrak?: Prisma.SortOrder
+  posisiTerjepit?: Prisma.SortOrder
+  posisiTerhirup?: Prisma.SortOrder
+  posisiTerseret?: Prisma.SortOrder
+  posisiTerkenaListrik?: Prisma.SortOrder
+  posisiTerjatuh?: Prisma.SortOrder
+  posisiTerpukul?: Prisma.SortOrder
+  apdKepala?: Prisma.SortOrder
+  apdTelingaMata?: Prisma.SortOrder
+  apdMukaPernafasan?: Prisma.SortOrder
+  apdTanganLengan?: Prisma.SortOrder
+  apdKakiTungkai?: Prisma.SortOrder
+  prosedurStandard?: Prisma.SortOrder
+  prosedurPengawasan?: Prisma.SortOrder
+  prosedurIjinKerja?: Prisma.SortOrder
+  prosedurEmergency?: Prisma.SortOrder
+  perkakasSesuai?: Prisma.SortOrder
+  perkakasBenar?: Prisma.SortOrder
+  perkakasAmanInspeksi?: Prisma.SortOrder
+  perkakasPengaman?: Prisma.SortOrder
+  perkakasSafetyDevice?: Prisma.SortOrder
+  kerapihanRuangJalan?: Prisma.SortOrder
+  kerapihanPenempatan?: Prisma.SortOrder
+  kerapihanPenyimpanan?: Prisma.SortOrder
+  kerapihanHambatan?: Prisma.SortOrder
+  kerapihanPijakanLantai?: Prisma.SortOrder
+  saranObserver?: Prisma.SortOrder
+  feedbackObjek?: Prisma.SortOrder
+  kesepakatan?: Prisma.SortOrder
   catatanObservasi?: Prisma.SortOrder
   tindakanPerbaikan?: Prisma.SortOrder
   dokumentasi?: Prisma.SortOrder
+  rawAnswersJson?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusGForm?: Prisma.SortOrder
   month?: Prisma.SortOrder
   week?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -779,11 +1409,41 @@ export type SafetyObservationMinOrderByAggregateInput = {
   penghentianPekerjaan?: Prisma.SortOrder
   penggantianTool?: Prisma.SortOrder
   reaksiPekerjaCustom?: Prisma.SortOrder
-  status?: Prisma.SortOrder
-  statusGForm?: Prisma.SortOrder
+  posisiMenabrak?: Prisma.SortOrder
+  posisiTerjepit?: Prisma.SortOrder
+  posisiTerhirup?: Prisma.SortOrder
+  posisiTerseret?: Prisma.SortOrder
+  posisiTerkenaListrik?: Prisma.SortOrder
+  posisiTerjatuh?: Prisma.SortOrder
+  posisiTerpukul?: Prisma.SortOrder
+  apdKepala?: Prisma.SortOrder
+  apdTelingaMata?: Prisma.SortOrder
+  apdMukaPernafasan?: Prisma.SortOrder
+  apdTanganLengan?: Prisma.SortOrder
+  apdKakiTungkai?: Prisma.SortOrder
+  prosedurStandard?: Prisma.SortOrder
+  prosedurPengawasan?: Prisma.SortOrder
+  prosedurIjinKerja?: Prisma.SortOrder
+  prosedurEmergency?: Prisma.SortOrder
+  perkakasSesuai?: Prisma.SortOrder
+  perkakasBenar?: Prisma.SortOrder
+  perkakasAmanInspeksi?: Prisma.SortOrder
+  perkakasPengaman?: Prisma.SortOrder
+  perkakasSafetyDevice?: Prisma.SortOrder
+  kerapihanRuangJalan?: Prisma.SortOrder
+  kerapihanPenempatan?: Prisma.SortOrder
+  kerapihanPenyimpanan?: Prisma.SortOrder
+  kerapihanHambatan?: Prisma.SortOrder
+  kerapihanPijakanLantai?: Prisma.SortOrder
+  saranObserver?: Prisma.SortOrder
+  feedbackObjek?: Prisma.SortOrder
+  kesepakatan?: Prisma.SortOrder
   catatanObservasi?: Prisma.SortOrder
   tindakanPerbaikan?: Prisma.SortOrder
   dokumentasi?: Prisma.SortOrder
+  rawAnswersJson?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusGForm?: Prisma.SortOrder
   month?: Prisma.SortOrder
   week?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -814,11 +1474,41 @@ export type SafetyObservationSelect<ExtArgs extends runtime.Types.Extensions.Int
   penghentianPekerjaan?: boolean
   penggantianTool?: boolean
   reaksiPekerjaCustom?: boolean
-  status?: boolean
-  statusGForm?: boolean
+  posisiMenabrak?: boolean
+  posisiTerjepit?: boolean
+  posisiTerhirup?: boolean
+  posisiTerseret?: boolean
+  posisiTerkenaListrik?: boolean
+  posisiTerjatuh?: boolean
+  posisiTerpukul?: boolean
+  apdKepala?: boolean
+  apdTelingaMata?: boolean
+  apdMukaPernafasan?: boolean
+  apdTanganLengan?: boolean
+  apdKakiTungkai?: boolean
+  prosedurStandard?: boolean
+  prosedurPengawasan?: boolean
+  prosedurIjinKerja?: boolean
+  prosedurEmergency?: boolean
+  perkakasSesuai?: boolean
+  perkakasBenar?: boolean
+  perkakasAmanInspeksi?: boolean
+  perkakasPengaman?: boolean
+  perkakasSafetyDevice?: boolean
+  kerapihanRuangJalan?: boolean
+  kerapihanPenempatan?: boolean
+  kerapihanPenyimpanan?: boolean
+  kerapihanHambatan?: boolean
+  kerapihanPijakanLantai?: boolean
+  saranObserver?: boolean
+  feedbackObjek?: boolean
+  kesepakatan?: boolean
   catatanObservasi?: boolean
   tindakanPerbaikan?: boolean
   dokumentasi?: boolean
+  rawAnswersJson?: boolean
+  status?: boolean
+  statusGForm?: boolean
   month?: boolean
   week?: boolean
   createdAt?: boolean
@@ -842,11 +1532,41 @@ export type SafetyObservationSelectCreateManyAndReturn<ExtArgs extends runtime.T
   penghentianPekerjaan?: boolean
   penggantianTool?: boolean
   reaksiPekerjaCustom?: boolean
-  status?: boolean
-  statusGForm?: boolean
+  posisiMenabrak?: boolean
+  posisiTerjepit?: boolean
+  posisiTerhirup?: boolean
+  posisiTerseret?: boolean
+  posisiTerkenaListrik?: boolean
+  posisiTerjatuh?: boolean
+  posisiTerpukul?: boolean
+  apdKepala?: boolean
+  apdTelingaMata?: boolean
+  apdMukaPernafasan?: boolean
+  apdTanganLengan?: boolean
+  apdKakiTungkai?: boolean
+  prosedurStandard?: boolean
+  prosedurPengawasan?: boolean
+  prosedurIjinKerja?: boolean
+  prosedurEmergency?: boolean
+  perkakasSesuai?: boolean
+  perkakasBenar?: boolean
+  perkakasAmanInspeksi?: boolean
+  perkakasPengaman?: boolean
+  perkakasSafetyDevice?: boolean
+  kerapihanRuangJalan?: boolean
+  kerapihanPenempatan?: boolean
+  kerapihanPenyimpanan?: boolean
+  kerapihanHambatan?: boolean
+  kerapihanPijakanLantai?: boolean
+  saranObserver?: boolean
+  feedbackObjek?: boolean
+  kesepakatan?: boolean
   catatanObservasi?: boolean
   tindakanPerbaikan?: boolean
   dokumentasi?: boolean
+  rawAnswersJson?: boolean
+  status?: boolean
+  statusGForm?: boolean
   month?: boolean
   week?: boolean
   createdAt?: boolean
@@ -870,11 +1590,41 @@ export type SafetyObservationSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   penghentianPekerjaan?: boolean
   penggantianTool?: boolean
   reaksiPekerjaCustom?: boolean
-  status?: boolean
-  statusGForm?: boolean
+  posisiMenabrak?: boolean
+  posisiTerjepit?: boolean
+  posisiTerhirup?: boolean
+  posisiTerseret?: boolean
+  posisiTerkenaListrik?: boolean
+  posisiTerjatuh?: boolean
+  posisiTerpukul?: boolean
+  apdKepala?: boolean
+  apdTelingaMata?: boolean
+  apdMukaPernafasan?: boolean
+  apdTanganLengan?: boolean
+  apdKakiTungkai?: boolean
+  prosedurStandard?: boolean
+  prosedurPengawasan?: boolean
+  prosedurIjinKerja?: boolean
+  prosedurEmergency?: boolean
+  perkakasSesuai?: boolean
+  perkakasBenar?: boolean
+  perkakasAmanInspeksi?: boolean
+  perkakasPengaman?: boolean
+  perkakasSafetyDevice?: boolean
+  kerapihanRuangJalan?: boolean
+  kerapihanPenempatan?: boolean
+  kerapihanPenyimpanan?: boolean
+  kerapihanHambatan?: boolean
+  kerapihanPijakanLantai?: boolean
+  saranObserver?: boolean
+  feedbackObjek?: boolean
+  kesepakatan?: boolean
   catatanObservasi?: boolean
   tindakanPerbaikan?: boolean
   dokumentasi?: boolean
+  rawAnswersJson?: boolean
+  status?: boolean
+  statusGForm?: boolean
   month?: boolean
   week?: boolean
   createdAt?: boolean
@@ -898,18 +1648,48 @@ export type SafetyObservationSelectScalar = {
   penghentianPekerjaan?: boolean
   penggantianTool?: boolean
   reaksiPekerjaCustom?: boolean
-  status?: boolean
-  statusGForm?: boolean
+  posisiMenabrak?: boolean
+  posisiTerjepit?: boolean
+  posisiTerhirup?: boolean
+  posisiTerseret?: boolean
+  posisiTerkenaListrik?: boolean
+  posisiTerjatuh?: boolean
+  posisiTerpukul?: boolean
+  apdKepala?: boolean
+  apdTelingaMata?: boolean
+  apdMukaPernafasan?: boolean
+  apdTanganLengan?: boolean
+  apdKakiTungkai?: boolean
+  prosedurStandard?: boolean
+  prosedurPengawasan?: boolean
+  prosedurIjinKerja?: boolean
+  prosedurEmergency?: boolean
+  perkakasSesuai?: boolean
+  perkakasBenar?: boolean
+  perkakasAmanInspeksi?: boolean
+  perkakasPengaman?: boolean
+  perkakasSafetyDevice?: boolean
+  kerapihanRuangJalan?: boolean
+  kerapihanPenempatan?: boolean
+  kerapihanPenyimpanan?: boolean
+  kerapihanHambatan?: boolean
+  kerapihanPijakanLantai?: boolean
+  saranObserver?: boolean
+  feedbackObjek?: boolean
+  kesepakatan?: boolean
   catatanObservasi?: boolean
   tindakanPerbaikan?: boolean
   dokumentasi?: boolean
+  rawAnswersJson?: boolean
+  status?: boolean
+  statusGForm?: boolean
   month?: boolean
   week?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SafetyObservationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "observationNumber" | "judulObservasi" | "namaObserver" | "nikObserver" | "namaObserved" | "tanggalObservasi" | "lokasiObservasi" | "detailLokasi" | "penanggungJawabArea" | "project" | "jobSite" | "perubahanPosisi" | "penghentianPekerjaan" | "penggantianTool" | "reaksiPekerjaCustom" | "status" | "statusGForm" | "catatanObservasi" | "tindakanPerbaikan" | "dokumentasi" | "month" | "week" | "createdAt" | "updatedAt", ExtArgs["result"]["safetyObservation"]>
+export type SafetyObservationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "observationNumber" | "judulObservasi" | "namaObserver" | "nikObserver" | "namaObserved" | "tanggalObservasi" | "lokasiObservasi" | "detailLokasi" | "penanggungJawabArea" | "project" | "jobSite" | "perubahanPosisi" | "penghentianPekerjaan" | "penggantianTool" | "reaksiPekerjaCustom" | "posisiMenabrak" | "posisiTerjepit" | "posisiTerhirup" | "posisiTerseret" | "posisiTerkenaListrik" | "posisiTerjatuh" | "posisiTerpukul" | "apdKepala" | "apdTelingaMata" | "apdMukaPernafasan" | "apdTanganLengan" | "apdKakiTungkai" | "prosedurStandard" | "prosedurPengawasan" | "prosedurIjinKerja" | "prosedurEmergency" | "perkakasSesuai" | "perkakasBenar" | "perkakasAmanInspeksi" | "perkakasPengaman" | "perkakasSafetyDevice" | "kerapihanRuangJalan" | "kerapihanPenempatan" | "kerapihanPenyimpanan" | "kerapihanHambatan" | "kerapihanPijakanLantai" | "saranObserver" | "feedbackObjek" | "kesepakatan" | "catatanObservasi" | "tindakanPerbaikan" | "dokumentasi" | "rawAnswersJson" | "status" | "statusGForm" | "month" | "week" | "createdAt" | "updatedAt", ExtArgs["result"]["safetyObservation"]>
 
 export type $SafetyObservationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SafetyObservation"
@@ -931,11 +1711,41 @@ export type $SafetyObservationPayload<ExtArgs extends runtime.Types.Extensions.I
     penghentianPekerjaan: string
     penggantianTool: string
     reaksiPekerjaCustom: string | null
-    status: string
-    statusGForm: string
+    posisiMenabrak: string | null
+    posisiTerjepit: string | null
+    posisiTerhirup: string | null
+    posisiTerseret: string | null
+    posisiTerkenaListrik: string | null
+    posisiTerjatuh: string | null
+    posisiTerpukul: string | null
+    apdKepala: string | null
+    apdTelingaMata: string | null
+    apdMukaPernafasan: string | null
+    apdTanganLengan: string | null
+    apdKakiTungkai: string | null
+    prosedurStandard: string | null
+    prosedurPengawasan: string | null
+    prosedurIjinKerja: string | null
+    prosedurEmergency: string | null
+    perkakasSesuai: string | null
+    perkakasBenar: string | null
+    perkakasAmanInspeksi: string | null
+    perkakasPengaman: string | null
+    perkakasSafetyDevice: string | null
+    kerapihanRuangJalan: string | null
+    kerapihanPenempatan: string | null
+    kerapihanPenyimpanan: string | null
+    kerapihanHambatan: string | null
+    kerapihanPijakanLantai: string | null
+    saranObserver: string | null
+    feedbackObjek: string | null
+    kesepakatan: string | null
     catatanObservasi: string | null
     tindakanPerbaikan: string | null
     dokumentasi: string | null
+    rawAnswersJson: string | null
+    status: string
+    statusGForm: string
     month: number | null
     week: number | null
     createdAt: Date
@@ -1379,11 +2189,41 @@ export interface SafetyObservationFieldRefs {
   readonly penghentianPekerjaan: Prisma.FieldRef<"SafetyObservation", 'String'>
   readonly penggantianTool: Prisma.FieldRef<"SafetyObservation", 'String'>
   readonly reaksiPekerjaCustom: Prisma.FieldRef<"SafetyObservation", 'String'>
-  readonly status: Prisma.FieldRef<"SafetyObservation", 'String'>
-  readonly statusGForm: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiMenabrak: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiTerjepit: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiTerhirup: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiTerseret: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiTerkenaListrik: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiTerjatuh: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly posisiTerpukul: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly apdKepala: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly apdTelingaMata: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly apdMukaPernafasan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly apdTanganLengan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly apdKakiTungkai: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly prosedurStandard: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly prosedurPengawasan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly prosedurIjinKerja: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly prosedurEmergency: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly perkakasSesuai: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly perkakasBenar: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly perkakasAmanInspeksi: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly perkakasPengaman: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly perkakasSafetyDevice: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly kerapihanRuangJalan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly kerapihanPenempatan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly kerapihanPenyimpanan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly kerapihanHambatan: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly kerapihanPijakanLantai: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly saranObserver: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly feedbackObjek: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly kesepakatan: Prisma.FieldRef<"SafetyObservation", 'String'>
   readonly catatanObservasi: Prisma.FieldRef<"SafetyObservation", 'String'>
   readonly tindakanPerbaikan: Prisma.FieldRef<"SafetyObservation", 'String'>
   readonly dokumentasi: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly rawAnswersJson: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly status: Prisma.FieldRef<"SafetyObservation", 'String'>
+  readonly statusGForm: Prisma.FieldRef<"SafetyObservation", 'String'>
   readonly month: Prisma.FieldRef<"SafetyObservation", 'Int'>
   readonly week: Prisma.FieldRef<"SafetyObservation", 'Int'>
   readonly createdAt: Prisma.FieldRef<"SafetyObservation", 'DateTime'>

@@ -589,15 +589,60 @@ model SafetyObservation {
   penanggungJawabArea   String?   // HR, HSE, PLANT, PRODUKSI, etc.
   project               String    // SENYIUR / MUARA PAHU
   jobSite               JobSite   @default(MuaraPahu)
-  perubahanPosisi       String    @default("AMAN") // AMAN, BERISIKO, atau custom
-  penghentianPekerjaan  String    @default("AMAN") // AMAN, BERISIKO, atau custom
-  penggantianTool       String    @default("AMAN") // AMAN, BERISIKO, atau custom
+
+  // 1. Reaksi Pekerja
+  perubahanPosisi       String    @default("AMAN") // AMAN, BERESIKO, atau custom
+  penghentianPekerjaan  String    @default("AMAN") // AMAN, BERESIKO, atau custom
+  penggantianTool       String    @default("AMAN") // AMAN, BERESIKO, atau custom
   reaksiPekerjaCustom   String?   // Catatan custom jawaban reaksi pekerja
-  status                String    @default("AMAN") // AMAN / BERISIKO
-  statusGForm           String    @default("OPEN") // OPEN / CLOSE
+
+  // 2. Posisi Manusia
+  posisiMenabrak        String?   @default("AMAN")
+  posisiTerjepit        String?   @default("AMAN")
+  posisiTerhirup        String?   @default("AMAN")
+  posisiTerseret        String?   @default("AMAN")
+  posisiTerkenaListrik  String?   @default("AMAN")
+  posisiTerjatuh        String?   @default("AMAN")
+  posisiTerpukul        String?   @default("AMAN")
+
+  // 3. Peralatan Pelindung Diri (APD)
+  apdKepala             String?   @default("AMAN")
+  apdTelingaMata        String?   @default("AMAN")
+  apdMukaPernafasan     String?   @default("AMAN")
+  apdTanganLengan       String?   @default("AMAN")
+  apdKakiTungkai        String?   @default("AMAN")
+
+  // 4. Prosedur
+  prosedurStandard      String?   @default("AMAN")
+  prosedurPengawasan    String?   @default("AMAN")
+  prosedurIjinKerja     String?   @default("AMAN")
+  prosedurEmergency     String?   @default("AMAN")
+
+  // 5. Perkakas Tangan dan Peralatan
+  perkakasSesuai        String?   @default("AMAN")
+  perkakasBenar         String?   @default("AMAN")
+  perkakasAmanInspeksi  String?   @default("AMAN")
+  perkakasPengaman      String?   @default("AMAN")
+  perkakasSafetyDevice  String?   @default("AMAN")
+
+  // 6. Ketertiban / Kerapihan
+  kerapihanRuangJalan   String?   @default("AMAN")
+  kerapihanPenempatan   String?   @default("AMAN")
+  kerapihanPenyimpanan  String?   @default("AMAN")
+  kerapihanHambatan     String?   @default("AMAN")
+  kerapihanPijakanLantai String?  @default("AMAN")
+
+  // 7. Tindak Lanjut Observasi
+  saranObserver         String?   // Saran yang diberikan observer
+  feedbackObjek         String?   // Feedback dari objek observasi
+  kesepakatan           String?   // Kesepakatan yang disepakati
   catatanObservasi      String?   // Catatan / Uraian temuan observasi
   tindakanPerbaikan     String?   // Tindakan perbaikan langsung / feedback
   dokumentasi           String?   // Foto dokumentasi temuan / perilaku
+  rawAnswersJson        String?   // JSON representation of all question answers
+
+  status                String    @default("AMAN") // AMAN / BERISIKO
+  statusGForm           String    @default("OPEN") // OPEN / CLOSE
   month                 Int?
   week                  Int?
   createdAt             DateTime  @default(now())
