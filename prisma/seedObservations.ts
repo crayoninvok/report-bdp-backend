@@ -1,0 +1,146 @@
+import { prisma } from "../src/lib/prisma";
+
+const SEED_OBSERVATIONS = [
+  {
+    observationNumber: "OBS-MP-2026-0001",
+    judulObservasi: "Pemeriksaan Tekanan Angin dan Kondisi Tyre Prime Mover Volvo",
+    namaObserver: "Dathariq Fadhilah",
+    nikObserver: "98240036",
+    namaObserved: "Agus Pratama",
+    tanggalObservasi: new Date("2026-11-20T08:30:00Z"),
+    lokasiObservasi: "WORKSHOP",
+    detailLokasi: "Bay 03 Workshop Muara Pahu",
+    penanggungJawabArea: "PLANT",
+    project: "MUARA PAHU",
+    jobSite: "MuaraPahu" as const,
+    perubahanPosisi: "AMAN",
+    penghentianPekerjaan: "AMAN",
+    penggantianTool: "AMAN",
+    reaksiPekerjaCustom: null,
+    status: "AMAN",
+    statusGForm: "OPEN",
+    catatanObservasi: "Mekanik menggunakan body harness dan safety shoes saat memeriksa tyre bagian atas, posisi kerja ergonomis dan area bersih.",
+    tindakanPerbaikan: "Diberikan apresiasi keselamatan atas kepatuhan SOP tyre maintenance.",
+    dokumentasi: null,
+    month: 11,
+    week: 47,
+  },
+  {
+    observationNumber: "OBS-MP-2026-0002",
+    judulObservasi: "Pengelasan Sambungan Chasis Trailer Vessel 1",
+    namaObserver: "Ari Saputra",
+    nikObserver: "98240039",
+    namaObserved: "Rudi Hartono",
+    tanggalObservasi: new Date("2026-11-21T10:15:00Z"),
+    lokasiObservasi: "WORKSHOP",
+    detailLokasi: "Area Fabrikasi & Welding Workshop MP",
+    penanggungJawabArea: "PLANT",
+    project: "MUARA PAHU",
+    jobSite: "MuaraPahu" as const,
+    perubahanPosisi: "BERISIKO",
+    penghentianPekerjaan: "AMAN",
+    penggantianTool: "BERISIKO",
+    reaksiPekerjaCustom: "Pekerja menunduk terlalu rendah tanpa pelindung leher dan grounding clamp kabel las longgar.",
+    status: "BERISIKO",
+    statusGForm: "OPEN",
+    catatanObservasi: "Posisi welder membungkuk ekstrim saat menjangkau bagian bawah chasis dan kabel grounding las tidak terpasang erat.",
+    tindakanPerbaikan: "Pekerjaan dihentikan sejenak (Stop Work), posisi disesuaikan dengan bangku kerja ergonomis dan clamp kabel las diganti dengan yang kencang.",
+    dokumentasi: null,
+    month: 11,
+    week: 47,
+  },
+  {
+    observationNumber: "OBS-MP-2026-0003",
+    judulObservasi: "Pengisian Bahan Bakar Solar di Fuel Station",
+    namaObserver: "Dzaky Al Fikri",
+    nikObserver: "98240035",
+    namaObserved: "Budi Santoso",
+    tanggalObservasi: new Date("2026-11-22T13:45:00Z"),
+    lokasiObservasi: "FUEL STATION",
+    detailLokasi: "Dispenser Solar 01 Muara Pahu",
+    penanggungJawabArea: "LOGISTIK",
+    project: "MUARA PAHU",
+    jobSite: "MuaraPahu" as const,
+    perubahanPosisi: "AMAN",
+    penghentianPekerjaan: "AMAN",
+    penggantianTool: "AMAN",
+    reaksiPekerjaCustom: null,
+    status: "AMAN",
+    statusGForm: "OPEN",
+    catatanObservasi: "Driver mematikan mesin saat refuel, grounding bonding clamp terpasang sebelum nozzle dibuka, APAR siap pakai.",
+    tindakanPerbaikan: "Tetap pertahankan kewaspadaan terhadap tumpahan minyak dan uap bahan bakar.",
+    dokumentasi: null,
+    month: 11,
+    week: 47,
+  },
+  {
+    observationNumber: "OBS-SY-2026-0001",
+    judulObservasi: "Operasional Dumping Batubara di Coal Stockpile",
+    namaObserver: "Dathariq Fadhilah",
+    nikObserver: "98240036",
+    namaObserved: "Fajar Nugraha",
+    tanggalObservasi: new Date("2026-11-23T09:20:00Z"),
+    lokasiObservasi: "COAL PAD",
+    detailLokasi: "Coal Pad Barat Senyiur",
+    penanggungJawabArea: "PRODUKSI",
+    project: "SENYIUR",
+    jobSite: "Senyiur" as const,
+    perubahanPosisi: "AMAN",
+    penghentianPekerjaan: "AMAN",
+    penggantianTool: "AMAN",
+    reaksiPekerjaCustom: null,
+    status: "AMAN",
+    statusGForm: "OPEN",
+    catatanObservasi: "Driver memberi sinyal klakson sebelum mundur, jarak aman antar unit loader dan trailer terjaga minimal 20 meter.",
+    tindakanPerbaikan: "Pengawasan rutin dipastikan berlanjut saat shift malam.",
+    dokumentasi: null,
+    month: 11,
+    week: 47,
+  },
+  {
+    observationNumber: "OBS-SY-2026-0002",
+    judulObservasi: "Pergantian Filter Oli Genset Utama Jetty",
+    namaObserver: "Wahyu Hidayat",
+    nikObserver: "98240040",
+    namaObserved: "Hendri Suwandi",
+    tanggalObservasi: new Date("2026-11-24T11:00:00Z"),
+    lokasiObservasi: "RUMAH GENSET",
+    detailLokasi: "Ruang Genset Kenpower Jetty Senyiur",
+    penanggungJawabArea: "PLANT",
+    project: "SENYIUR",
+    jobSite: "Senyiur" as const,
+    perubahanPosisi: "AMAN",
+    penghentianPekerjaan: "AMAN",
+    penggantianTool: "AMAN",
+    reaksiPekerjaCustom: null,
+    status: "AMAN",
+    statusGForm: "OPEN",
+    catatanObservasi: "Lock Out Tag Out (LOTO) terpasang sebelum membuka cover genset, wadah penampung oli bekas (oil tray) tersedia dengan baik.",
+    tindakanPerbaikan: "Filter bekas langsung dibuang ke wadah drum TPS LB3.",
+    dokumentasi: null,
+    month: 11,
+    week: 47,
+  },
+];
+
+async function main() {
+  console.log("Seeding Safety Observations...");
+  for (const obs of SEED_OBSERVATIONS) {
+    await prisma.safetyObservation.upsert({
+      where: { observationNumber: obs.observationNumber },
+      update: obs,
+      create: obs,
+    });
+    console.log(`✓ Seeded ${obs.observationNumber}: ${obs.judulObservasi}`);
+  }
+  console.log("Seeding complete!");
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

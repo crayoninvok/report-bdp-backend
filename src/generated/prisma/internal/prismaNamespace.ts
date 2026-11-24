@@ -419,7 +419,8 @@ export const ModelName = {
   DailyBreakdownReport: 'DailyBreakdownReport',
   MasterManpower: 'MasterManpower',
   HazardReport: 'HazardReport',
-  WorkAreaInspection: 'WorkAreaInspection'
+  WorkAreaInspection: 'WorkAreaInspection',
+  SafetyObservation: 'SafetyObservation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport" | "workAreaInspection"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport" | "workAreaInspection" | "safetyObservation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2141,6 +2142,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SafetyObservation: {
+      payload: Prisma.$SafetyObservationPayload<ExtArgs>
+      fields: Prisma.SafetyObservationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SafetyObservationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SafetyObservationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>
+        }
+        findFirst: {
+          args: Prisma.SafetyObservationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SafetyObservationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>
+        }
+        findMany: {
+          args: Prisma.SafetyObservationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>[]
+        }
+        create: {
+          args: Prisma.SafetyObservationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>
+        }
+        createMany: {
+          args: Prisma.SafetyObservationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SafetyObservationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>[]
+        }
+        delete: {
+          args: Prisma.SafetyObservationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>
+        }
+        update: {
+          args: Prisma.SafetyObservationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>
+        }
+        deleteMany: {
+          args: Prisma.SafetyObservationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SafetyObservationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SafetyObservationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>[]
+        }
+        upsert: {
+          args: Prisma.SafetyObservationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SafetyObservationPayload>
+        }
+        aggregate: {
+          args: Prisma.SafetyObservationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSafetyObservation>
+        }
+        groupBy: {
+          args: Prisma.SafetyObservationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SafetyObservationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SafetyObservationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SafetyObservationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2704,6 +2779,37 @@ export const WorkAreaInspectionScalarFieldEnum = {
 export type WorkAreaInspectionScalarFieldEnum = (typeof WorkAreaInspectionScalarFieldEnum)[keyof typeof WorkAreaInspectionScalarFieldEnum]
 
 
+export const SafetyObservationScalarFieldEnum = {
+  id: 'id',
+  observationNumber: 'observationNumber',
+  judulObservasi: 'judulObservasi',
+  namaObserver: 'namaObserver',
+  nikObserver: 'nikObserver',
+  namaObserved: 'namaObserved',
+  tanggalObservasi: 'tanggalObservasi',
+  lokasiObservasi: 'lokasiObservasi',
+  detailLokasi: 'detailLokasi',
+  penanggungJawabArea: 'penanggungJawabArea',
+  project: 'project',
+  jobSite: 'jobSite',
+  perubahanPosisi: 'perubahanPosisi',
+  penghentianPekerjaan: 'penghentianPekerjaan',
+  penggantianTool: 'penggantianTool',
+  reaksiPekerjaCustom: 'reaksiPekerjaCustom',
+  status: 'status',
+  statusGForm: 'statusGForm',
+  catatanObservasi: 'catatanObservasi',
+  tindakanPerbaikan: 'tindakanPerbaikan',
+  dokumentasi: 'dokumentasi',
+  month: 'month',
+  week: 'week',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SafetyObservationScalarFieldEnum = (typeof SafetyObservationScalarFieldEnum)[keyof typeof SafetyObservationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2998,6 +3104,7 @@ export type GlobalOmitConfig = {
   masterManpower?: Prisma.MasterManpowerOmit
   hazardReport?: Prisma.HazardReportOmit
   workAreaInspection?: Prisma.WorkAreaInspectionOmit
+  safetyObservation?: Prisma.SafetyObservationOmit
 }
 
 /* Types for Logging */

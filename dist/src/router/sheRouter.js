@@ -14,4 +14,9 @@ router.get("/inspections", sheController_1.getInspections);
 router.post("/inspections", sheController_1.createInspection);
 router.put("/inspections/:id", sheController_1.updateInspection);
 router.delete("/inspections/:id", sheController_1.deleteInspection);
+// Safety Observations
+router.get("/observations", sheController_1.getObservations);
+router.post("/observations", sheController_1.createObservation);
+router.put("/observations/:id", sheController_1.updateObservation);
+router.delete("/observations/:id", sheController_1.deleteObservation);
 exports.default = router;

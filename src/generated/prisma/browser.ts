@@ -132,3 +132,8 @@ export type HazardReport = Prisma.HazardReportModel
  * 
  */
 export type WorkAreaInspection = Prisma.WorkAreaInspectionModel
+/**
+ * Model SafetyObservation
+ * 
+ */
+export type SafetyObservation = Prisma.SafetyObservationModel

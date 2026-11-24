@@ -576,4 +576,37 @@ model WorkAreaInspection {
   @@index([nikKaryawan])
 }
 
+model SafetyObservation {
+  id                    String    @id @default(uuid())
+  observationNumber     String    @unique
+  judulObservasi        String    // Aktifitas yang di Observasi
+  namaObserver          String    // Nama Karyawan Yang Melakukan Observasi
+  nikObserver           String?   // NIK Karyawan Yang Melakukan Observasi
+  namaObserved          String    // Nama Karyawan yang di Observasi
+  tanggalObservasi      DateTime  // Tanggal Observasi
+  lokasiObservasi       String    // OFFICE, WORKSHOP, JETTY, etc.
+  detailLokasi          String?   // Detail Lokasi Observasi
+  penanggungJawabArea   String?   // HR, HSE, PLANT, PRODUKSI, etc.
+  project               String    // SENYIUR / MUARA PAHU
+  jobSite               JobSite   @default(MuaraPahu)
+  perubahanPosisi       String    @default("AMAN") // AMAN, BERISIKO, atau custom
+  penghentianPekerjaan  String    @default("AMAN") // AMAN, BERISIKO, atau custom
+  penggantianTool       String    @default("AMAN") // AMAN, BERISIKO, atau custom
+  reaksiPekerjaCustom   String?   // Catatan custom jawaban reaksi pekerja
+  status                String    @default("AMAN") // AMAN / BERISIKO
+  statusGForm           String    @default("OPEN") // OPEN / CLOSE
+  catatanObservasi      String?   // Catatan / Uraian temuan observasi
+  tindakanPerbaikan     String?   // Tindakan perbaikan langsung / feedback
+  dokumentasi           String?   // Foto dokumentasi temuan / perilaku
+  month                 Int?
+  week                  Int?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([jobSite, tanggalObservasi])
+  @@index([lokasiObservasi])
+  @@index([nikObserver])
+  @@index([status])
+}
+
 

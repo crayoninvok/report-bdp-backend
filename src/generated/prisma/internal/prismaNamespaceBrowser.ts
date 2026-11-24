@@ -73,7 +73,8 @@ export const ModelName = {
   DailyBreakdownReport: 'DailyBreakdownReport',
   MasterManpower: 'MasterManpower',
   HazardReport: 'HazardReport',
-  WorkAreaInspection: 'WorkAreaInspection'
+  WorkAreaInspection: 'WorkAreaInspection',
+  SafetyObservation: 'SafetyObservation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -614,6 +615,37 @@ export const WorkAreaInspectionScalarFieldEnum = {
 } as const
 
 export type WorkAreaInspectionScalarFieldEnum = (typeof WorkAreaInspectionScalarFieldEnum)[keyof typeof WorkAreaInspectionScalarFieldEnum]
+
+
+export const SafetyObservationScalarFieldEnum = {
+  id: 'id',
+  observationNumber: 'observationNumber',
+  judulObservasi: 'judulObservasi',
+  namaObserver: 'namaObserver',
+  nikObserver: 'nikObserver',
+  namaObserved: 'namaObserved',
+  tanggalObservasi: 'tanggalObservasi',
+  lokasiObservasi: 'lokasiObservasi',
+  detailLokasi: 'detailLokasi',
+  penanggungJawabArea: 'penanggungJawabArea',
+  project: 'project',
+  jobSite: 'jobSite',
+  perubahanPosisi: 'perubahanPosisi',
+  penghentianPekerjaan: 'penghentianPekerjaan',
+  penggantianTool: 'penggantianTool',
+  reaksiPekerjaCustom: 'reaksiPekerjaCustom',
+  status: 'status',
+  statusGForm: 'statusGForm',
+  catatanObservasi: 'catatanObservasi',
+  tindakanPerbaikan: 'tindakanPerbaikan',
+  dokumentasi: 'dokumentasi',
+  month: 'month',
+  week: 'week',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SafetyObservationScalarFieldEnum = (typeof SafetyObservationScalarFieldEnum)[keyof typeof SafetyObservationScalarFieldEnum]
 
 
 export const SortOrder = {

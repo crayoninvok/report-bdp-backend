@@ -148,7 +148,7 @@ export const getDashboard = async (req: Request, res: Response) => {
     }
 
     // Fetch all records for aggregation
-    const [records, inspections] = await Promise.all([
+    const [records, inspections, observations] = await Promise.all([
       (prisma as any).hazardReport.findMany({
         where,
         select: {
@@ -174,6 +174,20 @@ export const getDashboard = async (req: Request, res: Response) => {
           lokasiInspeksi: true,
           complianceScore: true,
           findingsCount: true,
+          month: true,
+          week: true,
+        },
+      }),
+      (prisma as any).safetyObservation.findMany({
+        where,
+        select: {
+          id: true,
+          tanggalObservasi: true,
+          status: true,
+          lokasiObservasi: true,
+          perubahanPosisi: true,
+          penghentianPekerjaan: true,
+          penggantianTool: true,
           month: true,
           week: true,
         },
@@ -378,6 +392,12 @@ export const getDashboard = async (req: Request, res: Response) => {
           ) / 10
         : 100;
 
+    // Safety Observations Summary
+    const totalObservations = observations.length;
+    const safeObservations = observations.filter((o: any) => o.status === "AMAN").length;
+    const riskyObservations = observations.filter((o: any) => o.status === "BERISIKO").length;
+    const safeRatePct = totalObservations > 0 ? Math.round((safeObservations / totalObservations) * 100) : 100;
+
     // Category distribution
     const categoryCounts: Record<string, number> = {};
     records.forEach((r: any) => {
@@ -463,6 +483,12 @@ export const getDashboard = async (req: Request, res: Response) => {
           shift1Inspections,
           shift2Inspections,
           avgScoreInspections,
+        },
+        observationsSummary: {
+          totalObservations,
+          safeObservations,
+          riskyObservations,
+          safeRatePct,
         },
         categoryDistribution,
         riskDistribution,
@@ -765,5 +791,192 @@ export const deleteInspection = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error("Error deleting work area inspection:", err);
     res.status(500).json({ success: false, error: err.message || "Failed to delete inspection" });
+  }
+};
+
+// ==========================================
+// SAFETY OBSERVATION CONTROLLERS
+// ==========================================
+
+export const getObservations = async (req: Request, res: Response) => {
+  try {
+    const { site, search, status, location, limit, offset } = req.query;
+
+    const where: any = {};
+
+    if (site && site !== "ALL") {
+      const siteStr = String(site).replace(/[\s_-]+/g, "").toUpperCase();
+      if (siteStr.includes("MUARA") || siteStr.includes("PAHU") || siteStr === "MP") {
+        where.jobSite = "MuaraPahu";
+      } else if (siteStr.includes("SENYIUR") || siteStr === "SY") {
+        where.jobSite = "Senyiur";
+      } else if (site === "MuaraPahu" || site === "Senyiur") {
+        where.jobSite = site;
+      }
+    }
+
+    if (status && status !== "ALL") {
+      where.status = String(status).toUpperCase() === "BERISIKO" ? "BERISIKO" : "AMAN";
+    }
+
+    if (location && location !== "ALL") {
+      where.lokasiObservasi = { contains: String(location), mode: "insensitive" };
+    }
+
+    if (search && String(search).trim()) {
+      const q = String(search).trim();
+      where.OR = [
+        { observationNumber: { contains: q, mode: "insensitive" } },
+        { judulObservasi: { contains: q, mode: "insensitive" } },
+        { namaObserver: { contains: q, mode: "insensitive" } },
+        { nikObserver: { contains: q, mode: "insensitive" } },
+        { namaObserved: { contains: q, mode: "insensitive" } },
+        { lokasiObservasi: { contains: q, mode: "insensitive" } },
+        { detailLokasi: { contains: q, mode: "insensitive" } },
+        { penanggungJawabArea: { contains: q, mode: "insensitive" } },
+        { catatanObservasi: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const take = limit ? Math.min(Math.max(Number(limit), 1), 2000) : 2000;
+    const skip = offset ? Math.max(Number(offset), 0) : 0;
+
+    const [total, records] = await Promise.all([
+      (prisma as any).safetyObservation.count({ where }),
+      (prisma as any).safetyObservation.findMany({
+        where,
+        orderBy: [{ tanggalObservasi: "desc" }, { createdAt: "desc" }],
+        take,
+        skip,
+      }),
+    ]);
+
+    const formatted = records.map((r: any) => ({
+      id: r.id,
+      observationNumber: r.observationNumber,
+      judulObservasi: r.judulObservasi,
+      namaObserver: r.namaObserver,
+      nikObserver: r.nikObserver || "",
+      namaObserved: r.namaObserved,
+      tanggalObservasi: r.tanggalObservasi ? new Date(r.tanggalObservasi).toISOString().slice(0, 10) : "",
+      lokasiObservasi: r.lokasiObservasi,
+      detailLokasi: r.detailLokasi || "",
+      penanggungJawabArea: r.penanggungJawabArea || "PLANT",
+      project: r.project,
+      jobSite: r.jobSite,
+      perubahanPosisi: r.perubahanPosisi || "AMAN",
+      penghentianPekerjaan: r.penghentianPekerjaan || "AMAN",
+      penggantianTool: r.penggantianTool || "AMAN",
+      reaksiPekerjaCustom: r.reaksiPekerjaCustom || undefined,
+      status: r.status || "AMAN",
+      statusGForm: r.statusGForm || "OPEN",
+      catatanObservasi: r.catatanObservasi || "",
+      tindakanPerbaikan: r.tindakanPerbaikan || "",
+      dokumentasi: r.dokumentasi || undefined,
+      createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+    }));
+
+    res.json({
+      success: true,
+      total,
+      data: formatted,
+    });
+  } catch (err: any) {
+    console.error("Error fetching safety observations:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to fetch observations" });
+  }
+};
+
+export const createObservation = async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
+    const jobSite = data.project === "SENYIUR" || data.jobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
+    const sitePrefix = jobSite === "MuaraPahu" ? "MP" : "SN";
+    const year = new Date().getFullYear();
+
+    const count = await (prisma as any).safetyObservation.count({
+      where: { jobSite },
+    });
+    const observationNumber = data.observationNumber || `OBS-${sitePrefix}-${year}-${String(count + 1).padStart(4, "0")}`;
+
+    const dateVal = data.tanggalObservasi ? new Date(data.tanggalObservasi) : new Date();
+
+    const isRisky =
+      String(data.perubahanPosisi).toUpperCase().includes("BERISIKO") ||
+      String(data.penghentianPekerjaan).toUpperCase().includes("BERISIKO") ||
+      String(data.penggantianTool).toUpperCase().includes("BERISIKO");
+
+    const status = data.status || (isRisky ? "BERISIKO" : "AMAN");
+
+    const created = await (prisma as any).safetyObservation.create({
+      data: {
+        observationNumber,
+        judulObservasi: data.judulObservasi || "Observasi Perilaku Kerja",
+        namaObserver: data.namaObserver || "Karyawan",
+        nikObserver: data.nikObserver || null,
+        namaObserved: data.namaObserved || "Pekerja Lapangan",
+        tanggalObservasi: dateVal,
+        lokasiObservasi: data.lokasiObservasi || "WORKSHOP",
+        detailLokasi: data.detailLokasi || null,
+        penanggungJawabArea: data.penanggungJawabArea || "PLANT",
+        project: data.project || (jobSite === "MuaraPahu" ? "MUARA PAHU" : "SENYIUR"),
+        jobSite,
+        perubahanPosisi: data.perubahanPosisi || "AMAN",
+        penghentianPekerjaan: data.penghentianPekerjaan || "AMAN",
+        penggantianTool: data.penggantianTool || "AMAN",
+        reaksiPekerjaCustom: data.reaksiPekerjaCustom || null,
+        status,
+        statusGForm: data.statusGForm || "OPEN",
+        catatanObservasi: data.catatanObservasi || null,
+        tindakanPerbaikan: data.tindakanPerbaikan || null,
+        dokumentasi: data.dokumentasi || null,
+        month: dateVal.getMonth() + 1,
+      },
+    });
+
+    res.status(201).json({ success: true, data: created });
+  } catch (err: any) {
+    console.error("Error creating safety observation:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to create observation" });
+  }
+};
+
+export const updateObservation = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+
+    const updates: any = {};
+    if (data.status !== undefined) updates.status = data.status;
+    if (data.statusGForm !== undefined) updates.statusGForm = data.statusGForm;
+    if (data.catatanObservasi !== undefined) updates.catatanObservasi = data.catatanObservasi;
+    if (data.tindakanPerbaikan !== undefined) updates.tindakanPerbaikan = data.tindakanPerbaikan;
+    if (data.perubahanPosisi !== undefined) updates.perubahanPosisi = data.perubahanPosisi;
+    if (data.penghentianPekerjaan !== undefined) updates.penghentianPekerjaan = data.penghentianPekerjaan;
+    if (data.penggantianTool !== undefined) updates.penggantianTool = data.penggantianTool;
+    if (data.dokumentasi !== undefined) updates.dokumentasi = data.dokumentasi;
+
+    const updated = await (prisma as any).safetyObservation.update({
+      where: { id },
+      data: updates,
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    console.error("Error updating safety observation:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to update observation" });
+  }
+};
+
+export const deleteObservation = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).safetyObservation.delete({
+      where: { id },
+    });
+    res.json({ success: true, message: "Safety observation deleted successfully" });
+  } catch (err: any) {
+    console.error("Error deleting safety observation:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to delete observation" });
   }
 };

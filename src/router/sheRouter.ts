@@ -9,6 +9,10 @@ import {
   createInspection,
   updateInspection,
   deleteInspection,
+  getObservations,
+  createObservation,
+  updateObservation,
+  deleteObservation,
 } from "../controller/sheController";
 
 const router = Router();
@@ -25,5 +29,11 @@ router.get("/inspections", getInspections);
 router.post("/inspections", createInspection);
 router.put("/inspections/:id", updateInspection);
 router.delete("/inspections/:id", deleteInspection);
+
+// Safety Observations
+router.get("/observations", getObservations);
+router.post("/observations", createObservation);
+router.put("/observations/:id", updateObservation);
+router.delete("/observations/:id", deleteObservation);
 
 export default router;

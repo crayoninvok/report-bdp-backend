@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.WorkAreaInspectionScalarFieldEnum = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.SafetyObservationScalarFieldEnum = exports.WorkAreaInspectionScalarFieldEnum = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -97,7 +97,8 @@ exports.ModelName = {
     DailyBreakdownReport: 'DailyBreakdownReport',
     MasterManpower: 'MasterManpower',
     HazardReport: 'HazardReport',
-    WorkAreaInspection: 'WorkAreaInspection'
+    WorkAreaInspection: 'WorkAreaInspection',
+    SafetyObservation: 'SafetyObservation'
 };
 /*
  * Enums
@@ -535,6 +536,33 @@ exports.WorkAreaInspectionScalarFieldEnum = {
     lokasiOilTrap: 'lokasiOilTrap',
     oilTrapAnswersJson: 'oilTrapAnswersJson',
     dokumentasiInspeksi: 'dokumentasiInspeksi',
+    month: 'month',
+    week: 'week',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.SafetyObservationScalarFieldEnum = {
+    id: 'id',
+    observationNumber: 'observationNumber',
+    judulObservasi: 'judulObservasi',
+    namaObserver: 'namaObserver',
+    nikObserver: 'nikObserver',
+    namaObserved: 'namaObserved',
+    tanggalObservasi: 'tanggalObservasi',
+    lokasiObservasi: 'lokasiObservasi',
+    detailLokasi: 'detailLokasi',
+    penanggungJawabArea: 'penanggungJawabArea',
+    project: 'project',
+    jobSite: 'jobSite',
+    perubahanPosisi: 'perubahanPosisi',
+    penghentianPekerjaan: 'penghentianPekerjaan',
+    penggantianTool: 'penggantianTool',
+    reaksiPekerjaCustom: 'reaksiPekerjaCustom',
+    status: 'status',
+    statusGForm: 'statusGForm',
+    catatanObservasi: 'catatanObservasi',
+    tindakanPerbaikan: 'tindakanPerbaikan',
+    dokumentasi: 'dokumentasi',
     month: 'month',
     week: 'week',
     createdAt: 'createdAt',
