@@ -799,6 +799,7 @@ export const plantDashboardController = {
         closedBreakdownsAgg,
         openBreakdownsCount,
         categoryUnitCounts,
+        allBreakdownReports,
       ] = await Promise.all([
         prisma.periodicInspectionPlan.findMany({
           where: { date: pmDateWhere, ...siteWhere },
@@ -848,6 +849,21 @@ export const plantDashboardController = {
           by: ["category", "status"],
           where: siteWhere,
           _count: { id: true },
+        }),
+        prisma.dailyBreakdownReport.findMany({
+          where: siteWhere,
+          select: {
+            id: true,
+            unitCode: true,
+            woNumber: true,
+            component: true,
+            durationHours: true,
+            date: true,
+            status: true,
+            breakdownDescription: true,
+            jobSite: true,
+          },
+          orderBy: [{ date: "desc" }],
         }),
       ]);
 
@@ -1139,6 +1155,160 @@ export const plantDashboardController = {
         })),
       };
 
+      // -------------------------------------------------------------
+      // Compute Pareto Problem from DailyBreakdownReport
+      // Columns: Component, Durasi (jam)
+      // -------------------------------------------------------------
+      const REGISTERED_COMPONENTS = [
+        "Engine",
+        "Hydraulic",
+        "Others",
+        "Transmission",
+        "Undercarriage",
+        "Electrical",
+        "Steering",
+        "Brake",
+        "Travel Drive",
+      ] as const;
+
+      function normalizeBreakdownComp(raw?: string | null): string {
+        if (!raw) return "Others";
+        const s = raw.trim().toLowerCase();
+        if (s.includes("engine")) return "Engine";
+        if (s.includes("hydraul")) return "Hydraulic";
+        if (s.includes("transmi") || s.includes("clutch")) return "Transmission";
+        if (
+          s.includes("undercarriage") ||
+          s.includes("track") ||
+          s.includes("suspension") ||
+          s.includes("axle")
+        )
+          return "Undercarriage";
+        if (s.includes("electr") || s.includes("generator")) return "Electrical";
+        if (s.includes("steering")) return "Steering";
+        if (s.includes("brake") || s.includes("pneumat")) return "Brake";
+        if (s.includes("travel") || s.includes("final drive")) return "Travel Drive";
+        return "Others";
+      }
+
+      const compMap = new Map<
+        string,
+        {
+          component: string;
+          durationHours: number;
+          frequency: number;
+          wos: string[];
+        }
+      >();
+
+      for (const comp of REGISTERED_COMPONENTS) {
+        compMap.set(comp, {
+          component: comp,
+          durationHours: 0,
+          frequency: 0,
+          wos: [],
+        });
+      }
+
+      for (const item of allBreakdownReports) {
+        const comp = normalizeBreakdownComp(item.component);
+        const entry = compMap.get(comp) || {
+          component: comp,
+          durationHours: 0,
+          frequency: 0,
+          wos: [],
+        };
+        const dur = Number(item.durationHours || 0);
+        entry.durationHours += dur;
+        entry.frequency += 1;
+        if (item.woNumber) {
+          entry.wos.push(item.woNumber);
+        }
+        compMap.set(comp, entry);
+      }
+
+      const totalParetoHours =
+        Math.round(
+          Array.from(compMap.values()).reduce(
+            (sum, c) => sum + c.durationHours,
+            0
+          ) * 10
+        ) / 10;
+      const totalParetoFrequency = Array.from(compMap.values()).reduce(
+        (sum, c) => sum + c.frequency,
+        0
+      );
+
+      // Ranked by Hours (Downtime Impact)
+      const byHours = Array.from(compMap.values())
+        .map((c) => ({
+          component: c.component,
+          durationHours: Math.round(c.durationHours * 10) / 10,
+          frequency: c.frequency,
+          percentageHours:
+            totalParetoHours > 0
+              ? Math.round((c.durationHours / totalParetoHours) * 1000) / 10
+              : 0,
+          percentageFreq:
+            totalParetoFrequency > 0
+              ? Math.round((c.frequency / totalParetoFrequency) * 1000) / 10
+              : 0,
+          wos: c.wos.slice(0, 10),
+        }))
+        .sort(
+          (a, b) =>
+            b.durationHours - a.durationHours || b.frequency - a.frequency
+        )
+        .map((c, idx) => ({
+          ...c,
+          rank: idx + 1,
+          isHighestDowntime: idx === 0,
+        }));
+
+      // Ranked by Frequency (Most Frequent Breakdown)
+      const byFrequency = Array.from(compMap.values())
+        .map((c) => ({
+          component: c.component,
+          durationHours: Math.round(c.durationHours * 10) / 10,
+          frequency: c.frequency,
+          percentageHours:
+            totalParetoHours > 0
+              ? Math.round((c.durationHours / totalParetoHours) * 1000) / 10
+              : 0,
+          percentageFreq:
+            totalParetoFrequency > 0
+              ? Math.round((c.frequency / totalParetoFrequency) * 1000) / 10
+              : 0,
+          wos: c.wos.slice(0, 10),
+        }))
+        .sort(
+          (a, b) =>
+            b.frequency - a.frequency || b.durationHours - a.durationHours
+        )
+        .map((c, idx) => ({
+          ...c,
+          rank: idx + 1,
+          isMostFrequent: idx === 0,
+        }));
+
+      const breakdownPareto = {
+        totalHours: totalParetoHours,
+        totalFrequency: totalParetoFrequency,
+        byHours,
+        byFrequency,
+        records: allBreakdownReports.slice(0, 50).map((r) => ({
+          id: r.id,
+          unitCode: r.unitCode,
+          woNumber: r.woNumber,
+          component: r.component,
+          durationHours: r.durationHours,
+          date: r.date,
+          status: r.status,
+          breakdownDescription: r.breakdownDescription,
+          jobSite: r.jobSite,
+        })),
+      };
+
       return res.json({
         success: true,
         data: {
@@ -1242,6 +1412,7 @@ export const plantDashboardController = {
               kpiItems: psKpiItems,
             },
           },
+          breakdownPareto,
         },
       });
     } catch (error: any) {
