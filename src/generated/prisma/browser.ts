@@ -137,3 +137,13 @@ export type WorkAreaInspection = Prisma.WorkAreaInspectionModel
  * 
  */
 export type SafetyObservation = Prisma.SafetyObservationModel
+/**
+ * Model ManpowerTicketPlafon
+ * 
+ */
+export type ManpowerTicketPlafon = Prisma.ManpowerTicketPlafonModel
+/**
+ * Model TicketUsageHistory
+ * 
+ */
+export type TicketUsageHistory = Prisma.TicketUsageHistoryModel

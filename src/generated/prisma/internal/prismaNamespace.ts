@@ -420,7 +420,9 @@ export const ModelName = {
   MasterManpower: 'MasterManpower',
   HazardReport: 'HazardReport',
   WorkAreaInspection: 'WorkAreaInspection',
-  SafetyObservation: 'SafetyObservation'
+  SafetyObservation: 'SafetyObservation',
+  ManpowerTicketPlafon: 'ManpowerTicketPlafon',
+  TicketUsageHistory: 'TicketUsageHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -436,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport" | "workAreaInspection" | "safetyObservation"
+    modelProps: "users" | "weeklyReport" | "weeklyReportItem" | "pLSummaryOps" | "pLSummaryOpsItem" | "riverJournal" | "dailyProduction" | "gLPeriod" | "gLExpenseSummary" | "gLTransaction" | "masterUnit" | "periodicInspectionPlan" | "periodicInspectionItem" | "preventiveMaintenancePlan" | "preventiveMaintenanceItem" | "plantSetting" | "dailyPaReport" | "dailyPaUnitEntry" | "dailyPaActivity" | "dailyBreakdownReport" | "masterManpower" | "hazardReport" | "workAreaInspection" | "safetyObservation" | "manpowerTicketPlafon" | "ticketUsageHistory"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2216,6 +2218,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ManpowerTicketPlafon: {
+      payload: Prisma.$ManpowerTicketPlafonPayload<ExtArgs>
+      fields: Prisma.ManpowerTicketPlafonFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ManpowerTicketPlafonFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ManpowerTicketPlafonFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>
+        }
+        findFirst: {
+          args: Prisma.ManpowerTicketPlafonFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ManpowerTicketPlafonFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>
+        }
+        findMany: {
+          args: Prisma.ManpowerTicketPlafonFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>[]
+        }
+        create: {
+          args: Prisma.ManpowerTicketPlafonCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>
+        }
+        createMany: {
+          args: Prisma.ManpowerTicketPlafonCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ManpowerTicketPlafonCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>[]
+        }
+        delete: {
+          args: Prisma.ManpowerTicketPlafonDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>
+        }
+        update: {
+          args: Prisma.ManpowerTicketPlafonUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>
+        }
+        deleteMany: {
+          args: Prisma.ManpowerTicketPlafonDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ManpowerTicketPlafonUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ManpowerTicketPlafonUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>[]
+        }
+        upsert: {
+          args: Prisma.ManpowerTicketPlafonUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerTicketPlafonPayload>
+        }
+        aggregate: {
+          args: Prisma.ManpowerTicketPlafonAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateManpowerTicketPlafon>
+        }
+        groupBy: {
+          args: Prisma.ManpowerTicketPlafonGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManpowerTicketPlafonGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ManpowerTicketPlafonCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManpowerTicketPlafonCountAggregateOutputType> | number
+        }
+      }
+    }
+    TicketUsageHistory: {
+      payload: Prisma.$TicketUsageHistoryPayload<ExtArgs>
+      fields: Prisma.TicketUsageHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TicketUsageHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TicketUsageHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.TicketUsageHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TicketUsageHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.TicketUsageHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.TicketUsageHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.TicketUsageHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TicketUsageHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.TicketUsageHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>
+        }
+        update: {
+          args: Prisma.TicketUsageHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.TicketUsageHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TicketUsageHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TicketUsageHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.TicketUsageHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketUsageHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.TicketUsageHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTicketUsageHistory>
+        }
+        groupBy: {
+          args: Prisma.TicketUsageHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TicketUsageHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TicketUsageHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TicketUsageHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2841,6 +2991,40 @@ export const SafetyObservationScalarFieldEnum = {
 export type SafetyObservationScalarFieldEnum = (typeof SafetyObservationScalarFieldEnum)[keyof typeof SafetyObservationScalarFieldEnum]
 
 
+export const ManpowerTicketPlafonScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  plafonAmount: 'plafonAmount',
+  usedAmount: 'usedAmount',
+  lastDepartureDate: 'lastDepartureDate',
+  nextResetDate: 'nextResetDate',
+  ticketCount: 'ticketCount',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManpowerTicketPlafonScalarFieldEnum = (typeof ManpowerTicketPlafonScalarFieldEnum)[keyof typeof ManpowerTicketPlafonScalarFieldEnum]
+
+
+export const TicketUsageHistoryScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  ticketNumber: 'ticketNumber',
+  destination: 'destination',
+  airline: 'airline',
+  departureDate: 'departureDate',
+  returnDate: 'returnDate',
+  ticketCost: 'ticketCost',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TicketUsageHistoryScalarFieldEnum = (typeof TicketUsageHistoryScalarFieldEnum)[keyof typeof TicketUsageHistoryScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3136,6 +3320,8 @@ export type GlobalOmitConfig = {
   hazardReport?: Prisma.HazardReportOmit
   workAreaInspection?: Prisma.WorkAreaInspectionOmit
   safetyObservation?: Prisma.SafetyObservationOmit
+  manpowerTicketPlafon?: Prisma.ManpowerTicketPlafonOmit
+  ticketUsageHistory?: Prisma.TicketUsageHistoryOmit
 }
 
 /* Types for Logging */

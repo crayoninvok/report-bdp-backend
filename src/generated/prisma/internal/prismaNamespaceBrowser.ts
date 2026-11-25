@@ -74,7 +74,9 @@ export const ModelName = {
   MasterManpower: 'MasterManpower',
   HazardReport: 'HazardReport',
   WorkAreaInspection: 'WorkAreaInspection',
-  SafetyObservation: 'SafetyObservation'
+  SafetyObservation: 'SafetyObservation',
+  ManpowerTicketPlafon: 'ManpowerTicketPlafon',
+  TicketUsageHistory: 'TicketUsageHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -677,6 +679,40 @@ export const SafetyObservationScalarFieldEnum = {
 } as const
 
 export type SafetyObservationScalarFieldEnum = (typeof SafetyObservationScalarFieldEnum)[keyof typeof SafetyObservationScalarFieldEnum]
+
+
+export const ManpowerTicketPlafonScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  plafonAmount: 'plafonAmount',
+  usedAmount: 'usedAmount',
+  lastDepartureDate: 'lastDepartureDate',
+  nextResetDate: 'nextResetDate',
+  ticketCount: 'ticketCount',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManpowerTicketPlafonScalarFieldEnum = (typeof ManpowerTicketPlafonScalarFieldEnum)[keyof typeof ManpowerTicketPlafonScalarFieldEnum]
+
+
+export const TicketUsageHistoryScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  ticketNumber: 'ticketNumber',
+  destination: 'destination',
+  airline: 'airline',
+  departureDate: 'departureDate',
+  returnDate: 'returnDate',
+  ticketCost: 'ticketCost',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TicketUsageHistoryScalarFieldEnum = (typeof TicketUsageHistoryScalarFieldEnum)[keyof typeof TicketUsageHistoryScalarFieldEnum]
 
 
 export const SortOrder = {

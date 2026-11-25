@@ -655,4 +655,37 @@ model SafetyObservation {
   @@index([status])
 }
 
+model ManpowerTicketPlafon {
+  id                String    @id @default(uuid())
+  employeeId        String    @unique
+  plafonAmount      Float     @default(5500000)
+  usedAmount        Float     @default(0)
+  lastDepartureDate DateTime? // Tanggal tiket keberangkatan terakhir
+  nextResetDate     DateTime? // Otomatis 2 bulan setelah lastDepartureDate
+  ticketCount       Int       @default(0)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([employeeId])
+}
+
+model TicketUsageHistory {
+  id            String    @id @default(uuid())
+  employeeId    String
+  ticketNumber  String?   // No Tiket / Booking Code
+  destination   String?   // Rute penerbangan, e.g. "BPN - CGK"
+  airline       String?   // Maskapai, e.g. "Garuda", "Lion Air", "Batik Air"
+  departureDate DateTime  // Tanggal Keberangkatan
+  returnDate    DateTime? // Tanggal Kepulangan (opsional)
+  ticketCost    Float     // Biaya Tiket
+  status        String    @default("Used") // Used, Cancelled, Reimburse
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([departureDate])
+}
+
 

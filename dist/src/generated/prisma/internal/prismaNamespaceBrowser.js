@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.SafetyObservationScalarFieldEnum = exports.WorkAreaInspectionScalarFieldEnum = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.TicketUsageHistoryScalarFieldEnum = exports.ManpowerTicketPlafonScalarFieldEnum = exports.SafetyObservationScalarFieldEnum = exports.WorkAreaInspectionScalarFieldEnum = exports.HazardReportScalarFieldEnum = exports.MasterManpowerScalarFieldEnum = exports.DailyBreakdownReportScalarFieldEnum = exports.DailyPaActivityScalarFieldEnum = exports.DailyPaUnitEntryScalarFieldEnum = exports.DailyPaReportScalarFieldEnum = exports.PlantSettingScalarFieldEnum = exports.PreventiveMaintenanceItemScalarFieldEnum = exports.PreventiveMaintenancePlanScalarFieldEnum = exports.PeriodicInspectionItemScalarFieldEnum = exports.PeriodicInspectionPlanScalarFieldEnum = exports.MasterUnitScalarFieldEnum = exports.GLTransactionScalarFieldEnum = exports.GLExpenseSummaryScalarFieldEnum = exports.GLPeriodScalarFieldEnum = exports.DailyProductionScalarFieldEnum = exports.RiverJournalScalarFieldEnum = exports.PLSummaryOpsItemScalarFieldEnum = exports.PLSummaryOpsScalarFieldEnum = exports.WeeklyReportItemScalarFieldEnum = exports.WeeklyReportScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -98,7 +98,9 @@ exports.ModelName = {
     MasterManpower: 'MasterManpower',
     HazardReport: 'HazardReport',
     WorkAreaInspection: 'WorkAreaInspection',
-    SafetyObservation: 'SafetyObservation'
+    SafetyObservation: 'SafetyObservation',
+    ManpowerTicketPlafon: 'ManpowerTicketPlafon',
+    TicketUsageHistory: 'TicketUsageHistory'
 };
 /*
  * Enums
@@ -596,6 +598,32 @@ exports.SafetyObservationScalarFieldEnum = {
     statusGForm: 'statusGForm',
     month: 'month',
     week: 'week',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ManpowerTicketPlafonScalarFieldEnum = {
+    id: 'id',
+    employeeId: 'employeeId',
+    plafonAmount: 'plafonAmount',
+    usedAmount: 'usedAmount',
+    lastDepartureDate: 'lastDepartureDate',
+    nextResetDate: 'nextResetDate',
+    ticketCount: 'ticketCount',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.TicketUsageHistoryScalarFieldEnum = {
+    id: 'id',
+    employeeId: 'employeeId',
+    ticketNumber: 'ticketNumber',
+    destination: 'destination',
+    airline: 'airline',
+    departureDate: 'departureDate',
+    returnDate: 'returnDate',
+    ticketCost: 'ticketCost',
+    status: 'status',
+    notes: 'notes',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };
