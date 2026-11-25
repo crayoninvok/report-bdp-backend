@@ -24,6 +24,7 @@ export const getUsers = async (req: Request, res: Response) => {
         email: true,
         jobSite: true,
         role: true,
+        department: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -48,7 +49,7 @@ export const createUser = async (req: Request, res: Response) => {
       });
     }
 
-    const { name, email, password, jobSite, role } = req.body;
+    const { name, email, password, jobSite, role, department } = req.body;
 
     if (!name || !email || !password || !jobSite) {
       return res.status(400).json({
@@ -83,6 +84,7 @@ export const createUser = async (req: Request, res: Response) => {
         password: hashedPassword,
         jobSite: jobSite as JobSite,
         role: resolvedRole,
+        department: department ? department.trim() : null,
       },
       select: {
         id: true,
@@ -90,6 +92,7 @@ export const createUser = async (req: Request, res: Response) => {
         email: true,
         jobSite: true,
         role: true,
+        department: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -124,7 +127,7 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: "Pengguna tidak ditemukan" });
     }
 
-    const { name, email, password, jobSite, role } = req.body;
+    const { name, email, password, jobSite, role, department } = req.body;
 
     const cleanEmail = email ? email.trim().toLowerCase() : existing.email;
 
@@ -156,6 +159,10 @@ export const updateUser = async (req: Request, res: Response) => {
       role: targetRole,
     };
 
+    if (department !== undefined) {
+      updateData.department = department ? department.trim() : null;
+    }
+
     if (password && typeof password === "string" && password.trim().length > 0) {
       updateData.password = await bcrypt.hash(password.trim(), 10);
     }
@@ -169,6 +176,7 @@ export const updateUser = async (req: Request, res: Response) => {
         email: true,
         jobSite: true,
         role: true,
+        department: true,
         createdAt: true,
         updatedAt: true,
       },

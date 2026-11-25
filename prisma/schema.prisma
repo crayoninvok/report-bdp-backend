@@ -30,6 +30,7 @@ model Users {
   password  String
   jobSite   JobSite  @default(MuaraPahu)
   role      UserRole @default(User)
+  department String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

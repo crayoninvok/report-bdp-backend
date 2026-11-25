@@ -320,6 +320,63 @@ exports.pmController = {
         }
     },
     // -------------------------------------------------------------
+    // 2b. BATCH UPDATE PM DAILY PLANS (TARGETS PER HARI)
+    // -------------------------------------------------------------
+    batchUpsertPmDailyPlans: async (req, res) => {
+        try {
+            const { plans } = req.body;
+            const rawJobSite = req.body.jobSite || req.body.site;
+            const jobSite = rawJobSite === "Senyiur" ? "Senyiur" : "MuaraPahu";
+            if (!Array.isArray(plans) || plans.length === 0) {
+                return res
+                    .status(400)
+                    .json({ success: false, message: "Array 'plans' wajib diisi" });
+            }
+            const globalTargetSetting = await prisma_1.prisma.plantSetting.findUnique({
+                where: { key: "daily_pm_target" },
+            });
+            const defaultDailyTarget = globalTargetSetting
+                ? parseInt(globalTargetSetting.value, 10) || DEFAULT_DAILY_PM_TARGET
+                : DEFAULT_DAILY_PM_TARGET;
+            const results = await Promise.all(plans.map(async (p) => {
+                if (!p || !p.date)
+                    return null;
+                let numTarget = undefined;
+                if (p.targetUnits !== undefined && p.targetUnits !== null && p.targetUnits !== "") {
+                    const parsed = parseInt(p.targetUnits, 10);
+                    if (!isNaN(parsed) && parsed >= 0) {
+                        numTarget = parsed;
+                    }
+                }
+                const resolvedLead = p.leadMechanic !== undefined ? p.leadMechanic : p.leadInspector;
+                return prisma_1.prisma.preventiveMaintenancePlan.upsert({
+                    where: { jobSite_date: { jobSite, date: p.date } },
+                    update: {
+                        ...(numTarget !== undefined ? { targetUnits: numTarget } : {}),
+                        ...(resolvedLead !== undefined ? { leadMechanic: resolvedLead || null } : {}),
+                        ...(p.notes !== undefined ? { notes: p.notes || null } : {}),
+                    },
+                    create: {
+                        jobSite,
+                        date: p.date,
+                        targetUnits: numTarget !== undefined ? numTarget : defaultDailyTarget,
+                        leadMechanic: resolvedLead || null,
+                        notes: p.notes || null,
+                    },
+                });
+            }));
+            return res.json({
+                success: true,
+                message: `${results.filter(Boolean).length} hari plan Periodic Service berhasil diperbarui`,
+                data: results.filter(Boolean),
+            });
+        }
+        catch (error) {
+            console.error("batchUpsertPmDailyPlans error:", error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+    },
+    // -------------------------------------------------------------
     // 3. ADD / SCHEDULE UNIT FOR PERIODIC SERVICE
     // -------------------------------------------------------------
     addPmItem: async (req, res) => {
@@ -721,6 +778,14 @@ exports.pmController = {
             const todayStr = new Date().toISOString().slice(0, 10);
             const candidateDates = dates.filter((d) => d >= todayStr);
             const targetDates = candidateDates.length > 0 ? candidateDates : dates;
+            const planTargetByDate = new Map();
+            for (const d of dates)
+                planTargetByDate.set(d, dailyTarget);
+            for (const p of existingPlans) {
+                if (p.targetUnits !== undefined && p.targetUnits !== null) {
+                    planTargetByDate.set(p.date, p.targetUnits);
+                }
+            }
             let inserted = 0;
             let dateCursor = 0;
             for (const entry of dueUnits) {
@@ -728,7 +793,8 @@ exports.pmController = {
                 let chosenDate = targetDates[dateCursor % targetDates.length];
                 for (let offset = 0; offset < targetDates.length; offset++) {
                     const d = targetDates[(dateCursor + offset) % targetDates.length];
-                    if ((countByDate.get(d) || 0) < dailyTarget) {
+                    const dTarget = planTargetByDate.get(d) ?? dailyTarget;
+                    if ((countByDate.get(d) || 0) < dTarget) {
                         chosenDate = d;
                         break;
                     }
@@ -738,7 +804,11 @@ exports.pmController = {
                 const plan = await prisma_1.prisma.preventiveMaintenancePlan.upsert({
                     where: { jobSite_date: { jobSite, date: chosenDate } },
                     update: {},
-                    create: { jobSite, date: chosenDate, targetUnits: dailyTarget },
+                    create: {
+                        jobSite,
+                        date: chosenDate,
+                        targetUnits: planTargetByDate.get(chosenDate) ?? dailyTarget,
+                    },
                 });
                 await prisma_1.prisma.preventiveMaintenanceItem.upsert({
                     where: { planId_unitCode: { planId: plan.id, unitCode: entry.unit.unitCode } },

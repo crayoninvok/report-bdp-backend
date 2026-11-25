@@ -29,6 +29,7 @@ plantRouter.post("/periodic-inspection/apply-standard-template", plantController
 for (const psBase of ["/preventive-maintenance", "/periodic-service"]) {
     plantRouter.get(`${psBase}/weekly`, pmController_1.pmController.getPmWeeklySchedule);
     plantRouter.post(`${psBase}/plan`, pmController_1.pmController.upsertPmDailyPlan);
+    plantRouter.post(`${psBase}/plans/batch`, pmController_1.pmController.batchUpsertPmDailyPlans);
     plantRouter.post(`${psBase}/item`, pmController_1.pmController.addPmItem);
     plantRouter.post(`${psBase}/bulk-add`, pmController_1.pmController.bulkAddPmItems);
     plantRouter.put(`${psBase}/item/:id`, pmController_1.pmController.updatePmItem);
