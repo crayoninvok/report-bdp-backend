@@ -1,21 +1,22 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 
-const DEFAULT_PLAFON_AMOUNT = 5500000; // Rp 5.500.000,00
+const DEFAULT_PLAFON_AMOUNT = 5000000; // Rp 5.000.000,00 (5 Juta)
 
 /**
- * Helper to calculate 2-month reset date from departure date
+ * Helper to calculate 65-day auto-reset date from departure date
+ * (Siklus aktual 65 hari untuk reset plafon otomatis)
  */
-function calculate2MonthsResetDate(departureDate: Date): Date {
+function calculate65DaysResetDate(departureDate: Date): Date {
   const resetDate = new Date(departureDate);
-  resetDate.setMonth(resetDate.getMonth() + 2);
+  resetDate.setDate(resetDate.getDate() + 65);
   return resetDate;
 }
 
 /**
  * GET /api/ticket-plafon
  * List Non-Lokal manpower with ticket plafon info, separated by site (Senyiur / Muara Pahu / ALL).
- * Automatically checks and applies 2-month auto-reset when now >= nextResetDate.
+ * Automatically checks and applies 65-day auto-reset when now >= nextResetDate.
  */
 export async function getTicketPlafonList(req: Request, res: Response) {
   try {
@@ -43,8 +44,8 @@ export async function getTicketPlafonList(req: Request, res: Response) {
             data: {
               usedAmount: 0,
               notes: p.notes
-                ? `${p.notes} (Auto-reset 2 bulan pada ${now.toISOString().split("T")[0]})`
-                : `Auto-reset 2 bulan pada ${now.toISOString().split("T")[0]}`,
+                ? `${p.notes} (Auto-reset 65 hari ke Rp ${(p.plafonAmount || DEFAULT_PLAFON_AMOUNT).toLocaleString("id-ID")} pada ${now.toISOString().split("T")[0]})`
+                : `Auto-reset 65 hari ke Rp ${(p.plafonAmount || DEFAULT_PLAFON_AMOUNT).toLocaleString("id-ID")} pada ${now.toISOString().split("T")[0]}`,
             },
           })
         )
@@ -297,7 +298,7 @@ export async function recordTicketUsage(req: Request, res: Response) {
 
     const retDate = returnDate ? new Date(returnDate) : null;
     const baseResetDate = retDate && !isNaN(retDate.getTime()) && retDate > depDate ? retDate : depDate;
-    const nextResetDate = calculate2MonthsResetDate(baseResetDate);
+    const nextResetDate = calculate65DaysResetDate(baseResetDate);
 
     // 1. Create TicketUsageHistory
     const history = await prisma.ticketUsageHistory.create({
