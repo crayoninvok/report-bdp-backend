@@ -8,7 +8,7 @@ exports.getTicketHistory = getTicketHistory;
 exports.updatePlafonConfig = updatePlafonConfig;
 exports.resetPlafonManual = resetPlafonManual;
 const prisma_1 = require("../lib/prisma");
-const DEFAULT_PLAFON_AMOUNT = 5000000; // Rp 5.000.000,00 (5 Juta)
+const DEFAULT_PLAFON_AMOUNT = 5500000; // Rp 5.500.000,00 (5,5 Juta)
 /**
  * Helper to determine reset cycle in days based on employee job position:
  * - 48 Hari: Project Manager, Deputy Pjo
