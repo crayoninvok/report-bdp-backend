@@ -4,12 +4,42 @@ import { prisma } from "../lib/prisma";
 const DEFAULT_PLAFON_AMOUNT = 5000000; // Rp 5.000.000,00 (5 Juta)
 
 /**
- * Helper to calculate 65-day auto-reset date from departure date
- * (Siklus aktual 65 hari untuk reset plafon otomatis)
+ * Helper to determine reset cycle in days based on employee job position:
+ * - 48 Hari: Project Manager, Deputy Pjo
+ * - 90 Hari: Admin, Driver Double Trailer, Mechanic, Electrician, Welder
+ * - 65 Hari: Posisi lainnya (Default)
  */
-function calculate65DaysResetDate(departureDate: Date): Date {
+export function getResetCycleDays(jobPosition?: string | null): number {
+  if (!jobPosition) return 65;
+  const pos = jobPosition.toLowerCase().trim();
+
+  // 48 Hari: Project Manager, Deputy Pjo
+  if (pos.includes("project manager") || pos.includes("deputy pjo")) {
+    return 48;
+  }
+
+  // 90 Hari: Admin, Driver Double Trailer, Mechanic, Electrician, Welder
+  if (
+    pos.includes("driver double trailer") ||
+    pos.includes("mechanic") ||
+    pos.includes("electrician") ||
+    pos.includes("welder") ||
+    pos.includes("admin")
+  ) {
+    return 90;
+  }
+
+  // 65 Hari: Posisi lainnya
+  return 65;
+}
+
+/**
+ * Helper to calculate auto-reset date from departure date based on job position
+ */
+export function calculateResetDateByPosition(departureDate: Date, jobPosition?: string | null): Date {
+  const days = getResetCycleDays(jobPosition);
   const resetDate = new Date(departureDate);
-  resetDate.setDate(resetDate.getDate() + 65);
+  resetDate.setDate(resetDate.getDate() + days);
   return resetDate;
 }
 
@@ -176,6 +206,8 @@ export async function getTicketPlafonList(req: Request, res: Response) {
         ? "Head Office Jakarta"
         : mp.branchName || "Other";
 
+      const resetCycleDays = getResetCycleDays(mp.jobPosition);
+
       return {
         id: mp.id,
         employeeId: mp.employeeId,
@@ -196,6 +228,7 @@ export async function getTicketPlafonList(req: Request, res: Response) {
         isResetEligible,
         ticketCount,
         notes,
+        resetCycleDays,
         plafonId: plafon?.id ?? null,
       };
     });
@@ -298,7 +331,15 @@ export async function recordTicketUsage(req: Request, res: Response) {
 
     const retDate = returnDate ? new Date(returnDate) : null;
     const baseResetDate = retDate && !isNaN(retDate.getTime()) && retDate > depDate ? retDate : depDate;
-    const nextResetDate = calculate65DaysResetDate(baseResetDate);
+
+    // Get employee job position to apply role-based reset cycle (48 / 65 / 90 days)
+    const employeeInfo = await prisma.masterManpower.findFirst({
+      where: { employeeId: { equals: employeeId, mode: "insensitive" } },
+      select: { jobPosition: true, fullName: true },
+    });
+
+    const resetCycleDays = getResetCycleDays(employeeInfo?.jobPosition);
+    const nextResetDate = calculateResetDateByPosition(baseResetDate, employeeInfo?.jobPosition);
 
     // 1. Create TicketUsageHistory
     const history = await prisma.ticketUsageHistory.create({
@@ -348,7 +389,7 @@ export async function recordTicketUsage(req: Request, res: Response) {
 
     return res.status(201).json({
       success: true,
-      message: "Penggunaan tiket berhasil dicatat. Plafon akan direset otomatis pada " + nextResetDate.toISOString().split("T")[0],
+      message: `Penggunaan tiket berhasil dicatat. Plafon (Siklus ${resetCycleDays} hari) akan direset otomatis pada ${nextResetDate.toISOString().split("T")[0]}`,
       data: {
         history,
         plafon: updatedPlafon,
