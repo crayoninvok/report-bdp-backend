@@ -713,10 +713,16 @@ exports.plantDashboardController = {
                 const byDate = new Map();
                 for (const p of plans) {
                     if (!byDate.has(p.date)) {
-                        byDate.set(p.date, { date: p.date, targetUnits: 0, items: [] });
+                        byDate.set(p.date, { date: p.date, targetUnits: 0, hasExplicitTarget: false, items: [] });
                     }
                     const bucket = byDate.get(p.date);
-                    bucket.targetUnits += p.targetUnits ?? fallbackDailyTarget;
+                    if (p.targetUnits !== null && p.targetUnits !== undefined) {
+                        bucket.targetUnits += p.targetUnits;
+                        bucket.hasExplicitTarget = true;
+                    }
+                    else {
+                        bucket.targetUnits += fallbackDailyTarget;
+                    }
                     bucket.items.push(...p.items);
                 }
                 // For `week` mode, guarantee all 7 Mon-Sun dates appear even if unscheduled yet
@@ -724,7 +730,7 @@ exports.plantDashboardController = {
                     const wk = (0, plantHelpers_1.getWeekRange)(pmWindow.startDate);
                     for (const dStr of wk.dates) {
                         if (!byDate.has(dStr)) {
-                            byDate.set(dStr, { date: dStr, targetUnits: fallbackDailyTarget, items: [] });
+                            byDate.set(dStr, { date: dStr, targetUnits: fallbackDailyTarget, hasExplicitTarget: false, items: [] });
                         }
                     }
                 }
@@ -768,7 +774,7 @@ exports.plantDashboardController = {
                             sBucket.pending += 1;
                     }
                     const countScheduled = d.items.length;
-                    const planTarget = d.targetUnits > 0 ? d.targetUnits : fallbackDailyTarget;
+                    const planTarget = d.hasExplicitTarget ? d.targetUnits : fallbackDailyTarget;
                     totalPlan += planTarget;
                     totalScheduled += countScheduled;
                     totalCompleted += completed;
@@ -782,11 +788,23 @@ exports.plantDashboardController = {
                         completed,
                         inProgress,
                         openCount: scheduled + pending,
-                        achievementPercent: planTarget > 0 ? Math.round((completed / planTarget) * 1000) / 10 : 0,
+                        achievementPercent: planTarget > 0
+                            ? Math.round((completed / planTarget) * 1000) / 10
+                            : completed > 0
+                                ? 100
+                                : 0,
                     };
                 });
-                const achievementPercent = totalPlan > 0 ? Math.round((totalCompleted / totalPlan) * 1000) / 10 : 0;
-                const scheduleFillPercent = totalPlan > 0 ? Math.round((totalScheduled / totalPlan) * 1000) / 10 : 0;
+                const achievementPercent = totalPlan > 0
+                    ? Math.round((totalCompleted / totalPlan) * 1000) / 10
+                    : totalCompleted > 0
+                        ? 100
+                        : 0;
+                const scheduleFillPercent = totalPlan > 0
+                    ? Math.round((totalScheduled / totalPlan) * 1000) / 10
+                    : totalScheduled > 0
+                        ? 100
+                        : 0;
                 return {
                     summary: {
                         totalPlan,

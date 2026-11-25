@@ -876,22 +876,27 @@ export const plantDashboardController = {
       // Build PI date-level aggregation
       const buildPlanSeries = <
         TItem extends { status: string; shift: string; serviceType?: string | null },
-        TPlan extends { date: string; targetUnits: number; items: TItem[] }
+        TPlan extends { date: string; targetUnits?: number | null; items: TItem[] }
       >(
         plans: TPlan[],
         fallbackDailyTarget: number
       ) => {
         const byDate = new Map<
           string,
-          { date: string; targetUnits: number; items: TItem[] }
+          { date: string; targetUnits: number; hasExplicitTarget: boolean; items: TItem[] }
         >();
 
         for (const p of plans) {
           if (!byDate.has(p.date)) {
-            byDate.set(p.date, { date: p.date, targetUnits: 0, items: [] });
+            byDate.set(p.date, { date: p.date, targetUnits: 0, hasExplicitTarget: false, items: [] });
           }
           const bucket = byDate.get(p.date)!;
-          bucket.targetUnits += p.targetUnits ?? fallbackDailyTarget;
+          if (p.targetUnits !== null && p.targetUnits !== undefined) {
+            bucket.targetUnits += p.targetUnits;
+            bucket.hasExplicitTarget = true;
+          } else {
+            bucket.targetUnits += fallbackDailyTarget;
+          }
           bucket.items.push(...p.items);
         }
 
@@ -900,7 +905,7 @@ export const plantDashboardController = {
           const wk = getWeekRange(pmWindow.startDate);
           for (const dStr of wk.dates) {
             if (!byDate.has(dStr)) {
-              byDate.set(dStr, { date: dStr, targetUnits: fallbackDailyTarget, items: [] });
+              byDate.set(dStr, { date: dStr, targetUnits: fallbackDailyTarget, hasExplicitTarget: false, items: [] });
             }
           }
         }
@@ -945,7 +950,7 @@ export const plantDashboardController = {
             }
 
             const countScheduled = d.items.length;
-            const planTarget = d.targetUnits > 0 ? d.targetUnits : fallbackDailyTarget;
+            const planTarget = d.hasExplicitTarget ? d.targetUnits : fallbackDailyTarget;
             totalPlan += planTarget;
             totalScheduled += countScheduled;
             totalCompleted += completed;
@@ -962,14 +967,26 @@ export const plantDashboardController = {
               inProgress,
               openCount: scheduled + pending,
               achievementPercent:
-                planTarget > 0 ? Math.round((completed / planTarget) * 1000) / 10 : 0,
+                planTarget > 0
+                  ? Math.round((completed / planTarget) * 1000) / 10
+                  : completed > 0
+                  ? 100
+                  : 0,
             };
           });
 
         const achievementPercent =
-          totalPlan > 0 ? Math.round((totalCompleted / totalPlan) * 1000) / 10 : 0;
+          totalPlan > 0
+            ? Math.round((totalCompleted / totalPlan) * 1000) / 10
+            : totalCompleted > 0
+            ? 100
+            : 0;
         const scheduleFillPercent =
-          totalPlan > 0 ? Math.round((totalScheduled / totalPlan) * 1000) / 10 : 0;
+          totalPlan > 0
+            ? Math.round((totalScheduled / totalPlan) * 1000) / 10
+            : totalScheduled > 0
+            ? 100
+            : 0;
 
         return {
           summary: {
