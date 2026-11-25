@@ -689,3 +689,225 @@ export async function getTicketAnalytics(req: Request, res: Response) {
     });
   }
 }
+
+/**
+ * Helper to recalculate an employee's ManpowerTicketPlafon based on all their tickets in TicketUsageHistory
+ */
+export async function recalculateEmployeePlafon(employeeId: string) {
+  const [employee, tickets] = await Promise.all([
+    prisma.masterManpower.findFirst({
+      where: { employeeId: { equals: employeeId, mode: "insensitive" } },
+      select: { jobPosition: true, fullName: true },
+    }),
+    prisma.ticketUsageHistory.findMany({
+      where: { employeeId, status: "Used" },
+      orderBy: { departureDate: "asc" },
+    }),
+  ]);
+
+  const cycleDays = getResetCycleDays(employee?.jobPosition);
+  const now = new Date();
+
+  if (tickets.length === 0) {
+    return prisma.manpowerTicketPlafon.upsert({
+      where: { employeeId },
+      update: {
+        usedAmount: 0,
+        lastDepartureDate: null,
+        nextResetDate: null,
+        ticketCount: 0,
+        notes: `Belum ada tiket (Siklus ${cycleDays} hari)`,
+      },
+      create: {
+        employeeId,
+        plafonAmount: DEFAULT_PLAFON_AMOUNT,
+        usedAmount: 0,
+        lastDepartureDate: null,
+        nextResetDate: null,
+        ticketCount: 0,
+        notes: `Belum ada tiket (Siklus ${cycleDays} hari)`,
+      },
+    });
+  }
+
+  let cycleStartDate: Date | null = null;
+  let cycleResetDate: Date | null = null;
+  let usedInCycle = 0;
+
+  for (const t of tickets) {
+    const d = new Date(t.departureDate);
+    if (!cycleResetDate || d >= cycleResetDate) {
+      cycleStartDate = d;
+      cycleResetDate = new Date(d);
+      cycleResetDate.setDate(cycleResetDate.getDate() + cycleDays);
+      usedInCycle = Number(t.ticketCost) || 0;
+    } else {
+      usedInCycle += Number(t.ticketCost) || 0;
+    }
+  }
+
+  const lastDep = tickets[tickets.length - 1].departureDate;
+  const nextReset = cycleResetDate;
+
+  const isActive = nextReset ? nextReset > now : false;
+  const currentUsed = isActive ? usedInCycle : 0;
+  const resetStr = nextReset ? nextReset.toISOString().split("T")[0] : "";
+  const notesStr = isActive
+    ? `Aktif siklus ${cycleDays} hari (berakhir ${resetStr})`
+    : `Auto-reset ${cycleDays} hari ke Rp ${DEFAULT_PLAFON_AMOUNT.toLocaleString("id-ID")} pada ${resetStr}`;
+
+  return prisma.manpowerTicketPlafon.upsert({
+    where: { employeeId },
+    update: {
+      usedAmount: currentUsed,
+      lastDepartureDate: lastDep,
+      nextResetDate: nextReset,
+      ticketCount: tickets.length,
+      notes: notesStr,
+    },
+    create: {
+      employeeId,
+      plafonAmount: DEFAULT_PLAFON_AMOUNT,
+      usedAmount: currentUsed,
+      lastDepartureDate: lastDep,
+      nextResetDate: nextReset,
+      ticketCount: tickets.length,
+      notes: notesStr,
+    },
+  });
+}
+
+/**
+ * PUT /api/ticket-plafon/ticket/:id
+ * Update an existing ticket record in TicketUsageHistory
+ * Only allowed for authorized emails: dzaky.athariqf@bataramining.com, dellafajar@bataramining.com
+ */
+export async function updateTicketUsageHistory(req: Request, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const {
+      ticketNumber,
+      destination,
+      airline,
+      departureDate,
+      returnDate,
+      ticketCost,
+      notes,
+      userEmail,
+    } = req.body;
+
+    const AUTHORIZED_EMAILS = [
+      "dzaky.athariqf@bataramining.com",
+      "dellafajar@bataramining.com",
+    ];
+
+    const emailNorm = String(userEmail || "").trim().toLowerCase();
+    if (!AUTHORIZED_EMAILS.includes(emailNorm)) {
+      return res.status(403).json({
+        success: false,
+        message: "Akses ditolak: Hanya dzaky.athariqf@bataramining.com dan dellafajar@bataramining.com yang memiliki hak akses untuk mengedit tiket.",
+      });
+    }
+
+    const existing = await prisma.ticketUsageHistory.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Data tiket tidak ditemukan.",
+      });
+    }
+
+    const costNum = ticketCost !== undefined ? Number(ticketCost) : existing.ticketCost;
+    const depDate = departureDate ? new Date(departureDate) : existing.departureDate;
+    const retDate = returnDate !== undefined ? (returnDate ? new Date(returnDate) : null) : existing.returnDate;
+
+    const updated = await prisma.ticketUsageHistory.update({
+      where: { id },
+      data: {
+        ticketNumber: ticketNumber !== undefined ? (ticketNumber ? String(ticketNumber).trim() : null) : existing.ticketNumber,
+        destination: destination !== undefined ? (destination ? String(destination).trim() : null) : existing.destination,
+        airline: airline !== undefined ? (airline ? String(airline).trim() : null) : existing.airline,
+        departureDate: depDate,
+        returnDate: retDate,
+        ticketCost: costNum,
+        notes: notes !== undefined ? (notes ? String(notes).trim() : null) : existing.notes,
+      },
+    });
+
+    // Automatically recalculate employee's plafon balance and reset cycle
+    const updatedPlafon = await recalculateEmployeePlafon(existing.employeeId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Data tiket berhasil diperbarui dan saldo plafon telah disinkronisasi.",
+      data: {
+        ticket: updated,
+        plafon: updatedPlafon,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error in updateTicketUsageHistory:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Gagal memperbarui tiket: " + error.message,
+    });
+  }
+}
+
+/**
+ * DELETE /api/ticket-plafon/ticket/:id
+ * Delete a ticket record from TicketUsageHistory
+ * Only allowed for authorized emails: dzaky.athariqf@bataramining.com, dellafajar@bataramining.com
+ */
+export async function deleteTicketUsageHistory(req: Request, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const { userEmail } = req.query;
+
+    const AUTHORIZED_EMAILS = [
+      "dzaky.athariqf@bataramining.com",
+      "dellafajar@bataramining.com",
+    ];
+
+    const emailNorm = String(userEmail || "").trim().toLowerCase();
+    if (!AUTHORIZED_EMAILS.includes(emailNorm)) {
+      return res.status(403).json({
+        success: false,
+        message: "Akses ditolak: Hanya dzaky.athariqf@bataramining.com dan dellafajar@bataramining.com yang memiliki hak akses untuk menghapus tiket.",
+      });
+    }
+
+    const existing = await prisma.ticketUsageHistory.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Data tiket tidak ditemukan.",
+      });
+    }
+
+    await prisma.ticketUsageHistory.delete({
+      where: { id },
+    });
+
+    // Recalculate employee plafon
+    const updatedPlafon = await recalculateEmployeePlafon(existing.employeeId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Tiket berhasil dihapus dan saldo plafon telah disinkronisasi.",
+      data: { plafon: updatedPlafon },
+    });
+  } catch (error: any) {
+    console.error("Error in deleteTicketUsageHistory:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Gagal menghapus tiket: " + error.message,
+    });
+  }
+}

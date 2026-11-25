@@ -11,6 +11,10 @@ ticketPlafonRouter.get("/analytics", ticketPlafonController_1.getTicketAnalytics
 ticketPlafonRouter.post("/usage", ticketPlafonController_1.recordTicketUsage);
 // GET employee ticket history
 ticketPlafonRouter.get("/history/:employeeId", ticketPlafonController_1.getTicketHistory);
+// PUT update individual ticket record
+ticketPlafonRouter.put("/ticket/:id", ticketPlafonController_1.updateTicketUsageHistory);
+// DELETE individual ticket record
+ticketPlafonRouter.delete("/ticket/:id", ticketPlafonController_1.deleteTicketUsageHistory);
 // PUT update plafon amount or notes
 ticketPlafonRouter.put("/config/:employeeId", ticketPlafonController_1.updatePlafonConfig);
 // POST manual reset
