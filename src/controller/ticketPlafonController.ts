@@ -285,7 +285,8 @@ export async function recordTicketUsage(req: Request, res: Response) {
     }
 
     const retDate = returnDate ? new Date(returnDate) : null;
-    const nextResetDate = calculate2MonthsResetDate(depDate);
+    const baseResetDate = retDate && !isNaN(retDate.getTime()) && retDate > depDate ? retDate : depDate;
+    const nextResetDate = calculate2MonthsResetDate(baseResetDate);
 
     // 1. Create TicketUsageHistory
     const history = await prisma.ticketUsageHistory.create({
