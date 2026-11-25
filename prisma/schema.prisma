@@ -658,10 +658,10 @@ model SafetyObservation {
 model ManpowerTicketPlafon {
   id                String    @id @default(uuid())
   employeeId        String    @unique
-  plafonAmount      Float     @default(5500000)
+  plafonAmount      Float     @default(5000000)
   usedAmount        Float     @default(0)
   lastDepartureDate DateTime? // Tanggal tiket keberangkatan terakhir
-  nextResetDate     DateTime? // Otomatis 2 bulan setelah lastDepartureDate
+  nextResetDate     DateTime? // Otomatis 65 hari setelah lastDepartureDate
   ticketCount       Int       @default(0)
   notes             String?
   createdAt         DateTime  @default(now())
