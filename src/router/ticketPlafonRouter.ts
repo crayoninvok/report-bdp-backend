@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getTicketPlafonList,
+  getTicketAnalytics,
   recordTicketUsage,
   getTicketHistory,
   updatePlafonConfig,
@@ -11,6 +12,9 @@ const ticketPlafonRouter = Router();
 
 // GET list & summaries
 ticketPlafonRouter.get("/", getTicketPlafonList);
+
+// GET YTD ticket purchase analytics based on manpower
+ticketPlafonRouter.get("/analytics", getTicketAnalytics);
 
 // POST record departure ticket usage
 ticketPlafonRouter.post("/usage", recordTicketUsage);

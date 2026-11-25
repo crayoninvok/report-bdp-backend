@@ -7,6 +7,7 @@ exports.recordTicketUsage = recordTicketUsage;
 exports.getTicketHistory = getTicketHistory;
 exports.updatePlafonConfig = updatePlafonConfig;
 exports.resetPlafonManual = resetPlafonManual;
+exports.getTicketAnalytics = getTicketAnalytics;
 const prisma_1 = require("../lib/prisma");
 const DEFAULT_PLAFON_AMOUNT = 5500000; // Rp 5.500.000,00 (5,5 Juta)
 /**
@@ -467,6 +468,168 @@ async function resetPlafonManual(req, res) {
         return res.status(500).json({
             success: false,
             message: "Gagal mereset plafon: " + error.message,
+        });
+    }
+}
+/**
+ * GET /api/ticket-plafon/analytics
+ * Get YTD ticket purchase analytics and trends based on manpower (from April 2026 to present).
+ * Supports optional site filtering (Senyiur / Muara Pahu / Head Office Jakarta / ALL).
+ */
+async function getTicketAnalytics(req, res) {
+    try {
+        const { site, startDate } = req.query;
+        const fromDate = startDate ? new Date(String(startDate)) : new Date("2026-04-01T00:00:00.000Z");
+        const [manpowerList, tickets] = await Promise.all([
+            prisma_1.prisma.masterManpower.findMany({
+                select: {
+                    employeeId: true,
+                    fullName: true,
+                    branchName: true,
+                    jobPosition: true,
+                    organization: true,
+                },
+            }),
+            prisma_1.prisma.ticketUsageHistory.findMany({
+                where: {
+                    departureDate: {
+                        gte: fromDate,
+                    },
+                },
+                orderBy: { departureDate: "asc" },
+            }),
+        ]);
+        const mpMap = new Map();
+        for (const m of manpowerList) {
+            mpMap.set(m.employeeId, m);
+        }
+        // Filter tickets by site if specified
+        const siteQuery = site ? String(site).trim().toLowerCase() : "all";
+        const filteredTickets = tickets.filter((t) => {
+            if (!siteQuery || siteQuery === "all")
+                return true;
+            const mp = mpMap.get(t.employeeId);
+            const bn = (mp?.branchName || "").toLowerCase();
+            if (siteQuery.includes("senyiur"))
+                return bn.includes("senyiur");
+            if (siteQuery.includes("pahu") || siteQuery.includes("muara"))
+                return bn.includes("pahu");
+            if (siteQuery.includes("jakarta") || siteQuery.includes("ho") || siteQuery.includes("head")) {
+                return bn.includes("jakarta") || bn.includes("ho");
+            }
+            return true;
+        });
+        const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const monthlyMap = {};
+        const empMap = {};
+        let totalCostYtd = 0;
+        const uniqueEmployeesYtd = new Set();
+        for (const t of filteredTickets) {
+            const d = new Date(t.departureDate);
+            const y = d.getFullYear();
+            const m = d.getMonth() + 1;
+            const mKey = `${y}-${String(m).padStart(2, "0")}`;
+            const mLabel = `${monthNames[m]} ${y}`;
+            if (!monthlyMap[mKey]) {
+                monthlyMap[mKey] = {
+                    month: mKey,
+                    monthLabel: mLabel,
+                    ticketCount: 0,
+                    totalCost: 0,
+                    employees: new Set(),
+                    senyiurCost: 0,
+                    pahuCost: 0,
+                    hoCost: 0,
+                    senyiurTickets: 0,
+                    pahuTickets: 0,
+                    hoTickets: 0,
+                    cutiCount: 0,
+                    dinasCount: 0,
+                    onsiteCount: 0,
+                };
+            }
+            const cost = Number(t.ticketCost) || 0;
+            totalCostYtd += cost;
+            uniqueEmployeesYtd.add(t.employeeId);
+            monthlyMap[mKey].ticketCount++;
+            monthlyMap[mKey].totalCost += cost;
+            monthlyMap[mKey].employees.add(t.employeeId);
+            const mp = mpMap.get(t.employeeId);
+            const bn = (mp?.branchName || "").toLowerCase();
+            if (bn.includes("senyiur")) {
+                monthlyMap[mKey].senyiurCost += cost;
+                monthlyMap[mKey].senyiurTickets++;
+            }
+            else if (bn.includes("pahu")) {
+                monthlyMap[mKey].pahuCost += cost;
+                monthlyMap[mKey].pahuTickets++;
+            }
+            else if (bn.includes("jakarta") || bn.includes("ho")) {
+                monthlyMap[mKey].hoCost += cost;
+                monthlyMap[mKey].hoTickets++;
+            }
+            const notesLow = (t.notes || "").toLowerCase();
+            if (notesLow.includes("dinas")) {
+                monthlyMap[mKey].dinasCount++;
+            }
+            else if (notesLow.includes("on site") || notesLow.includes("onsite")) {
+                monthlyMap[mKey].onsiteCount++;
+            }
+            else {
+                monthlyMap[mKey].cutiCount++;
+            }
+            // Track top manpower
+            if (!empMap[t.employeeId]) {
+                const siteNorm = bn.includes("senyiur")
+                    ? "Senyiur"
+                    : bn.includes("pahu")
+                        ? "Muara Pahu"
+                        : bn.includes("jakarta") || bn.includes("ho")
+                            ? "Head Office Jakarta"
+                            : mp?.branchName || "Other";
+                empMap[t.employeeId] = {
+                    employeeId: t.employeeId,
+                    fullName: mp?.fullName || t.employeeId,
+                    jobPosition: mp?.jobPosition || "-",
+                    organization: mp?.organization || "-",
+                    site: siteNorm,
+                    ticketCount: 0,
+                    totalCost: 0,
+                };
+            }
+            empMap[t.employeeId].ticketCount++;
+            empMap[t.employeeId].totalCost += cost;
+        }
+        const monthlyTrends = Object.values(monthlyMap).map((m) => ({
+            ...m,
+            manpowerCount: m.employees.size,
+            employees: undefined,
+        }));
+        const topManpower = Object.values(empMap)
+            .sort((a, b) => b.totalCost - a.totalCost)
+            .slice(0, 10);
+        const summaryYtd = {
+            periodLabel: "April 2026 - Sekarang (YTD)",
+            totalTicketsYtd: filteredTickets.length,
+            totalCostYtd,
+            totalUniqueManpowerYtd: uniqueEmployeesYtd.size,
+            averageCostPerTicket: filteredTickets.length > 0 ? Math.round(totalCostYtd / filteredTickets.length) : 0,
+            averageTicketsPerManpower: uniqueEmployeesYtd.size > 0 ? Number((filteredTickets.length / uniqueEmployeesYtd.size).toFixed(1)) : 0,
+        };
+        return res.status(200).json({
+            success: true,
+            data: {
+                summaryYtd,
+                monthlyTrends,
+                topManpower,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error in getTicketAnalytics:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Gagal mengambil data analytics tiket: " + error.message,
         });
     }
 }

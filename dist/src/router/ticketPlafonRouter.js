@@ -5,6 +5,8 @@ const ticketPlafonController_1 = require("../controller/ticketPlafonController")
 const ticketPlafonRouter = (0, express_1.Router)();
 // GET list & summaries
 ticketPlafonRouter.get("/", ticketPlafonController_1.getTicketPlafonList);
+// GET YTD ticket purchase analytics based on manpower
+ticketPlafonRouter.get("/analytics", ticketPlafonController_1.getTicketAnalytics);
 // POST record departure ticket usage
 ticketPlafonRouter.post("/usage", ticketPlafonController_1.recordTicketUsage);
 // GET employee ticket history
