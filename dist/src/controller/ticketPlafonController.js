@@ -71,6 +71,12 @@ async function getTicketPlafonList(req, res) {
                     mode: "insensitive",
                 };
             }
+            else if (siteStr.includes("jakarta") || siteStr.includes("ho") || siteStr.includes("head")) {
+                whereCondition.branchName = {
+                    contains: "Jakarta",
+                    mode: "insensitive",
+                };
+            }
         }
         if (department && department !== "ALL") {
             whereCondition.organization = {
@@ -150,7 +156,9 @@ async function getTicketPlafonList(req, res) {
                 ? "Senyiur"
                 : bName.includes("pahu")
                     ? "Muara Pahu"
-                    : mp.branchName || "Other";
+                    : bName.includes("jakarta") || bName.includes("ho")
+                        ? "Head Office Jakarta"
+                        : mp.branchName || "Other";
             return {
                 id: mp.id,
                 employeeId: mp.employeeId,
@@ -187,6 +195,7 @@ async function getTicketPlafonList(req, res) {
         });
         let countSenyiurTotal = 0;
         let countMuaraPahuTotal = 0;
+        let countHoJakartaTotal = 0;
         let countOtherTotal = 0;
         for (const c of allNonLokalCounts) {
             const bn = (c.branchName || "").toLowerCase();
@@ -195,6 +204,9 @@ async function getTicketPlafonList(req, res) {
             }
             else if (bn.includes("pahu")) {
                 countMuaraPahuTotal += c._count._all;
+            }
+            else if (bn.includes("jakarta") || bn.includes("ho")) {
+                countHoJakartaTotal += c._count._all;
             }
             else {
                 countOtherTotal += c._count._all;
@@ -205,9 +217,10 @@ async function getTicketPlafonList(req, res) {
             data,
             summary: {
                 totalEmployees: data.length,
-                totalNonLokalAll: countSenyiurTotal + countMuaraPahuTotal + countOtherTotal,
+                totalNonLokalAll: countSenyiurTotal + countMuaraPahuTotal + countHoJakartaTotal + countOtherTotal,
                 totalSenyiur: countSenyiurTotal,
                 totalMuaraPahu: countMuaraPahuTotal,
+                totalHoJakarta: countHoJakartaTotal,
                 totalPlafonAllocated,
                 totalPlafonUsed,
                 totalPlafonRemaining,

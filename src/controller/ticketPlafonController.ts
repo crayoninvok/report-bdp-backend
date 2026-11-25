@@ -75,6 +75,11 @@ export async function getTicketPlafonList(req: Request, res: Response) {
           contains: "Pahu",
           mode: "insensitive",
         };
+      } else if (siteStr.includes("jakarta") || siteStr.includes("ho") || siteStr.includes("head")) {
+        whereCondition.branchName = {
+          contains: "Jakarta",
+          mode: "insensitive",
+        };
       }
     }
 
@@ -166,6 +171,8 @@ export async function getTicketPlafonList(req: Request, res: Response) {
         ? "Senyiur"
         : bName.includes("pahu")
         ? "Muara Pahu"
+        : bName.includes("jakarta") || bName.includes("ho")
+        ? "Head Office Jakarta"
         : mp.branchName || "Other";
 
       return {
@@ -206,6 +213,7 @@ export async function getTicketPlafonList(req: Request, res: Response) {
 
     let countSenyiurTotal = 0;
     let countMuaraPahuTotal = 0;
+    let countHoJakartaTotal = 0;
     let countOtherTotal = 0;
 
     for (const c of allNonLokalCounts) {
@@ -214,6 +222,8 @@ export async function getTicketPlafonList(req: Request, res: Response) {
         countSenyiurTotal += c._count._all;
       } else if (bn.includes("pahu")) {
         countMuaraPahuTotal += c._count._all;
+      } else if (bn.includes("jakarta") || bn.includes("ho")) {
+        countHoJakartaTotal += c._count._all;
       } else {
         countOtherTotal += c._count._all;
       }
@@ -224,9 +234,10 @@ export async function getTicketPlafonList(req: Request, res: Response) {
       data,
       summary: {
         totalEmployees: data.length,
-        totalNonLokalAll: countSenyiurTotal + countMuaraPahuTotal + countOtherTotal,
+        totalNonLokalAll: countSenyiurTotal + countMuaraPahuTotal + countHoJakartaTotal + countOtherTotal,
         totalSenyiur: countSenyiurTotal,
         totalMuaraPahu: countMuaraPahuTotal,
+        totalHoJakarta: countHoJakartaTotal,
         totalPlafonAllocated,
         totalPlafonUsed,
         totalPlafonRemaining,
