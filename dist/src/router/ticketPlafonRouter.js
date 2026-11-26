@@ -15,6 +15,10 @@ ticketPlafonRouter.get("/history/:employeeId", ticketPlafonController_1.getTicke
 ticketPlafonRouter.put("/ticket/:id", ticketPlafonController_1.updateTicketUsageHistory);
 // DELETE individual ticket record
 ticketPlafonRouter.delete("/ticket/:id", ticketPlafonController_1.deleteTicketUsageHistory);
+// POST refund ticket record and return funds to plafon
+ticketPlafonRouter.post("/ticket/:id/refund", ticketPlafonController_1.refundTicketUsageHistory);
+// POST cancel refund status
+ticketPlafonRouter.post("/ticket/:id/cancel-refund", ticketPlafonController_1.cancelRefundTicketUsageHistory);
 // PUT update plafon amount or notes
 ticketPlafonRouter.put("/config/:employeeId", ticketPlafonController_1.updatePlafonConfig);
 // POST manual reset

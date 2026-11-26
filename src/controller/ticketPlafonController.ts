@@ -543,6 +543,7 @@ export async function getTicketAnalytics(req: Request, res: Response) {
           departureDate: {
             gte: fromDate,
           },
+          status: { in: ["Used", "Partial Refund"] },
         },
         orderBy: { departureDate: "asc" },
       }),
@@ -700,7 +701,10 @@ export async function recalculateEmployeePlafon(employeeId: string) {
       select: { jobPosition: true, fullName: true },
     }),
     prisma.ticketUsageHistory.findMany({
-      where: { employeeId, status: "Used" },
+      where: {
+        employeeId,
+        status: { in: ["Used", "Partial Refund"] },
+      },
       orderBy: { departureDate: "asc" },
     }),
   ]);
@@ -908,6 +912,181 @@ export async function deleteTicketUsageHistory(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Gagal menghapus tiket: " + error.message,
+    });
+  }
+}
+
+/**
+ * POST /api/ticket-plafon/ticket/:id/refund
+ * Process ticket refund and return funds back to employee's plafon balance
+ */
+export async function refundTicketUsageHistory(req: Request, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const {
+      refundType = "FULL",
+      refundAmount,
+      refundDate,
+      reason,
+      notes,
+      userEmail,
+    } = req.body;
+
+    const AUTHORIZED_EMAILS = [
+      "dzaky.athariqf@bataramining.com",
+      "dellafajar@bataramining.com",
+    ];
+
+    const emailNorm = String(userEmail || "").trim().toLowerCase();
+    if (!AUTHORIZED_EMAILS.includes(emailNorm)) {
+      return res.status(403).json({
+        success: false,
+        message: "Akses ditolak: Hanya dzaky.athariqf@bataramining.com dan dellafajar@bataramining.com yang memiliki hak akses untuk memproses refund tiket.",
+      });
+    }
+
+    const existing = await prisma.ticketUsageHistory.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Data tiket tidak ditemukan.",
+      });
+    }
+
+    if (existing.status === "Refunded") {
+      return res.status(400).json({
+        success: false,
+        message: "Tiket ini sudah berstatus Refunded.",
+      });
+    }
+
+    const originalCost = Number(existing.ticketCost) || 0;
+    const isFull = refundType === "FULL";
+    const refAmountNum = isFull ? originalCost : Number(refundAmount) || 0;
+
+    if (refAmountNum <= 0 || refAmountNum > originalCost) {
+      return res.status(400).json({
+        success: false,
+        message: `Nominal refund tidak valid (harus > 0 dan <= Rp ${originalCost.toLocaleString("id-ID")}).`,
+      });
+    }
+
+    const remainingCost = originalCost - refAmountNum;
+    const dateStr = refundDate
+      ? new Date(refundDate).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0];
+    const reasonStr = reason ? String(reason).trim() : "Pembatalan Tiket";
+    const additionalNotes = notes ? ` - ${String(notes).trim()}` : "";
+
+    let refundLog = "";
+    let newStatus = "Refunded";
+    let newCost = originalCost;
+
+    if (isFull) {
+      newStatus = "Refunded";
+      newCost = originalCost; // Tetap simpan nilai asli tiket untuk riwayat, tapi status='Refunded' sehingga tidak memotong plafon
+      refundLog = `[REFUND PENUH: Rp ${originalCost.toLocaleString("id-ID")} dikembalikan ke plafon pada ${dateStr}. Alasan: ${reasonStr}${additionalNotes}]`;
+    } else {
+      newStatus = "Partial Refund";
+      newCost = remainingCost; // Biaya yang tetap terpotong di plafon (misal cancellation fee)
+      refundLog = `[REFUND SEBAGIAN: Rp ${refAmountNum.toLocaleString("id-ID")} dikembalikan ke plafon (Biaya tetap terpakai: Rp ${remainingCost.toLocaleString("id-ID")}) pada ${dateStr}. Alasan: ${reasonStr}${additionalNotes}]`;
+    }
+
+    const updatedNotes = existing.notes
+      ? `${existing.notes} | ${refundLog}`
+      : refundLog;
+
+    const updatedTicket = await prisma.ticketUsageHistory.update({
+      where: { id },
+      data: {
+        status: newStatus,
+        ticketCost: newCost,
+        notes: updatedNotes,
+      },
+    });
+
+    // Otomatis sinkronisasi dan hitung ulang plafon karyawan (dana kembali ke plafon)
+    const updatedPlafon = await recalculateEmployeePlafon(existing.employeeId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Refund tiket berhasil diproses! Dana sebesar Rp ${refAmountNum.toLocaleString("id-ID")} telah dikembalikan ke saldo plafon karyawan.`,
+      data: {
+        ticket: updatedTicket,
+        plafon: updatedPlafon,
+        refundedAmount: refAmountNum,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error in refundTicketUsageHistory:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Gagal memproses refund tiket: " + error.message,
+    });
+  }
+}
+
+/**
+ * POST /api/ticket-plafon/ticket/:id/cancel-refund
+ * Cancel refund status and restore ticket back to "Used"
+ */
+export async function cancelRefundTicketUsageHistory(req: Request, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const { userEmail } = req.body;
+
+    const AUTHORIZED_EMAILS = [
+      "dzaky.athariqf@bataramining.com",
+      "dellafajar@bataramining.com",
+    ];
+
+    const emailNorm = String(userEmail || "").trim().toLowerCase();
+    if (!AUTHORIZED_EMAILS.includes(emailNorm)) {
+      return res.status(403).json({
+        success: false,
+        message: "Akses ditolak: Hanya dzaky.athariqf@bataramining.com dan dellafajar@bataramining.com yang memiliki hak akses untuk membatalkan refund.",
+      });
+    }
+
+    const existing = await prisma.ticketUsageHistory.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Data tiket tidak ditemukan.",
+      });
+    }
+
+    const updatedTicket = await prisma.ticketUsageHistory.update({
+      where: { id },
+      data: {
+        status: "Used",
+        notes: existing.notes
+          ? `${existing.notes} | [STATUS REFUND DIBATALKAN KEMBALI KE USED]`
+          : `[STATUS REFUND DIBATALKAN KEMBALI KE USED]`,
+      },
+    });
+
+    const updatedPlafon = await recalculateEmployeePlafon(existing.employeeId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Status refund berhasil dibatalkan dan tiket kembali memotong plafon.",
+      data: {
+        ticket: updatedTicket,
+        plafon: updatedPlafon,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error in cancelRefundTicketUsageHistory:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Gagal membatalkan refund: " + error.message,
     });
   }
 }
